@@ -1,13 +1,11 @@
 'use client';
-import { day, inputToIso, localInput, money, time } from '@/modules/shared/domain/format';
+import { day, money, time } from '@/modules/shared/domain/format';
 import {
   AddButton,
   Avatar,
   Badge,
   Empty,
-  Field,
   PageHeading,
-  text,
   type SectionProps,
 } from '@/modules/shared/presentation/ui';
 import { Clock3, MoreHorizontal, Search } from 'lucide-react';
@@ -17,11 +15,13 @@ export function AppointmentsPage(props: SectionProps) {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [date, setDate] = useState('');
+  const [professionalId, setProfessionalId] = useState('');
   const admin = props.data.user.role === 'admin';
   const appointments = props.data.appointments
     .filter(
       (a) =>
         (filter === 'all' || a.status === filter) &&
+        (!professionalId || (a.professionalId || 'principal') === professionalId) &&
         `${a.customerName} ${a.itemName}`.toLowerCase().includes(search.toLowerCase()) &&
         (!date ||
           new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Sao_Paulo' }).format(
@@ -63,6 +63,25 @@ export function AppointmentsPage(props: SectionProps) {
           ))}
         </div>
         <div className="toolbar-controls">
+          <select
+            aria-label="Filtrar por profissional"
+            value={professionalId}
+            onChange={(event) => setProfessionalId(event.target.value)}
+          >
+            <option value="">Todos os profissionais</option>
+            {Array.from(
+              new Map(
+                props.data.appointments.map((a) => [
+                  a.professionalId || 'principal',
+                  a.professionalName || props.data.settings.name,
+                ]),
+              ).entries(),
+            ).map(([id, name]) => (
+              <option key={id} value={id}>
+                {name}
+              </option>
+            ))}
+          </select>
           <input
             type="date"
             aria-label="Filtrar por data"
@@ -108,6 +127,7 @@ export function AppointmentsPage(props: SectionProps) {
                     <td>
                       <span className="table-date">
                         {day(a.startsAt)}
+                        <small>{a.professionalName || props.data.settings.name}</small>
                         <small>
                           {time(a.startsAt)} — {time(a.endsAt)}
                         </small>
@@ -163,19 +183,21 @@ export function AppointmentsPage(props: SectionProps) {
                                 content: (
                                   <div className="form-grid">
                                     <p>{a.notes || 'Nenhuma observação registrada.'}</p>
-                                    <Field label="Reagendar para">
-                                      <input
-                                        name="startsAt"
-                                        type="datetime-local"
-                                        defaultValue={localInput(a.startsAt)}
-                                        min={localInput()}
-                                        required
-                                      />
-                                    </Field>
+                                    <button
+                                      type="button"
+                                      className="button primary"
+                                      onClick={() =>
+                                        openBooking(props, a.itemId, a).catch((error) =>
+                                          props.notify(error.message, true),
+                                        )
+                                      }
+                                    >
+                                      Reagendar
+                                    </button>
                                     <button
                                       type="button"
                                       className="button danger"
-                                      onClick={() => {
+                                      onClick={() =>
                                         props.openDialog({
                                           title: 'Cancelar este agendamento?',
                                           description: 'O horário será liberado na agenda.',
@@ -193,22 +215,13 @@ export function AppointmentsPage(props: SectionProps) {
                                               'Agendamento cancelado.',
                                             );
                                           },
-                                        });
-                                      }}
+                                        })
+                                      }
                                     >
                                       Cancelar agendamento
                                     </button>
                                   </div>
                                 ),
-                                submitLabel: 'Salvar novo horário',
-                                onSubmit: async (form) => {
-                                  await props.mutate(
-                                    `appointments/${a.id}`,
-                                    'PATCH',
-                                    { startsAt: inputToIso(text(form, 'startsAt')) },
-                                    'Agendamento atualizado.',
-                                  );
-                                },
                               })
                             }
                           >

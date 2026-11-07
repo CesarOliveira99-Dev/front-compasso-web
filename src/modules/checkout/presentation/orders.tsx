@@ -10,6 +10,7 @@ import {
   type SectionProps,
 } from '@/modules/shared/presentation/ui';
 import { Check, Eye, Package, ShoppingBag } from 'lucide-react';
+import { api } from '@/modules/shared/infrastructure/api';
 export function OrdersPage(props: SectionProps) {
   const resource = useResource<Order[]>('orders', props.revision);
   const admin = props.data.user.role === 'admin';
@@ -56,7 +57,7 @@ export function OrdersPage(props: SectionProps) {
                     <strong>{item.name}</strong>
                     <small>
                       {item.kind === 'product'
-                        ? 'Produto • pagamento na entrega'
+                        ? 'Produto'
                         : `Serviço • ${item.startsAt ? `${day(item.startsAt)} às ${time(item.startsAt)}` : 'Consulte a agenda'}`}
                     </small>
                   </div>
@@ -80,6 +81,57 @@ export function OrdersPage(props: SectionProps) {
                   Total <strong>{money(order.totalCents)}</strong>
                 </span>
               </div>
+              {!admin &&
+                order.paymentStatus !== 'paid' &&
+                order.status !== 'cancelled' &&
+                order.paymentMethod === 'pix_manual' && (
+                  <div>
+                    <strong>Pix direto ao comerciante</strong>
+                    <p>Chave: {order.pixKey}</p>
+                    <p>
+                      Valor: {money(order.totalCents)}. Aguarde a aprovação de eventual triagem
+                      antes de pagar. O comerciante confirma o recebimento.
+                    </p>
+                    <button
+                      className="button secondary small"
+                      onClick={() =>
+                        navigator.clipboard
+                          .writeText(order.pixKey || '')
+                          .then(() => props.notify('Chave Pix copiada.'))
+                          .catch(() => props.notify('Selecione a chave e copie manualmente.', true))
+                      }
+                    >
+                      Copiar chave Pix
+                    </button>
+                  </div>
+                )}
+              {!admin &&
+                order.paymentStatus !== 'paid' &&
+                order.status !== 'cancelled' &&
+                order.paymentMethod === 'online' && (
+                  <button
+                    className="button primary small"
+                    onClick={async () => {
+                      try {
+                        const payment = await api<{ url: string }>(
+                          `payments/orders/${order.id}`,
+                          'POST',
+                          {},
+                        );
+                        window.location.assign(payment.url);
+                      } catch (error) {
+                        props.notify(
+                          error instanceof Error
+                            ? error.message
+                            : 'Não foi possível abrir o pagamento.',
+                          true,
+                        );
+                      }
+                    }}
+                  >
+                    Pagar no Mercado Pago
+                  </button>
+                )}
               {admin && (
                 <div className="row-actions">
                   {!order.seen && (
@@ -91,7 +143,7 @@ export function OrdersPage(props: SectionProps) {
                       Marcar visto
                     </button>
                   )}
-                  {order.paymentStatus !== 'paid' && (
+                  {order.paymentStatus !== 'paid' && order.paymentMethod !== 'online' && (
                     <button
                       className="button secondary small"
                       onClick={() =>

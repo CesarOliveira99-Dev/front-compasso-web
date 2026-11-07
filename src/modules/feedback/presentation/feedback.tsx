@@ -1,4 +1,10 @@
 'use client';
+import {
+  RatingInput,
+  RatingSummary,
+  RecommendationPanel,
+  type StoreReviewData,
+} from './reputation';
 import { day } from '@/modules/shared/domain/format';
 import type { Customer, Feedback } from '@/modules/shared/domain/models';
 import { api } from '@/modules/shared/infrastructure/api';
@@ -18,6 +24,7 @@ import { MessageCircle, MessageSquare } from 'lucide-react';
 export function FeedbackPage(props: SectionProps) {
   const resource = useResource<Feedback[]>('feedback', props.revision);
   const admin = props.data.user.role === 'admin';
+  const storeResource = useResource<StoreReviewData>('feedback/store', props.revision);
   const eligible = props.data.appointments.filter(
     (a) => a.status === 'completed' && !resource.value?.some((f) => f.appointmentId === a.id),
   );
@@ -37,20 +44,7 @@ export function FeedbackPage(props: SectionProps) {
               ))}
             </select>
           </Field>
-          <Field label="Como foi sua experiência?">
-            <select name="rating" defaultValue="5">
-              {[5, 4, 3, 2, 1].map((rating) => (
-                <option value={rating} key={rating}>
-                  {'★'.repeat(rating)} —{' '}
-                  {
-                    ['', 'Precisa melhorar', 'Abaixo do esperado', 'Bom', 'Muito bom', 'Excelente'][
-                      rating
-                    ]
-                  }
-                </option>
-              ))}
-            </select>
-          </Field>
+          <RatingInput />
           <Field label="Conte um pouco mais">
             <textarea
               name="comment"
@@ -61,6 +55,13 @@ export function FeedbackPage(props: SectionProps) {
               placeholder="O que tornou esse momento especial? O que podemos melhorar?"
             />
           </Field>
+          <p className="form-note">
+            Sua nota entra na média da loja. Compartilhar o comentário abaixo é opcional.
+          </p>
+          <label className="checkbox-field">
+            <input type="checkbox" name="published" />
+            Publicar meu comentário na página da loja, com meu primeiro nome.
+          </label>
         </div>
       ),
       submitLabel: 'Enviar minha avaliação',
@@ -69,6 +70,7 @@ export function FeedbackPage(props: SectionProps) {
           'feedback',
           'POST',
           {
+            published: form.has('published'),
             appointmentId: text(form, 'appointmentId'),
             rating: number(form, 'rating'),
             comment: text(form, 'comment'),
@@ -110,7 +112,8 @@ export function FeedbackPage(props: SectionProps) {
           )}
           <p className="form-note">
             A resposta será salva e enviada nas notificações do cliente. O link do WhatsApp abre a
-            conversa para envio manual.
+            conversa para envio manual. Se o comentário for público, sua resposta também aparecerá
+            na página da loja.
           </p>
         </div>
       ),
@@ -141,20 +144,28 @@ export function FeedbackPage(props: SectionProps) {
         action={!admin && <AddButton onClick={review}>Avaliar atendimento</AddButton>}
       />
       <ResourceState {...resource} />
-      <div className="feedback-overview panel">
-        <span className="rating-number">{average.toFixed(1).replace('.', ',')}</span>
-        <div>
-          <div className="stars">
-            {'★'.repeat(Math.round(average))}
-            {'☆'.repeat(5 - Math.round(average))}
+      {admin && storeResource.value && (
+        <section className="panel admin-reputation">
+          <RatingSummary summary={storeResource.value.summary} />
+        </section>
+      )}
+      {admin && <RecommendationPanel revision={props.revision} />}
+      {!admin && (
+        <div className="feedback-overview panel">
+          <span className="rating-number">{average.toFixed(1).replace('.', ',')}</span>
+          <div>
+            <div className="stars">
+              {'★'.repeat(Math.round(average))}
+              {'☆'.repeat(5 - Math.round(average))}
+            </div>
+            <p>{resource.value?.length || 0} experiências compartilhadas</p>
           </div>
-          <p>{resource.value?.length || 0} experiências compartilhadas</p>
+          <span className="feedback-overview-note">
+            <MessageSquare size={21} />
+            Boas conversas fazem bons negócios.
+          </span>
         </div>
-        <span className="feedback-overview-note">
-          <MessageSquare size={21} />
-          Boas conversas fazem bons negócios.
-        </span>
-      </div>
+      )}
       <div className="feedback-grid">
         {resource.value?.map((feedback, index) => (
           <article className="panel feedback-card" key={feedback.id}>
@@ -169,6 +180,13 @@ export function FeedbackPage(props: SectionProps) {
                 {'☆'.repeat(5 - feedback.rating)}
               </span>
             </div>
+            {admin && (
+              <p className="form-note">
+                {feedback.published
+                  ? 'Comentário público na loja'
+                  : 'Comentário reservado à loja e ao cliente'}
+              </p>
+            )}
             <blockquote>“{feedback.comment}”</blockquote>
             {feedback.reply && (
               <div className="feedback-reply">

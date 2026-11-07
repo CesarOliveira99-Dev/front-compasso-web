@@ -13,7 +13,8 @@ export type Mutate = <T = unknown>(
 export interface DialogState {
   title: string;
   description?: string;
-  content: ReactNode;
+  content:
+    ReactNode | ((controls: { close: () => void; setBusy: (busy: boolean) => void }) => ReactNode);
   submitLabel?: string;
   onSubmit?: (form: FormData) => Promise<void>;
 }
@@ -131,33 +132,35 @@ export function Dialog({ dialog, close }: { dialog: DialogState; close: () => vo
           <X size={20} />
         </button>
       </div>
-      <form
-        onSubmit={async (event) => {
-          event.preventDefault();
-          if (!dialog.onSubmit) return;
-          const form = new FormData(event.currentTarget);
-          setBusy(true);
-          setError('');
-          try {
-            await dialog.onSubmit(form);
-            close();
-          } catch (e) {
-            setError(e instanceof Error ? e.message : 'Ocorreu um erro.');
-          } finally {
-            setBusy(false);
-          }
-        }}
-      >
-        <div className="dialog-content">
-          {dialog.content}
-          {error && (
-            <p className="error-message" role="alert">
-              <AlertCircle size={17} />
-              {error}
-            </p>
-          )}
-        </div>
-        {dialog.onSubmit && (
+      {dialog.onSubmit ? (
+        <form
+          onSubmit={async (event) => {
+            event.preventDefault();
+            if (!dialog.onSubmit) return;
+            const form = new FormData(event.currentTarget);
+            setBusy(true);
+            setError('');
+            try {
+              await dialog.onSubmit(form);
+              close();
+            } catch (e) {
+              setError(e instanceof Error ? e.message : 'Ocorreu um erro.');
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <div className="dialog-content">
+            {typeof dialog.content === 'function'
+              ? dialog.content({ close, setBusy })
+              : dialog.content}
+            {error && (
+              <p className="error-message" role="alert">
+                <AlertCircle size={17} />
+                {error}
+              </p>
+            )}
+          </div>
           <div className="dialog-footer">
             <button type="button" className="button secondary" onClick={close} disabled={busy}>
               Cancelar
@@ -167,8 +170,14 @@ export function Dialog({ dialog, close }: { dialog: DialogState; close: () => vo
               {dialog.submitLabel || 'Salvar'}
             </button>
           </div>
-        )}
-      </form>
+        </form>
+      ) : (
+        <div className="dialog-content">
+          {typeof dialog.content === 'function'
+            ? dialog.content({ close, setBusy })
+            : dialog.content}
+        </div>
+      )}
     </dialog>
   );
 }
@@ -235,7 +244,7 @@ export const text = (form: FormData, key: string) => String(form.get(key) || '')
 export const number = (form: FormData, key: string) => Number(form.get(key) || 0);
 export function AddButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
   return (
-    <button className="button primary" onClick={onClick}>
+    <button type="button" className="button primary" onClick={onClick}>
       <Plus size={17} />
       {children}
     </button>
