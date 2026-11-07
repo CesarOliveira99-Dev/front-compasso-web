@@ -21,6 +21,7 @@ export interface StoreSummary {
 }
 export type Role = 'admin' | 'customer' | 'employee';
 export interface User {
+  storeSelected?: boolean;
   identityId?: string;
   professionalId?: string;
   emailVerified?: boolean;

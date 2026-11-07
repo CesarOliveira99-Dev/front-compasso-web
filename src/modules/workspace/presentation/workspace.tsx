@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import { EmployeeWorkspace } from './employee';
 import { TeamPage } from '@/modules/settings/presentation/team';
 import { Discovery } from '@/modules/stores/presentation/discovery';
+import { CustomerLobby } from './customer-lobby';
 function LoadingSection() {
   return <div className="loading-inline">Preparando seu espaço…</div>;
 }
@@ -67,7 +68,7 @@ const SettingsPage = dynamic(
   { loading: LoadingSection },
 );
 import { day, time } from '@/modules/shared/domain/format';
-import type { Bootstrap, CartLine } from '@/modules/shared/domain/models';
+import type { Bootstrap, CartLine, User } from '@/modules/shared/domain/models';
 import { api } from '@/modules/shared/infrastructure/api';
 import {
   Avatar,
@@ -154,6 +155,7 @@ const customerNavigation = [
 export function Workspace() {
   const loadedUser = useRef('');
   const [data, setData] = useState<Bootstrap>();
+  const [personalUser, setPersonalUser] = useState<User>();
   const [loading, setLoading] = useState(true);
   const [fatal, setFatal] = useState('');
   const [page, setPage] = useState('home');
@@ -166,7 +168,15 @@ export function Workspace() {
   const notify = useCallback((message: string, error = false) => setToast({ message, error }), []);
   const load = useCallback(async () => {
     try {
-      const value = await api<Bootstrap>('bootstrap');
+      const value = await api<Bootstrap | {status:'discovery'; user:User}>('bootstrap');
+      if ('status' in value && value.status === 'discovery') {
+        setPersonalUser(value.user);
+        setData(undefined);
+        setFatal('');
+        return;
+      }
+      if ('status' in value) return;
+      setPersonalUser(undefined);
       if (loadedUser.current !== value.user.id) {
         setPage(
           value.user.role === 'admin' && value.settings.setupComplete === false
@@ -185,6 +195,7 @@ export function Workspace() {
     } catch (error) {
       if (error instanceof Error && /Entre para continuar/.test(error.message)) {
         setData(undefined);
+        setPersonalUser(undefined);
       } else setFatal(error instanceof Error ? error.message : 'Não foi possível carregar.');
     } finally {
       setLoading(false);
@@ -281,6 +292,7 @@ export function Workspace() {
         <p>Organizando seu espaço…</p>
       </div>
     );
+  if (personalUser) return <CustomerLobby user={personalUser} />;
   if (!data)
     return (
       <>
@@ -294,7 +306,6 @@ export function Workspace() {
           onLogin={async () => {
             const slug = new URLSearchParams(location.search).get('loja');
             if (slug) {
-              await api('auth/switch-store', 'POST', { slug });
               location.assign(`/loja?slug=${encodeURIComponent(slug)}`);
               return;
             }

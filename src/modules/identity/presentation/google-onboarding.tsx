@@ -9,6 +9,8 @@ import {
 import { PasswordField } from './password-field';
 
 export interface GoogleOnboardingData {
+  existingAccount?: boolean;
+  personalAccountExists?: boolean;
   status: 'onboarding_required';
   profile: { name: string; email: string };
   stores: { slug: string; businessName: string; linked: boolean; existingAccount: boolean }[];
@@ -26,12 +28,16 @@ export function GoogleOnboarding({
   onBack: () => void;
 }) {
   const memberships = data.stores.filter((store) => store.linked);
+  const existingStores = data.personalAccountExists
+    ? []
+    : data.stores.filter((store) => store.existingAccount);
+  const choices = memberships.length ? memberships : existingStores;
   const [role, setRole] = useState('customer');
-  const [slug, setSlug] = useState(memberships[0]?.slug || '');
+  const [slug, setSlug] = useState(choices.length === 1 ? choices[0].slug : '');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const selection = data.stores.find((store) => store.slug === slug);
-  const existing = role === 'customer' && selection?.existingAccount;
+  const existing = role === 'customer' && (selection?.existingAccount || data.existingAccount);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -67,12 +73,12 @@ export function GoogleOnboarding({
                 setError('');
               }}
             >
-              <option value="customer">Sou cliente / entrar em uma loja</option>
+              <option value="customer">Sou cliente</option>
               <option value="admin">Quero administrar meu novo negócio</option>
             </select>
           </Field>
         )}
-        {role === 'customer' ? (
+        {role === 'customer' && choices.length > 0 ? (
           <Field
             label="Sua loja"
             hint={
@@ -93,20 +99,24 @@ export function GoogleOnboarding({
               <option value="" disabled>
                 Selecione uma loja
               </option>
-              {(memberships.length ? memberships : data.stores).map((store) => (
+              {choices.map((store) => (
                 <option key={store.slug} value={store.slug}>
                   {store.businessName}
                 </option>
               ))}
             </select>
           </Field>
-        ) : (
+        ) : role === 'admin' ? (
           <>
             <Field label="Nome do negócio">
               <input name="businessName" required minLength={2} maxLength={100} />
             </Field>
             <BusinessAddressFields />
           </>
+        ) : (
+          <p className="form-note">
+            Sua conta vale para todos os estabelecimentos. Escolha onde agendar depois.
+          </p>
         )}
         {!memberships.length && !existing && (
           <Field label="Telefone">
@@ -124,8 +134,8 @@ export function GoogleOnboarding({
         {existing && !selection?.linked && (
           <>
             <p>
-              Você já tem cadastro nesta loja. Confirme sua senha uma única vez para vincular o
-              Google e manter seus dados e permissões.
+              Você já tem uma conta. Confirme sua senha uma única vez para vincular o Google e
+              manter seus dados e permissões.
             </p>
             <PasswordField />
           </>
