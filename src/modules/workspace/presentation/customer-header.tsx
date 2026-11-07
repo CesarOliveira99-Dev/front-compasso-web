@@ -21,6 +21,9 @@ export function CustomerHeader({
 }: Props) {
   return (
     <header className="customer-header authenticated">
+      <button className="customer-more icon-button" aria-label="Mais opções do menu" onClick={openMenu}>
+        <Menu size={20} />
+      </button>
       <a
         className="brand"
         href="/"
@@ -72,13 +75,6 @@ export function CustomerHeader({
           <span>Meus agendamentos</span>
         </button>
       </nav>
-      <button
-        className="customer-more icon-button"
-        aria-label="Mais opções do menu"
-        onClick={openMenu}
-      >
-        <Menu size={20} />
-      </button>
     </header>
   );
 }

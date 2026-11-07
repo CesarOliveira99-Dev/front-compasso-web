@@ -7,6 +7,10 @@ export async function openBooking(
   initialItemId?: string,
   appointment?: Appointment,
 ) {
+  if (initialItemId && !props.data.catalog.some((item) => item.id === initialItemId && item.kind === 'service' && item.active)) {
+    props.notify('Este serviço não está mais disponível para agendar.', true);
+    return;
+  }
   const professionals = await api<Professional[]>('professionals');
   const customers =
     props.data.user.role === 'admin' && !appointment ? await api<Customer[]>('customers') : [];

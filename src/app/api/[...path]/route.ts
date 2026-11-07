@@ -14,7 +14,7 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
   const professionalsAllowed = /^professionals(?:\/[\w-]+)?$/;
   const googleAllowed = /^auth\/google(?:\/(?:config|challenge|link|complete))?$/;
   if (
-    !/^auth\/(?:store\/[\w-]+|switch-store|discovery|team(?:\/(?:invite|[\w-]+))?|invite\/(?:preview|register|accept)|password\/request|email\/request|account\/complete)$/.test(path) &&
+    !/^auth\/(?:store\/[\w-]+|switch-store|last-visit(?:\/review)?|discovery|team(?:\/(?:invite|[\w-]+))?|invite\/(?:preview|register|accept)|password\/request|email\/request|account\/complete)$/.test(path) &&
     !allowed.test(path) &&
     !paymentsAllowed.test(path) &&
     !professionalsAllowed.test(path) &&
