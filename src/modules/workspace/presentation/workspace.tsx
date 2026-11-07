@@ -38,6 +38,7 @@ import { CalendarPage } from '@/modules/appointments/presentation/calendar-page'
 import { Brand } from '@/modules/shared/presentation/brand';
 import { CustomerHeader } from './customer-header';
 import { CustomerHome } from '@/modules/dashboard/presentation/customer-home';
+import { openBooking } from '@/modules/appointments/presentation/booking-dialog';
 const FeedbackPage = dynamic(
   () => import('@/modules/feedback/presentation/feedback').then((module) => module.FeedbackPage),
   { loading: LoadingSection },
@@ -154,6 +155,7 @@ const customerNavigation = [
 ];
 export function Workspace() {
   const loadedUser = useRef('');
+  const repeatedBooking = useRef(false);
   const [data, setData] = useState<Bootstrap>();
   const [personalUser, setPersonalUser] = useState<User>();
   const [loading, setLoading] = useState(true);
@@ -293,6 +295,14 @@ export function Workspace() {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   });
+  useEffect(() => {
+    const itemId = new URLSearchParams(location.search).get('repetir');
+    if (!itemId || !data || data.user.role !== 'customer' || repeatedBooking.current) return;
+    repeatedBooking.current = true;
+    history.replaceState(null, '', location.pathname);
+    void openBooking({ data, revision, mutate, notify, openDialog, navigate }, itemId)
+      .catch((error) => notify(error.message, true));
+  }, [data]);
   if (loading)
     return (
       <div className="app-loading">
