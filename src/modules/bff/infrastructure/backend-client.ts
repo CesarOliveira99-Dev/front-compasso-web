@@ -6,7 +6,7 @@ export async function backend(path: string, init?: RequestInit): Promise<Respons
   return fetch(`${backendUrl}/${path}`, {
     ...init,
     cache: 'no-store',
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(25000),
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

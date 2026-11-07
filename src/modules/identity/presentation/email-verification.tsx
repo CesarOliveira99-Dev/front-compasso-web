@@ -1,0 +1,4 @@
+ 'use client';
+import {useState} from 'react';
+import {api} from '@/modules/shared/infrastructure/api';
+export function EmailVerification(){const [message,setMessage]=useState(''),[busy,setBusy]=useState(false);return <section className="panel settings-panel"><h2>Confirme seu e-mail</h2><p>Receba um link para confirmar seu endereço e facilitar a recuperação da conta.</p><button type="button" className="button secondary" disabled={busy} onClick={async()=>{setBusy(true);try{const result=await api<{message:string}>('auth/email/request','POST',{});setMessage(result.message);}catch(error){setMessage((error as Error).message);}finally{setBusy(false);}}}>Enviar link de confirmação</button>{message&&<p role="status">{message}</p>}</section>;}

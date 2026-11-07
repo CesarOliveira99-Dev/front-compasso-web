@@ -23,6 +23,7 @@ export function CartPage(
   const [coupon, setCoupon] = useState('');
   const [addressId, setAddressId] = useState('');
   const [busy, setBusy] = useState(false);
+  const [chosenPaymentMethod, setPaymentMethod] = useState('');
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [quote, setQuote] = useState<Quote>();
   const [quoteError, setQuoteError] = useState('');
@@ -34,11 +35,24 @@ export function CartPage(
     }))
     .filter((line) => line.item);
   const hasProduct = lines.some((line) => line.item?.kind === 'product');
+  const hasService = lines.some((line) => line.item?.kind === 'service');
+  const settings = props.data.settings;
+  const allowOnDay =
+    (!hasProduct || settings.payOnDelivery) && (!hasService || settings.payOnAppointment);
+  const paymentMethods = [
+    ...(allowOnDay ? ['on_day'] : []),
+    ...(settings.manualPixEnabled ? ['pix_manual'] : []),
+    ...(settings.onlinePaymentsEnabled ? ['online'] : []),
+  ];
+  const paymentMethod = paymentMethods.includes(chosenPaymentMethod)
+    ? chosenPaymentMethod
+    : paymentMethods[0] || '';
+
   const selectedAddressId = addressId || resource.value?.addresses.find((a) => a.isDefault)?.id;
   const input = JSON.stringify({
     items: props.cart.map((line) => ({ ...line, startsAt: line.startsAt || undefined })),
     coupon: coupon.trim() || undefined,
-    paymentMethod: 'on_day',
+    paymentMethod,
     addressId: selectedAddressId,
     idempotencyKey,
   });
@@ -46,7 +60,7 @@ export function CartPage(
     let current = true;
     setQuote(undefined);
     setQuoteError('');
-    if (!lines.length || (hasProduct && !selectedAddressId)) return;
+    if (!lines.length || !paymentMethod || (hasProduct && !selectedAddressId)) return;
     const timer = setTimeout(() => {
       api<Quote>('orders/quote', 'POST', JSON.parse(input))
         .then((value) => {
@@ -60,7 +74,7 @@ export function CartPage(
       current = false;
       clearTimeout(timer);
     };
-  }, [input, lines.length, hasProduct, selectedAddressId, props.revision]);
+  }, [input, lines.length, hasProduct, selectedAddressId, paymentMethod, props.revision]);
   async function checkout() {
     setBusy(true);
     try {
@@ -194,7 +208,7 @@ export function CartPage(
                 {quoteError}
               </p>
             )}
-            {!quote && !quoteError && (!hasProduct || selectedAddressId) && (
+            {!quote && !quoteError && !!paymentMethod && (!hasProduct || selectedAddressId) && (
               <p className="form-note">
                 <LoaderCircle className="spin" size={13} /> Validando valores…
               </p>
@@ -220,8 +234,28 @@ export function CartPage(
             <div className="checkout-payment">
               <Check size={18} />
               <div>
-                <strong>Pagamento no dia</strong>
-                <small>Serviços no atendimento • produtos na entrega</small>
+                <Field label="Como prefere pagar?">
+                  <select
+                    value={paymentMethod}
+                    onChange={(event) => setPaymentMethod(event.target.value)}
+                  >
+                    {!paymentMethods.length && <option value="">Nenhuma forma disponível</option>}
+                    {allowOnDay && <option value="on_day">Após o atendimento / na entrega</option>}
+                    {props.data.settings.manualPixEnabled && (
+                      <option value="pix_manual">Pix direto ao comerciante</option>
+                    )}
+                    {props.data.settings.onlinePaymentsEnabled && (
+                      <option value="online">Mercado Pago — Pix ou cartão</option>
+                    )}
+                  </select>
+                </Field>
+                <small>
+                  {paymentMethod === 'pix_manual'
+                    ? 'Após confirmar o pedido, consulte a chave Pix. O comerciante confere o recebimento.'
+                    : paymentMethod === 'online'
+                      ? 'Após confirmar, abra Meus pedidos para pagar. Itens com triagem precisam de aprovação.'
+                      : 'Serviços no atendimento • produtos na entrega'}
+                </small>
               </div>
             </div>
             <div className="checkout-total-row final">
@@ -230,14 +264,13 @@ export function CartPage(
             </div>
             <button
               className="button primary full"
-              disabled={busy || !quote || (hasProduct && !selectedAddressId)}
+              disabled={busy || !paymentMethod || !quote || (hasProduct && !selectedAddressId)}
               onClick={checkout}
             >
               {busy ? 'Confirmando…' : 'Confirmar meu pedido'}
             </button>
             <p className="form-note centered">
-              Valores e horários são revalidados na confirmação. Nenhum valor será cobrado pela
-              plataforma.
+              Valores e horários são revalidados. Confirmar o pedido não debita seu cartão.
             </p>
           </aside>
         </div>

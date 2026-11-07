@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './compasso.css';
 export const metadata: Metadata = {
   title: 'Compasso — Seu negócio, no seu ritmo',
   description: 'Agenda, clientes e cuidados em um só lugar.',

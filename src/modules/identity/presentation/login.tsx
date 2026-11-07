@@ -1,4 +1,5 @@
 'use client';
+import { Brand } from '@/modules/shared/presentation/brand';
 import { api } from '@/modules/shared/infrastructure/api';
 import { Field } from '@/modules/shared/presentation/ui';
 import {
@@ -10,38 +11,61 @@ import {
   LoaderCircle,
   Sparkles,
 } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { GoogleButton } from './google-button';
+import type { StoreSummary } from '@/modules/shared/domain/models';
+import {
+  BusinessAddressFields,
+  addressFromForm,
+} from '@/modules/shared/presentation/business-address-fields';
+import { PasswordField } from './password-field';
+import { GoogleOnboarding, type GoogleOnboardingData } from './google-onboarding';
 export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
+  const [stores, setStores] = useState<StoreSummary[]>([]);
+  const [loginStores, setLoginStores] = useState<StoreSummary[]>([]);
+  useEffect(() => {
+    api<StoreSummary[]>('auth/stores')
+      .then(setStores)
+      .catch(() =>
+        setError(
+          'Não foi possível carregar os estabelecimentos. Atualize a página para tentar novamente.',
+        ),
+      );
+  }, []);
+  const [registrationKey] = useState(() => crypto.randomUUID());
   const [register, setRegister] = useState(false);
   const [role, setRole] = useState('customer');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [onboarding, setOnboarding] = useState<GoogleOnboardingData | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    if (register && form.get('password') !== form.get('confirmPassword')) {
+      setError('As senhas não coincidem. Digite a mesma senha nos dois campos.');
+      (event.currentTarget.elements.namedItem('confirmPassword') as HTMLInputElement)?.focus();
+      return;
+    }
     setBusy(true);
     setError('');
     try {
-      await api(register ? 'auth/register' : 'auth/login', 'POST', Object.fromEntries(form));
+      const result = await api<{ status?: string; stores?: StoreSummary[] }>(
+        register ? 'auth/register' : 'auth/login',
+        'POST',
+        {
+          ...Object.fromEntries(form),
+          ...(register ? { idempotencyKey: registrationKey } : {}),
+          ...(register && role === 'admin' ? { address: addressFromForm(form) } : {}),
+        },
+      );
+      if (result.status === 'store_selection_required') {
+        setLoginStores(result.stores || []);
+        return;
+      }
       await onLogin();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Não foi possível entrar.');
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function demo(kind: 'admin' | 'cliente') {
-    setBusy(true);
-    setError('');
-    try {
-      await api('auth/login', 'POST', {
-        email: `${kind}@compasso.local`,
-        password: 'Compasso@2026',
-        slug: 'studio',
-      });
-      await onLogin();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Demonstração indisponível.');
     } finally {
       setBusy(false);
     }
@@ -50,10 +74,7 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
     <main className="login-page">
       <section className="login-story">
         <a className="brand" href="/">
-          <span className="brand-mark">
-            <Leaf size={23} />
-          </span>
-          compasso<span className="brand-period">.</span>
+          <Brand />
         </a>
         <div className="login-story-content">
           <span className="pill light">
@@ -104,123 +125,141 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
       </section>
       <section className="login-form-section">
         <div className="login-form">
-          <span className="eyebrow">BEM-VINDO AO SEU ESPAÇO</span>
-          <h2>{register ? 'Vamos começar?' : 'Bom ter você aqui.'}</h2>
-          <p>
-            {register
-              ? 'Crie sua conta e encontre seu ritmo.'
-              : 'Entre para acompanhar o que vem pela frente.'}
-          </p>
-          <form onSubmit={submit}>
-            {register && (
-              <>
-                <Field label="Tipo de conta">
-                  <select name="role" value={role} onChange={(e) => setRole(e.target.value)}>
-                    <option value="customer">Sou cliente</option>
-                    <option value="admin">Quero administrar meu negócio</option>
-                  </select>
-                </Field>
-                <Field label="Seu nome">
-                  <input
-                    name="name"
-                    required
-                    minLength={2}
-                    placeholder="Como podemos chamar você?"
-                    autoComplete="name"
-                  />
-                </Field>
-                <Field label="Telefone">
-                  <input
-                    name="phone"
-                    required
-                    minLength={10}
-                    placeholder="(11) 99999-9999"
-                    autoComplete="tel"
-                  />
-                </Field>
-                {role === 'admin' && (
-                  <Field label="Nome do negócio">
-                    <input name="businessName" required placeholder="O nome do seu espaço" />
-                  </Field>
-                )}
-              </>
-            )}
-            <Field label="E-mail">
-              <input
-                name="email"
-                type="email"
-                required
-                placeholder="voce@exemplo.com"
-                autoComplete="email"
-              />
-            </Field>
-            <Field label="Senha">
-              <input
-                name="password"
-                type="password"
-                required
-                minLength={8}
-                maxLength={128}
-                placeholder="Sua senha de acesso"
-                autoComplete={register ? 'new-password' : 'current-password'}
-              />
-            </Field>
-            <Field
-              label={register && role === 'admin' ? 'Código da sua nova loja' : 'Código da loja'}
-              hint="Na demonstração, use studio."
-            >
-              <input
-                name="slug"
-                defaultValue="studio"
-                pattern="[a-z0-9-]+"
-                required
-                placeholder="studio"
-              />
-            </Field>
-            {error && (
-              <p className="error-message" role="alert">
-                {error}
-              </p>
-            )}
-            <button className="button primary full" disabled={busy}>
-              {busy ? (
-                <LoaderCircle size={18} className="spin" />
-              ) : (
-                <>
-                  {register ? 'Criar minha conta' : 'Entrar no meu espaço'}
-                  <ArrowRight size={18} />
-                </>
-              )}
-            </button>
-          </form>
-          <p className="login-switch">
-            {register ? 'Já tem uma conta?' : 'Primeira vez por aqui?'}{' '}
-            <button
-              onClick={() => {
-                setRegister(!register);
+          {onboarding ? (
+            <GoogleOnboarding
+              data={onboarding}
+              onLogin={onLogin}
+              onBack={() => {
+                setOnboarding(null);
                 setError('');
               }}
-            >
-              {register ? 'Entre aqui' : 'Crie sua conta'}
-            </button>
-          </p>
-          {process.env.NODE_ENV !== 'production' && (
-            <div className="demo-box">
-              <span>
-                <Sparkles size={15} /> EXPLORE A DEMONSTRAÇÃO
-              </span>
-              <div>
-                <button onClick={() => demo('admin')} disabled={busy}>
-                  Visão do administrador
-                  <ArrowRight size={15} />
+            />
+          ) : (
+            <>
+              <span className="eyebrow">BEM-VINDO AO SEU ESPAÇO</span>
+              <h2>{register ? 'Vamos começar?' : 'Bom ter você aqui.'}</h2>
+              <p>
+                {register
+                  ? 'Crie sua conta e encontre seu ritmo.'
+                  : 'Entre para acompanhar o que vem pela frente.'}
+              </p>
+              <form ref={formRef} onSubmit={submit}>
+                {register && (
+                  <>
+                    <Field label="Tipo de conta">
+                      <select name="role" value={role} onChange={(e) => setRole(e.target.value)}>
+                        <option value="customer">Sou cliente</option>
+                        <option value="admin">Quero administrar meu negócio</option>
+                      </select>
+                    </Field>
+                    <Field label="Seu nome">
+                      <input
+                        name="name"
+                        required
+                        minLength={2}
+                        placeholder="Como podemos chamar você?"
+                        autoComplete="name"
+                      />
+                    </Field>
+                    <Field label="Telefone">
+                      <input
+                        name="phone"
+                        required
+                        minLength={10}
+                        placeholder="(11) 99999-9999"
+                        autoComplete="tel"
+                      />
+                    </Field>
+                    {role === 'admin' && (
+                      <>
+                        <Field label="Nome do negócio">
+                          <input
+                            name="businessName"
+                            required
+                            minLength={2}
+                            maxLength={100}
+                            placeholder="O nome do seu espaço"
+                          />
+                        </Field>
+                        <BusinessAddressFields />
+                      </>
+                    )}
+                  </>
+                )}
+                <Field label="E-mail">
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    placeholder="voce@exemplo.com"
+                    autoComplete="email"
+                  />
+                </Field>
+                <PasswordField
+                  key={register ? 'new-password' : 'login-password'}
+                  register={register}
+                />
+                {register && <PasswordField confirm register />}
+                {((register && role === 'customer') || (!register && loginStores.length > 0)) && (
+                  <Field label="Estabelecimento">
+                    <select name="slug" required defaultValue="">
+                      <option value="" disabled>
+                        Selecione a loja pelo nome
+                      </option>
+                      {(register ? stores : loginStores).map((store) => (
+                        <option key={store.slug} value={store.slug}>
+                          {store.businessName}
+                          {store.city ? ` — ${store.city}/${store.state}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                )}
+                {error && (
+                  <p className="error-message" role="alert">
+                    {error}
+                  </p>
+                )}
+                <button className="button primary full" disabled={busy}>
+                  {busy ? (
+                    <LoaderCircle size={18} className="spin" />
+                  ) : (
+                    <>
+                      {register ? 'Criar minha conta' : 'Entrar no meu espaço'}
+                      <ArrowRight size={18} />
+                    </>
+                  )}
                 </button>
-                <button onClick={() => demo('cliente')} disabled={busy}>
-                  Visão do cliente
-                  <ArrowRight size={15} />
+              </form>
+              <GoogleButton
+                separator
+                key={register ? 'register' : 'login'}
+                getInput={() => ({ mode: 'login' })}
+                onSuccess={async (result) => {
+                  setError('');
+                  if ('status' in result && result.status === 'onboarding_required')
+                    setOnboarding(result);
+                  else await onLogin();
+                }}
+                onError={setError}
+              />
+              <nav className="login-help-links" aria-label="Ajuda e estabelecimentos">
+                <a href="/conta">Esqueci minha senha</a>
+                <a href="/descobrir">Descobrir estabelecimentos</a>
+              </nav>
+              <p className="login-switch">
+                {register ? 'Já tem uma conta?' : 'Primeira vez por aqui?'}{' '}
+                <button
+                  onClick={() => {
+                    setRegister(!register);
+                    setLoginStores([]);
+                    setError('');
+                  }}
+                >
+                  {register ? 'Entre aqui' : 'Crie sua conta'}
                 </button>
-              </div>
-              <small>Dados fictícios • nenhum pagamento ou envio externo</small>
-            </div>
+              </p>
+            </>
           )}
           <div className="login-bottom">
             <CircleHelp size={15} />
