@@ -85,7 +85,7 @@ export function EmployeeWorkspace(props: SectionProps & { logout: () => Promise<
           {tab === 'agenda' && <CalendarPage {...props} openDialog={setDialog} />}
           {tab === 'horarios' && (
             <>
-              <EmailVerification />
+              <EmailVerification verified={props.data.user.emailVerified} />
               <div className="page-heading">
                 <div>
                   <h1>Meus horários</h1>

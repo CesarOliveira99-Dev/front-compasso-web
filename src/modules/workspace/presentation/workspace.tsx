@@ -205,6 +205,15 @@ export function Workspace() {
     void load();
   }, [load]);
   useEffect(() => {
+    const refresh = () => { if (document.visibilityState === 'visible') void load(); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [load]);
+  useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(undefined), 5500);
     return () => clearTimeout(timer);

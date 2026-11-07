@@ -73,7 +73,7 @@ export function ProfilePage(props: SectionProps) {
   }
   return (
     <>
-      <EmailVerification/>
+      <EmailVerification verified={props.data.user.emailVerified}/>
       <PageHeading
         eyebrow="SEU ESPAÇO PESSOAL"
         title="Meus dados"
