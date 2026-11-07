@@ -220,7 +220,7 @@ export function SettingsPage(props: SectionProps) {
         </div>
         <aside className="settings-aside">
           <RecommendationPanel revision={props.revision} />
-          <EmailVerification />
+          <EmailVerification verified={props.data.user.emailVerified} />
           <PaymentsSettings {...props} />
           <section className="panel integration-card">
             <span className="stat-icon sage">
