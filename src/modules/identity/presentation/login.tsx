@@ -11,7 +11,7 @@ import {
   LoaderCircle,
   Sparkles,
 } from 'lucide-react';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { GoogleButton } from './google-button';
 import type { StoreSummary } from '@/modules/shared/domain/models';
 import {
@@ -21,17 +21,7 @@ import {
 import { PasswordField } from './password-field';
 import { GoogleOnboarding, type GoogleOnboardingData } from './google-onboarding';
 export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
-  const [stores, setStores] = useState<StoreSummary[]>([]);
   const [loginStores, setLoginStores] = useState<StoreSummary[]>([]);
-  useEffect(() => {
-    api<StoreSummary[]>('auth/stores')
-      .then(setStores)
-      .catch(() =>
-        setError(
-          'Não foi possível carregar os estabelecimentos. Atualize a página para tentar novamente.',
-        ),
-      );
-  }, []);
   const [registrationKey] = useState(() => crypto.randomUUID());
   const [register, setRegister] = useState(false);
   const [role, setRole] = useState('customer');
@@ -200,13 +190,13 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
                   register={register}
                 />
                 {register && <PasswordField confirm register />}
-                {((register && role === 'customer') || (!register && loginStores.length > 0)) && (
+                {!register && loginStores.length > 0 && (
                   <Field label="Estabelecimento">
                     <select name="slug" required defaultValue="">
                       <option value="" disabled>
                         Selecione a loja pelo nome
                       </option>
-                      {(register ? stores : loginStores).map((store) => (
+                      {loginStores.map((store) => (
                         <option key={store.slug} value={store.slug}>
                           {store.businessName}
                           {store.city ? ` — ${store.city}/${store.state}` : ''}
@@ -214,6 +204,9 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
                       ))}
                     </select>
                   </Field>
+                )}
+                {register && role === 'customer' && (
+                  <p className="form-note">Sua conta vale para todos os estabelecimentos. Escolha onde agendar depois.</p>
                 )}
                 {error && (
                   <p className="error-message" role="alert">
