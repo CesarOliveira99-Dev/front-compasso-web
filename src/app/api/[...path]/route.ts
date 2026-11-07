@@ -16,6 +16,7 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
   if (
     !/^auth\/(?:store\/[\w-]+|switch-store|last-visit(?:\/review)?|discovery|team(?:\/(?:invite|[\w-]+))?|invite\/(?:preview|register|accept)|password\/request|email\/request|account\/complete)$/.test(path) &&
     !allowed.test(path) &&
+    !/^insights\/expenses\/[a-f0-9-]{36}$/.test(path) &&
     !paymentsAllowed.test(path) &&
     !professionalsAllowed.test(path) &&
     !googleAllowed.test(path) &&
@@ -123,3 +124,5 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
 export const GET = handle;
 export const POST = handle;
 export const PATCH = handle;
+export const PUT = handle;
+export const DELETE = handle;

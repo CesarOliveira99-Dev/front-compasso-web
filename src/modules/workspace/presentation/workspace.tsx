@@ -130,7 +130,7 @@ const adminNavigation = [
     items: [
       { id: 'catalog', name: 'Serviços e produtos', icon: Package },
       { id: 'orders', name: 'Pedidos e vendas', icon: ShoppingBag },
-      { id: 'wallet', name: 'Minha carteira', icon: Wallet },
+      { id: 'wallet', name: 'Finanças', icon: Wallet },
       { id: 'promotions', name: 'Cupons e promoções', icon: Gift },
       { id: 'loyalty', name: 'Retornos e fidelidade', icon: Flower2 },
       { id: 'reports', name: 'Relatórios', icon: ChartNoAxesCombined },
