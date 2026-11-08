@@ -3,9 +3,10 @@ import type { Settings } from '@/modules/shared/domain/models';
 import './business-home.css';
 
 export function BusinessCover({ settings }: { settings: Settings }) {
-  const cover =
-    settings.media?.find((asset) => asset.type === 'image' && asset.category === 'workspace') ||
-    settings.media?.find((asset) => asset.type === 'image' && !asset.category);
+  // Reuse the first photo shown in the store's "Espaço de trabalho" gallery.
+  const cover = settings.media?.find(
+    (asset) => asset.type === 'image' && asset.category !== 'portfolio',
+  );
   return (
     <section className="business-home-cover" aria-label={`Seu espaço: ${settings.businessName}`}>
       <div className="business-home-photo">
@@ -28,3 +29,4 @@ export function BusinessCover({ settings }: { settings: Settings }) {
     </section>
   );
 }
+
