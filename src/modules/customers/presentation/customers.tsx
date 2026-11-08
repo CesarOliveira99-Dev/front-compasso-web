@@ -89,8 +89,8 @@ export function CustomersPage(props: SectionProps) {
                       Peça ao cliente para criar uma conta na página de entrada do Compasso,
                       selecionando “Sou cliente”.
                     </p>
-                    <Field label="Código da sua loja">
-                      <input readOnly value={props.data.settings.slug} />
+                    <Field label="Nome do estabelecimento">
+                      <input readOnly value={props.data.settings.businessName} />
                     </Field>
                     <button
                       type="button"
@@ -98,10 +98,10 @@ export function CustomersPage(props: SectionProps) {
                       onClick={() =>
                         navigator.clipboard
                           .writeText(
-                            `${window.location.origin} — código da loja: ${props.data.settings.slug}`,
+                            `${window.location.origin} — encontre ${props.data.settings.businessName} pelo nome`,
                           )
                           .then(() => props.notify('Convite copiado.'))
-                          .catch(() => props.notify('Copie o código da loja acima.'))
+                          .catch(() => props.notify('Copie o nome do estabelecimento acima.'))
                       }
                     >
                       Copiar convite

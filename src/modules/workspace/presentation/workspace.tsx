@@ -1,5 +1,9 @@
 'use client';
 import dynamic from 'next/dynamic';
+import { EmployeeWorkspace } from './employee';
+import { TeamPage } from '@/modules/settings/presentation/team';
+import { Discovery } from '@/modules/stores/presentation/discovery';
+import { CustomerLobby } from './customer-lobby';
 function LoadingSection() {
   return <div className="loading-inline">Preparando seu espaço…</div>;
 }
@@ -30,7 +34,11 @@ const ProfilePage = dynamic(
   () => import('@/modules/customers/presentation/profile').then((module) => module.ProfilePage),
   { loading: LoadingSection },
 );
-import { DashboardPage } from '@/modules/dashboard/presentation/dashboard';
+import { CalendarPage } from '@/modules/appointments/presentation/calendar-page';
+import { Brand } from '@/modules/shared/presentation/brand';
+import { CustomerHeader } from './customer-header';
+import { CustomerHome } from '@/modules/dashboard/presentation/customer-home';
+import { openBooking } from '@/modules/appointments/presentation/booking-dialog';
 const FeedbackPage = dynamic(
   () => import('@/modules/feedback/presentation/feedback').then((module) => module.FeedbackPage),
   { loading: LoadingSection },
@@ -61,7 +69,7 @@ const SettingsPage = dynamic(
   { loading: LoadingSection },
 );
 import { day, time } from '@/modules/shared/domain/format';
-import type { Bootstrap, CartLine } from '@/modules/shared/domain/models';
+import type { Bootstrap, CartLine, User } from '@/modules/shared/domain/models';
 import { api } from '@/modules/shared/infrastructure/api';
 import {
   Avatar,
@@ -104,14 +112,15 @@ import {
   Wallet,
   X,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 const adminNavigation = [
   {
     label: 'SEU DIA A DIA',
     items: [
-      { id: 'home', name: 'Visão geral', icon: LayoutDashboard },
-      { id: 'appointments', name: 'Minha agenda', icon: CalendarDays },
+      { id: 'home', name: 'Calendário', icon: CalendarDays },
+      { id: 'appointments', name: 'Histórico de atendimentos', icon: ClipboardList },
       { id: 'customers', name: 'Clientes', icon: Users },
+      { id: 'team', name: 'Equipe', icon: Users },
       { id: 'triage', name: 'Triagem', icon: ClipboardList },
       { id: 'feedback', name: 'Avaliações', icon: MessageCircle },
     ],
@@ -121,7 +130,7 @@ const adminNavigation = [
     items: [
       { id: 'catalog', name: 'Serviços e produtos', icon: Package },
       { id: 'orders', name: 'Pedidos e vendas', icon: ShoppingBag },
-      { id: 'wallet', name: 'Minha carteira', icon: Wallet },
+      { id: 'wallet', name: 'Finanças', icon: Wallet },
       { id: 'promotions', name: 'Cupons e promoções', icon: Gift },
       { id: 'loyalty', name: 'Retornos e fidelidade', icon: Flower2 },
       { id: 'reports', name: 'Relatórios', icon: ChartNoAxesCombined },
@@ -133,7 +142,8 @@ const customerNavigation = [
   {
     label: 'SEU ESPAÇO',
     items: [
-      { id: 'home', name: 'Visão geral', icon: LayoutDashboard },
+      { id: 'discovery', name: 'Descobrir lojas', icon: Search },
+      { id: 'home', name: 'Menu Principal', icon: LayoutDashboard },
       { id: 'catalog', name: 'Serviços e produtos', icon: Package },
       { id: 'appointments', name: 'Meus agendamentos', icon: CalendarDays },
       { id: 'orders', name: 'Meus pedidos', icon: ShoppingBag },
@@ -144,7 +154,10 @@ const customerNavigation = [
   },
 ];
 export function Workspace() {
+  const loadedUser = useRef('');
+  const repeatedBooking = useRef(false);
   const [data, setData] = useState<Bootstrap>();
+  const [personalUser, setPersonalUser] = useState<User>();
   const [loading, setLoading] = useState(true);
   const [fatal, setFatal] = useState('');
   const [page, setPage] = useState('home');
@@ -157,13 +170,34 @@ export function Workspace() {
   const notify = useCallback((message: string, error = false) => setToast({ message, error }), []);
   const load = useCallback(async () => {
     try {
-      const value = await api<Bootstrap>('bootstrap');
+      const value = await api<Bootstrap | {status:'discovery'; user:User}>('bootstrap');
+      if ('status' in value && value.status === 'discovery') {
+        setPersonalUser(value.user);
+        setData(undefined);
+        setFatal('');
+        return;
+      }
+      if ('status' in value) return;
+      setPersonalUser(undefined);
+      if (loadedUser.current !== value.user.id) {
+        setPage(
+          value.user.role === 'admin' && value.settings.setupComplete === false
+            ? 'settings'
+            : value.user.role === 'customer'
+              ? new URLSearchParams(location.search).has('agendar')
+                ? 'catalog'
+                : 'home'
+              : 'home',
+        );
+        loadedUser.current = value.user.id;
+      }
       setData(value);
       setFatal('');
       return value;
     } catch (error) {
       if (error instanceof Error && /Entre para continuar/.test(error.message)) {
         setData(undefined);
+        setPersonalUser(undefined);
       } else setFatal(error instanceof Error ? error.message : 'Não foi possível carregar.');
     } finally {
       setLoading(false);
@@ -171,6 +205,15 @@ export function Workspace() {
   }, []);
   useEffect(() => {
     void load();
+  }, [load]);
+  useEffect(() => {
+    const refresh = () => { if (document.visibilityState === 'visible') void load(); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
   }, [load]);
   useEffect(() => {
     if (!toast) return;
@@ -190,6 +233,8 @@ export function Workspace() {
       setCartState(JSON.parse(localStorage.getItem(`compasso:cart:${data.user.id}`) || '[]'));
     } catch {
       setCartState([]);
+      setMobile(false);
+      setNotifications(false);
     }
   }, [data?.user.id]);
   function setCart(value: CartLine[]) {
@@ -214,8 +259,12 @@ export function Workspace() {
     try {
       await api('auth/logout', 'POST', {});
       setData(undefined);
+      loadedUser.current = '';
       setCartState([]);
       setPage('home');
+      setMobile(false);
+      setNotifications(false);
+      setDialog(undefined);
     } catch (error) {
       notify(error instanceof Error ? error.message : 'Não foi possível sair.', true);
     }
@@ -246,17 +295,23 @@ export function Workspace() {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   });
+  useEffect(() => {
+    const itemId = new URLSearchParams(location.search).get('repetir');
+    if (!itemId || !data || data.user.role !== 'customer' || repeatedBooking.current) return;
+    repeatedBooking.current = true;
+    history.replaceState(null, '', location.pathname);
+    void openBooking({ data, revision, mutate, notify, openDialog, navigate }, itemId)
+      .catch((error) => notify(error.message, true));
+  }, [data]);
   if (loading)
     return (
       <div className="app-loading">
-        <span className="brand-mark">
-          <Leaf size={27} />
-        </span>
-        <strong>compasso.</strong>
+        <Brand />
         <LoaderCircle size={20} className="spin" />
         <p>Organizando seu espaço…</p>
       </div>
     );
+  if (personalUser) return <CustomerLobby user={personalUser} />;
   if (!data)
     return (
       <>
@@ -268,8 +323,12 @@ export function Workspace() {
         )}
         <Login
           onLogin={async () => {
+            const slug = new URLSearchParams(location.search).get('loja');
+            if (slug) {
+              location.assign(`/loja?slug=${encodeURIComponent(slug)}`);
+              return;
+            }
             await load();
-            setPage('home');
           }}
         />
       </>
@@ -281,8 +340,15 @@ export function Workspace() {
     (page === 'settings' ? 'Configurações' : page === 'cart' ? 'Sua sacola' : 'Visão geral');
   const unread = data.notifications.filter((n) => !n.read).length;
   const props: SectionProps = { data, revision, mutate, notify, openDialog, navigate };
+  if (data.user.role === 'employee') return <EmployeeWorkspace {...props} logout={logout} />;
   let content;
   switch (page) {
+    case 'team':
+      content = admin ? <TeamPage {...props} /> : <Discovery />;
+      break;
+    case 'discovery':
+      content = <Discovery />;
+      break;
     case 'appointments':
       content = <AppointmentsPage {...props} />;
       break;
@@ -334,10 +400,10 @@ export function Workspace() {
       content = <CartPage {...props} cart={cart} setCart={setCart} />;
       break;
     default:
-      content = <DashboardPage {...props} />;
+      content = admin ? <CalendarPage {...props} /> : <CustomerHome {...props} />;
   }
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${admin ? 'admin-shell' : 'customer-shell'}`}>
       {mobile && (
         <button
           className="sidebar-scrim"
@@ -349,22 +415,20 @@ export function Workspace() {
         <a
           className="brand"
           href="/"
+          aria-label="Compasso, início"
           onClick={(event) => {
             event.preventDefault();
             navigate('home');
           }}
         >
-          <span className="brand-mark">
-            <Leaf size={22} />
-          </span>
-          compasso<span className="brand-period">.</span>
+          <Brand />
         </a>
         <div className="business-switch">
           <span className="business-icon">
             <Flower2 size={22} />
           </span>
           <div>
-            <strong>{data.settings.businessName}</strong>
+            <strong>{admin ? data.settings.businessName : 'Compasso'}</strong>
             <small>{admin ? 'Seu espaço de cuidado' : 'Seu cuidado por perto'}</small>
           </div>
           <span className="store-indicator" />
@@ -378,6 +442,8 @@ export function Workspace() {
                   key={item.id}
                   className={`nav-item ${page === item.id ? 'active' : ''}`}
                   aria-current={page === item.id ? 'page' : undefined}
+                  title={item.name}
+                  aria-label={item.name}
                   onClick={() => navigate(item.id)}
                 >
                   <item.icon size={18} strokeWidth={1.7} />
@@ -402,6 +468,8 @@ export function Workspace() {
           {admin && (
             <button
               className={`nav-item ${page === 'settings' ? 'active' : ''}`}
+              aria-label="Configurações"
+              title="Configurações"
               onClick={() => navigate('settings')}
             >
               <Settings size={18} strokeWidth={1.7} />
@@ -410,6 +478,8 @@ export function Workspace() {
           )}
           <button
             className="nav-item"
+            aria-label="Ajuda"
+            title="Ajuda"
             onClick={() =>
               openDialog({
                 title: 'Encontre seu ritmo com o Compasso',
@@ -426,7 +496,7 @@ export function Workspace() {
                           [
                             '2',
                             'Convide seus clientes',
-                            `Eles se cadastram usando o código ${data.settings.slug}.`,
+                            'Eles encontram seu estabelecimento pelo nome no cadastro.',
                           ],
                           [
                             '3',
@@ -494,7 +564,18 @@ export function Workspace() {
         </div>
       </aside>
       <div className="workspace">
-        <header className="topbar">
+        {!admin && (
+          <CustomerHeader
+            name={data.user.name}
+            page={page}
+            cartCount={cart.length}
+            unread={unread}
+            navigate={navigate}
+            openMenu={() => setMobile(true)}
+            openNotifications={() => setNotifications(!notifications)}
+          />
+        )}
+        <header className={`topbar ${admin ? '' : 'admin-topbar-hidden'}`}>
           <div className="breadcrumb">
             <button
               className="icon-button mobile-menu"
@@ -503,12 +584,22 @@ export function Workspace() {
             >
               <Menu size={21} />
             </button>
+            <a
+              className="admin-mobile-brand brand"
+              href="/"
+              onClick={(event) => {
+                event.preventDefault();
+                navigate('home');
+              }}
+            >
+              <Brand />
+            </a>
             <span>{admin ? 'Meu negócio' : 'Meu espaço'}</span>
             <ChevronRight size={13} />
             <strong>{currentLabel}</strong>
           </div>
           <div className="topbar-actions">
-            <button className="topbar-search" onClick={search}>
+            <button className="topbar-search" aria-label="Pesquisar na plataforma" onClick={search}>
               <Search size={16} />
               <span>Encontre algo…</span>
               <kbd>⌘ K</kbd>
@@ -534,6 +625,7 @@ export function Workspace() {
             <span className="topbar-divider" />
             <button
               className="topbar-user"
+              aria-label={`Conta de ${data.user.name}`}
               onClick={() => navigate(admin ? 'settings' : 'profile')}
             >
               <Avatar name={data.user.name} size="small" />
@@ -542,6 +634,22 @@ export function Workspace() {
             </button>
           </div>
         </header>
+        <nav className="pulse-section-nav" aria-label="Atalhos principais">
+          {(admin
+            ? adminNavigation[0].items.slice(0, 4)
+            : customerNavigation[0].items.filter((item) =>
+                ['home', 'discovery', 'appointments', 'profile'].includes(item.id),
+              )
+          ).map((item) => (
+            <button
+              key={item.id}
+              aria-current={page === item.id ? 'page' : undefined}
+              onClick={() => navigate(item.id)}
+            >
+              {item.name}
+            </button>
+          ))}
+        </nav>
         {notifications && (
           <section className="notifications-popover">
             <div className="panel-heading">

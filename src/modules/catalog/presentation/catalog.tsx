@@ -1,6 +1,14 @@
 'use client';
+import { StoreReviews } from '@/modules/feedback/presentation/reputation';
+import {
+  MediaEditor,
+  MediaGallery,
+  mediaFromForm,
+} from '@/modules/shared/presentation/media-editor';
+import { Storefront } from '@/modules/stores/presentation/storefront';
 import { money } from '@/modules/shared/domain/format';
 import type { CartLine, CatalogItem } from '@/modules/shared/domain/models';
+import { openBooking } from '@/modules/appointments/presentation/booking-dialog';
 import {
   AddButton,
   Empty,
@@ -78,6 +86,7 @@ export function CatalogPage(props: SectionProps & { addToCart: (line: CartLine) 
               defaultValue={item?.description}
             />
           </Field>
+          <MediaEditor initial={item?.media} limit={6} />
           <label className="checkbox-field">
             <input type="checkbox" name="requiresTriage" defaultChecked={item?.requiresTriage} />
             Solicitar triagem antes da confirmação do serviço
@@ -93,6 +102,7 @@ export function CatalogPage(props: SectionProps & { addToCart: (line: CartLine) 
           item ? `catalog/${item.id}` : 'catalog',
           item ? 'PATCH' : 'POST',
           {
+            media: mediaFromForm(form),
             name: text(form, 'name'),
             kind: text(form, 'kind'),
             category: text(form, 'category'),
@@ -107,6 +117,14 @@ export function CatalogPage(props: SectionProps & { addToCart: (line: CartLine) 
       },
     });
   }
+  const popular = props.data.catalog
+    .filter((item) => item.kind === 'service' && item.active && (item.popularityCount || 0) > 0)
+    .sort(
+      (a, b) =>
+        (b.popularityCount || 0) - (a.popularityCount || 0) ||
+        a.name.localeCompare(b.name, 'pt-BR'),
+    )
+    .slice(0, 3);
   const items = props.data.catalog.filter(
     (item) =>
       (filter === 'all' || item.kind === filter) &&
@@ -114,6 +132,7 @@ export function CatalogPage(props: SectionProps & { addToCart: (line: CartLine) 
   );
   return (
     <>
+      {!admin && <Storefront {...props} />}
       <PageHeading
         eyebrow={admin ? 'O QUE VOCÊ FAZ DE MELHOR' : 'UM MOMENTO PARA VOCÊ'}
         title={admin ? 'Serviços e produtos' : 'Encontre seu próximo cuidado'}
@@ -124,6 +143,32 @@ export function CatalogPage(props: SectionProps & { addToCart: (line: CartLine) 
         }
         action={admin ? <AddButton onClick={() => edit()}>Novo item</AddButton> : undefined}
       />
+      {!!popular.length && filter === 'all' && !search.trim() && (
+        <section className="popular-services" aria-label="Serviços mais populares">
+          <header>
+            <div>
+              <span className="eyebrow">OS FAVORITOS DA ROTINA</span>
+              <h2>Mais agendados</h2>
+            </div>
+            <p>Confirmados ou concluídos nos últimos 90 dias.</p>
+          </header>
+          <div>
+            {popular.map((item, index) => (
+              <a href={`#catalog-${item.id}`} key={item.id} className="popular-service">
+                <span className="popular-position">0{index + 1}</span>
+                <div>
+                  <h3>{item.name}</h3>
+                  <small>
+                    {item.popularityCount} agendamentos · {item.durationMinutes} min
+                  </small>
+                </div>
+                <strong>{money(item.currentPriceCents)}</strong>
+                <span aria-hidden="true">↗</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
       <div className="toolbar">
         <div className="tabs">
           {[
@@ -151,8 +196,16 @@ export function CatalogPage(props: SectionProps & { addToCart: (line: CartLine) 
       </div>
       <div className="catalog-grid">
         {items.map((item, index) => (
-          <article className={`catalog-card ${!item.active ? 'inactive' : ''}`} key={item.id}>
-            <div className={`catalog-art art-${index % 5}`}>
+          <article
+            id={`catalog-${item.id}`}
+            tabIndex={-1}
+            className={`catalog-card ${!item.active ? 'inactive' : ''}`}
+            key={item.id}
+          >
+            <div
+              className={`catalog-art art-${index % 5} ${item.media?.length ? 'has-media' : ''}`}
+            >
+              {!!item.media?.length && <MediaGallery assets={[item.media[0]]} />}
               <span className="catalog-art-shape" />
               {item.kind === 'product' ? (
                 <Package size={53} strokeWidth={1} />
@@ -170,6 +223,9 @@ export function CatalogPage(props: SectionProps & { addToCart: (line: CartLine) 
               <span className="eyebrow">{item.category}</span>
               <h3>{item.name}</h3>
               <p>{item.description}</p>
+              {!!item.media && item.media.length > 1 && (
+                <MediaGallery assets={item.media.slice(1)} />
+              )}
               <div className="catalog-meta">
                 {item.kind === 'service' ? (
                   <>
@@ -196,23 +252,26 @@ export function CatalogPage(props: SectionProps & { addToCart: (line: CartLine) 
                 ) : (
                   <button
                     className="button primary small"
-                    onClick={() => {
-                      if (item.kind === 'service' || item.requiresTriage) {
+                    onClick={async () => {
+                      if (item.kind === 'service') {
+                        try {
+                          await openBooking(props, item.id);
+                        } catch (error) {
+                          props.notify(
+                            error instanceof Error
+                              ? error.message
+                              : 'Não foi possível carregar a agenda.',
+                            true,
+                          );
+                        }
+                        return;
+                      }
+                      if (item.requiresTriage) {
                         props.openDialog({
-                          title:
-                            item.kind === 'service'
-                              ? 'Adicionar serviço à sacola'
-                              : 'Adicionar produto com triagem',
+                          title: 'Adicionar produto com triagem',
                           description: item.name,
                           content: (
                             <div className="form-grid">
-                              <>
-                                {item.kind === 'service' && (
-                                  <Field label="Data e horário">
-                                    <input name="startsAt" type="datetime-local" required />
-                                  </Field>
-                                )}
-                              </>
                               <Field label="Preferências e necessidade para triagem">
                                 <textarea
                                   name="notes"
@@ -223,8 +282,7 @@ export function CatalogPage(props: SectionProps & { addToCart: (line: CartLine) 
                                 />
                               </Field>
                               <p className="form-note">
-                                A disponibilidade será conferida ao finalizar o pedido. Horário de
-                                Brasília.
+                                Produtos com triagem aguardam aprovação da loja.
                               </p>
                             </div>
                           ),
@@ -233,10 +291,7 @@ export function CatalogPage(props: SectionProps & { addToCart: (line: CartLine) 
                             props.addToCart({
                               itemId: item.id,
                               quantity: 1,
-                              startsAt:
-                                item.kind === 'service'
-                                  ? new Date(`${text(form, 'startsAt')}:00-03:00`).toISOString()
-                                  : '',
+                              startsAt: '',
                               notes: text(form, 'notes'),
                             });
                           },
@@ -246,7 +301,7 @@ export function CatalogPage(props: SectionProps & { addToCart: (line: CartLine) 
                     }}
                   >
                     <Plus size={15} />
-                    {item.kind === 'service' ? 'Escolher' : 'Adicionar'}
+                    {item.kind === 'service' ? 'Agendar' : 'Adicionar'}
                   </button>
                 )}
               </div>
@@ -254,6 +309,7 @@ export function CatalogPage(props: SectionProps & { addToCart: (line: CartLine) 
           </article>
         ))}
       </div>
+      {!admin && <StoreReviews revision={props.revision} />}
       {!items.length && (
         <Empty
           title="Nenhum item encontrado"
