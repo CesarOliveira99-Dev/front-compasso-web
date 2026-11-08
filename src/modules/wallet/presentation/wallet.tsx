@@ -1,8 +1,9 @@
 'use client';
 import { day, money } from '@/modules/shared/domain/format';
-import type { Wallet as WalletData } from '@/modules/shared/domain/models';
+import type { Expense, Wallet as WalletData } from '@/modules/shared/domain/models';
 import {
   Badge,
+  Field,
   Empty,
   PageHeading,
   PanelHeading,
@@ -10,19 +11,107 @@ import {
   useResource,
   type SectionProps,
 } from '@/modules/shared/presentation/ui';
-import { ArrowDownLeft, Clock3, TrendingUp, Wallet } from 'lucide-react';
+import { ArrowDownLeft, Clock3, Plus, TrendingUp, Wallet } from 'lucide-react';
 import { useState } from 'react';
 export function WalletPage(props: SectionProps) {
   const [days, setDays] = useState(30);
-  const [tab, setTab] = useState('completed');
+  const [tab, setTab] = useState('received');
   const resource = useResource<WalletData>(`insights/wallet?days=${days}`, props.revision);
   const wallet = resource.value;
+  const categories = {
+    supplies: 'Materiais e produtos',
+    rent: 'Aluguel',
+    utilities: 'Contas e serviços',
+    other: 'Outros',
+  };
+  function expenseDialog(expense?: Expense) {
+    const expenseId = expense?.id || crypto.randomUUID();
+    props.openDialog({
+      title: expense ? 'Editar despesa paga' : 'Registrar despesa paga',
+      description:
+        'Registre somente gastos já pagos pela empresa. Eles serão descontados dos recebimentos do período.',
+      submitLabel: expense ? 'Salvar despesa' : 'Registrar despesa',
+      content: (
+        <div className="form-grid">
+          <Field label="Descrição">
+            <input
+              name="description"
+              required
+              minLength={2}
+              maxLength={150}
+              defaultValue={expense?.description}
+              placeholder="Ex.: Materiais para atendimento"
+            />
+          </Field>
+          <Field label="Categoria">
+            <select name="category" defaultValue={expense?.category || 'supplies'}>
+              {Object.entries(categories).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <div className="form-row">
+            <Field label="Valor pago (R$)">
+              <input
+                name="amount"
+                type="number"
+                min="0.01"
+                max="1000000"
+                step="0.01"
+                required
+                defaultValue={expense ? expense.amountCents / 100 : undefined}
+              />
+            </Field>
+            <Field label="Data do pagamento">
+              <input
+                name="paidOn"
+                type="date"
+                required
+                max={props.data.dashboard.date}
+                defaultValue={expense?.paidOn || props.data.dashboard.date}
+              />
+            </Field>
+          </div>
+        </div>
+      ),
+      onSubmit: async (form) => {
+        await props.mutate(
+          `insights/expenses/${expenseId}`,
+          'PUT',
+          {
+            description: String(form.get('description') || '').trim(),
+            category: String(form.get('category')),
+            amountCents: Math.round(Number(form.get('amount')) * 100),
+            paidOn: String(form.get('paidOn')),
+          },
+          'Despesa salva.',
+        );
+      },
+    });
+  }
+  function removeExpense(expense: Expense) {
+    props.openDialog({
+      title: 'Excluir despesa?',
+      description: 'O saldo do período será recalculado. Esta ação não movimenta dinheiro.',
+      content: (
+        <p>
+          {expense.description} · {money(expense.amountCents)}
+        </p>
+      ),
+      submitLabel: 'Excluir despesa',
+      onSubmit: async () => {
+        await props.mutate(`insights/expenses/${expense.id}`, 'DELETE', {}, 'Despesa excluída.');
+      },
+    });
+  }
   return (
     <>
       <PageHeading
         eyebrow="CLAREZA PARA CRESCER"
-        title="Sua carteira"
-        description="Veja o valor do seu trabalho e planeje o que vem pela frente."
+        title="Finanças da empresa"
+        description="Acompanhe recebimentos, despesas pagas e o saldo do período."
         action={
           <select
             className="period-select"
@@ -42,6 +131,94 @@ export function WalletPage(props: SectionProps) {
       <ResourceState {...resource} />
       {wallet && (
         <>
+          <section className="panel finance-summary">
+            <PanelHeading
+              title="Recebimentos e despesas"
+              detail={`${day(wallet.periodStart + 'T12:00:00Z')} a ${day(wallet.periodEnd + 'T12:00:00Z')} · por data de pagamento`}
+            />
+            <div className="stats-grid">
+              <article className="stat-card">
+                <span className="stat-label">Recebido no período</span>
+                <strong className="money-stat">{money(wallet.cashReceivedCents)}</strong>
+                <span className="stat-detail">Serviços e produtos com pagamento registrado</span>
+              </article>
+              <article className="stat-card">
+                <span className="stat-label">Despesas pagas</span>
+                <strong className="money-stat">{money(wallet.expenseCents)}</strong>
+                <span className="stat-detail">Gastos cadastrados no período</span>
+              </article>
+              <article className="stat-card">
+                <span className="stat-label">Saldo do período</span>
+                <strong className="money-stat">{money(wallet.balanceCents)}</strong>
+                <span className="stat-detail">Recebido menos despesas pagas</span>
+              </article>
+            </div>
+            {wallet.undatedReceivedCents > 0 && (
+              <p className="page-footnote">
+                Há {money(wallet.undatedReceivedCents)} em pagamentos antigos sem data registrada.
+                Eles não entram no saldo por período.
+              </p>
+            )}
+          </section>
+          <section className="panel finance-expenses">
+            <PanelHeading
+              title="Despesas da empresa"
+              detail="Materiais, aluguel e contas já pagas."
+              action={
+                <button className="button primary" onClick={() => expenseDialog()}>
+                  <Plus size={16} /> Nova despesa
+                </button>
+              }
+            />
+            {wallet.expenses.length ? (
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>DESCRIÇÃO</th>
+                      <th>CATEGORIA</th>
+                      <th>PAGAMENTO</th>
+                      <th>VALOR</th>
+                      <th>AÇÕES</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {wallet.expenses.map((expense) => (
+                      <tr key={expense.id}>
+                        <td>
+                          <strong>{expense.description}</strong>
+                        </td>
+                        <td>{categories[expense.category]}</td>
+                        <td>{day(expense.paidOn + 'T12:00:00Z')}</td>
+                        <td>{money(expense.amountCents)}</td>
+                        <td>
+                          <div className="toolbar-controls">
+                            <button
+                              className="button secondary"
+                              onClick={() => expenseDialog(expense)}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              className="button secondary"
+                              onClick={() => removeExpense(expense)}
+                            >
+                              Excluir
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <Empty
+                title="Nenhuma despesa paga neste período"
+                description="Cadastre os gastos para acompanhar o saldo da empresa."
+              />
+            )}
+          </section>
           <div className="wallet-grid">
             <article className="wallet-main-card">
               <div>
@@ -93,7 +270,13 @@ export function WalletPage(props: SectionProps) {
               title="Seu trabalho em números"
               detail="Finalização e pagamento são acompanhados separadamente."
             />
-            <div className="table-tabs tabs">
+            <div className="table-tabs tabs finance-ledger-tabs">
+              <button
+                className={tab === 'received' ? 'active' : ''}
+                onClick={() => setTab('received')}
+              >
+                Recebimentos no período
+              </button>
               <button
                 className={tab === 'completed' ? 'active' : ''}
                 onClick={() => setTab('completed')}
@@ -107,7 +290,12 @@ export function WalletPage(props: SectionProps) {
                 Agendados futuros
               </button>
             </div>
-            {(tab === 'completed' ? wallet.entries : wallet.projection).length ? (
+            {(tab === 'received'
+              ? wallet.cashEntries
+              : tab === 'completed'
+                ? wallet.entries
+                : wallet.projection
+            ).length ? (
               <div className="table-scroll">
                 <table>
                   <thead>
@@ -120,7 +308,12 @@ export function WalletPage(props: SectionProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {(tab === 'completed' ? wallet.entries : wallet.projection).map((entry) => (
+                    {(tab === 'received'
+                      ? wallet.cashEntries
+                      : tab === 'completed'
+                        ? wallet.entries
+                        : wallet.projection
+                    ).map((entry) => (
                       <tr key={entry.id}>
                         <td>
                           <strong>{entry.name}</strong>
@@ -146,7 +339,8 @@ export function WalletPage(props: SectionProps) {
             )}
           </section>
           <p className="page-footnote">
-            A carteira acompanha o valor das solicitações. Ela não representa saldo bancário, lucro
+            O saldo considera pagamentos com data registrada e despesas cadastradas. Cancelar um
+            atendimento não registra estorno. Este controle não representa saldo bancário, lucro
             líquido ou conciliação financeira.
           </p>
         </>

@@ -206,12 +206,28 @@ export interface WalletEntry {
 }
 export interface Wallet {
   days: number;
+  cashReceivedCents: number;
+  expenseCents: number;
+  balanceCents: number;
+  undatedReceivedCents: number;
+  periodStart: string;
+  periodEnd: string;
+  cashEntries: WalletEntry[];
+  expenses: Expense[];
   earnedCents: number;
   receivedCents: number;
   unpaidCents: number;
   projectedCents: number;
   entries: WalletEntry[];
   projection: WalletEntry[];
+}
+export interface Expense {
+  id: string;
+  description: string;
+  category: 'supplies' | 'rent' | 'utilities' | 'other';
+  amountCents: number;
+  paidOn: string;
+  createdAt: string;
 }
 export interface Report {
   month: string;

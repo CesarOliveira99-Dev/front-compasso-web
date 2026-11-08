@@ -15,7 +15,11 @@
   --shadow: 0 2px 7px #18233806;
   --font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-heading: var(--font-body);
-  --coral: #f86662;
+  --accent: #b94b16;
+  --accent-hover: #9d3c10;
+  --accent-soft: #fff0e5;
+  --accent-line: #f1ceb5;
+  --coral: var(--accent);
   --mint: #d9eee7;
   --blue-soft: #dfe8fa;
   --pink: #fbe0dd;
@@ -97,9 +101,9 @@ h3 {
   color: #a33936;
   border: 1px solid #edc6be;
 }
-.button:focus-visible,
+button:focus-visible,
 a:focus-visible {
-  outline: 3px solid #bd7067;
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 input,
@@ -114,8 +118,8 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: #d88b80;
-  box-shadow: 0 0 0 3px #fbe8e2;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 input::placeholder,
 textarea::placeholder {
@@ -317,12 +321,23 @@ textarea::placeholder {
   color: #fff;
 }
 .nav-item:hover {
-  background: #fff3ef;
-  color: #8f453e;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .nav-item.active:hover {
-  background: #ed5d59;
+  background: var(--accent-hover);
   color: #fff;
+}
+.nav-item {
+  border: 0;
+  box-shadow: none;
+}
+.nav-item:focus:not(:focus-visible) {
+  outline: none;
+}
+.nav-item:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -4px;
 }
 .nav-count {
   background: #fff0e9;
@@ -471,13 +486,13 @@ textarea::placeholder {
   white-space: nowrap;
 }
 .customer-navigation button[aria-current] {
-  background: #fff;
-  border-color: #ebe1de;
-  color: #993d3a;
-  box-shadow: 0 2px 5px #18233808;
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent);
+  box-shadow: none;
 }
 .customer-navigation button[aria-current] svg {
-  color: #d65b55;
+  color: inherit;
 }
 .customer-navigation button:hover {
   background: #fff9f6;
@@ -1303,30 +1318,62 @@ textarea::placeholder {
   scrollbar-width: thin;
 }
 .tabs button.active {
-  background: #fff;
-  color: #993d3a;
-  box-shadow: 0 2px 5px #18233808;
-  border-color: #ebe1de;
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: none;
+  border-color: var(--accent-line);
 }
 .wallet-main-card {
-  background: var(--mint);
-  color: #284b43;
+  background: var(--ink);
+  color: #fff;
   box-shadow: none;
 }
 .wallet-main-card strong,
 .wallet-main-card p,
 .wallet-main-card .wallet-label {
-  color: #284b43;
+  color: #fff;
 }
 .wallet-pattern {
   display: none;
+}
+.finance-summary,
+.finance-expenses {
+  margin-bottom: 22px;
+  min-width: 0;
+}
+.finance-summary .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 20px 20px;
+}
+.finance-summary .money-stat {
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.finance-ledger-tabs {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.finance-ledger-tabs button {
+  flex-shrink: 0;
+}
+@media (max-width: 600px) {
+  .finance-summary .stats-grid {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0 14px 14px;
+  }
+  .finance-summary .stat-card {
+    padding: 18px;
+  }
 }
 .login-story {
   background: #fffaf7;
   border-right: 1px solid var(--line);
 }
 .login-story-content h1 em {
-  color: #a33936;
+  color: var(--accent);
   font-style: normal;
 }
 .login-preview {
@@ -1353,14 +1400,14 @@ textarea::placeholder {
 }
 .venue-gallery-empty,
 .venue-popular-item {
-  background: var(--mint);
+  background: var(--accent-soft);
 }
 .venue-cover-art > svg,
 .venue-cover-art::after {
   display: none;
 }
 .venue-cover-art > strong {
-  color: #335748;
+  color: var(--accent);
 }
 .venue-topbar .brand .brand-name {
   color: var(--ink);
@@ -1369,10 +1416,10 @@ textarea::placeholder {
   border-radius: 10px;
 }
 .venue-popular-item:nth-child(3n + 2) {
-  background: var(--blue-soft);
+  background: var(--accent-soft);
 }
 .venue-popular-item:nth-child(3n + 3) {
-  background: var(--pink);
+  background: var(--accent-soft);
 }
 .venue-service {
   border-radius: 10px;
@@ -1381,8 +1428,8 @@ textarea::placeholder {
   font-weight: 550;
 }
 .storefront-brandmark {
-  background: var(--mint);
-  color: #4b6d60;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 @media (min-width: 761px) {
   .sidebar .brand-wordmark,
