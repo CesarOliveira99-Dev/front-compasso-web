@@ -12,11 +12,13 @@ import {
 import { Check, Eye, Package, ShoppingBag } from 'lucide-react';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { OrderDetails } from './order-details';
 const PaymentDialog = dynamic(() => import('./payment-dialog'), { ssr: false });
 export function OrdersPage(props: SectionProps) {
   const [paymentRevision, setPaymentRevision] = useState(0);
   const resource = useResource<Order[]>('orders', props.revision + paymentRevision);
   const admin = props.data.user.role === 'admin';
+  const details = (order: Order) => props.openDialog({ title: `Pedido #${order.id.slice(0, 8).toUpperCase()}`, content: <OrderDetails order={order} /> });
   const change = (orderId: string, body: unknown, message: string) =>
     props
       .mutate(`orders/${orderId}`, 'PATCH', body, message)
@@ -42,15 +44,15 @@ export function OrdersPage(props: SectionProps) {
               </span>
               <div>
                 <h3>
-                  {admin ? order.customerName : `Pedido #${order.id.slice(0, 8).toUpperCase()}`}
+                  {admin ? order.customerName : <button type="button" className="order-title-button" onClick={() => details(order)} aria-label={`Ver detalhes do pedido #${order.id.slice(0, 8).toUpperCase()}`}>Pedido #{order.id.slice(0, 8).toUpperCase()}</button>}
                 </h3>
                 <small>
                   {day(order.createdAt)} • {time(order.createdAt)}
                   {admin && !order.seen && <span className="new-label">NOVO</span>}
                 </small>
               </div>
-              <Badge status={order.status} />
-              <Badge status={order.paymentStatus} />
+              {admin && <Badge status={order.status} />}
+              <Badge status={order.paymentStatus}>{order.paymentStatus === 'paid' ? 'Pagamento confirmado' : 'Pagamento pendente'}</Badge>
             </div>
             <div className="order-lines">
               {order.items.map((item, index) => (
@@ -76,6 +78,7 @@ export function OrdersPage(props: SectionProps) {
               </p>
             )}
             <div className="order-footer">
+              {!admin && <button type="button" className="button secondary small" onClick={() => details(order)}>Ver detalhes</button>}
               <div>
                 {order.discountCents > 0 && (
                   <small>Você economizou {money(order.discountCents)}</small>

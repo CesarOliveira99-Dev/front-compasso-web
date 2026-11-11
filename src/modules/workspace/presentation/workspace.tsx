@@ -2,6 +2,7 @@
 import dynamic from 'next/dynamic';
 import { EmployeeWorkspace } from './employee';
 import { TeamPage } from '@/modules/settings/presentation/team';
+import { StoreTrialBanner } from '@/modules/settings/presentation/store-trial-banner';
 import { Discovery } from '@/modules/stores/presentation/discovery';
 import { CustomerLobby } from './customer-lobby';
 function LoadingSection() {
@@ -695,6 +696,7 @@ export function Workspace() {
           </section>
         )}
         <main className="main-content" key={page}>
+          {data.user.role === 'admin' && page !== 'settings' && <StoreTrialBanner revision={revision} manage={() => setPage('settings')} />}
           {fatal && (
             <div className="error-message" role="alert">
               {fatal}
