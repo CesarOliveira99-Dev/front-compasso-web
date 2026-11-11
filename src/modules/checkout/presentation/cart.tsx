@@ -245,7 +245,7 @@ export function CartPage(
                       <option value="pix_manual">Pix direto ao comerciante</option>
                     )}
                     {props.data.settings.onlinePaymentsEnabled && (
-                      <option value="online">Mercado Pago — Pix ou cartão</option>
+                      <option value="online">Crédito ou Pix</option>
                     )}
                   </select>
                 </Field>
