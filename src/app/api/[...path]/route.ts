@@ -10,7 +10,7 @@ const allowed =
 async function handle(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
   const path = (await context.params).path.join('/');
   const paymentsAllowed =
-    /^(payments\/(status|recommendation|connect|subscribe|subscription\/refresh|orders\/[\w-]+))$/;
+    /^(payments\/(status|recommendation|connect|subscribe|subscription\/refresh|orders\/[\w-]+(?:\/bricks(?:\/(?:pay|status))?)?))$/;
   const professionalsAllowed = /^professionals(?:\/[\w-]+)?$/;
   const googleAllowed = /^auth\/google(?:\/(?:config|challenge|link|complete))?$/;
   if (

@@ -10,9 +10,12 @@ import {
   type SectionProps,
 } from '@/modules/shared/presentation/ui';
 import { Check, Eye, Package, ShoppingBag } from 'lucide-react';
-import { api } from '@/modules/shared/infrastructure/api';
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
+const PaymentDialog = dynamic(() => import('./payment-dialog'), { ssr: false });
 export function OrdersPage(props: SectionProps) {
-  const resource = useResource<Order[]>('orders', props.revision);
+  const [paymentRevision, setPaymentRevision] = useState(0);
+  const resource = useResource<Order[]>('orders', props.revision + paymentRevision);
   const admin = props.data.user.role === 'admin';
   const change = (orderId: string, body: unknown, message: string) =>
     props
@@ -111,25 +114,16 @@ export function OrdersPage(props: SectionProps) {
                 order.paymentMethod === 'online' && (
                   <button
                     className="button primary small"
-                    onClick={async () => {
-                      try {
-                        const payment = await api<{ url: string }>(
-                          `payments/orders/${order.id}`,
-                          'POST',
-                          {},
-                        );
-                        window.location.assign(payment.url);
-                      } catch (error) {
-                        props.notify(
-                          error instanceof Error
-                            ? error.message
-                            : 'Não foi possível abrir o pagamento.',
-                          true,
-                        );
-                      }
-                    }}
+                    onClick={() => props.openDialog({
+                      title: 'Finalizar pagamento',
+                      description: 'Seu próximo passo, com tranquilidade.',
+                      content: ({ setBusy }) => <PaymentDialog order={order} setBusy={setBusy} onPaid={() => {
+                        setPaymentRevision(value => value + 1);
+                        props.notify('Pagamento confirmado. Seu pedido foi atualizado.');
+                      }} />,
+                    })}
                   >
-                    Pagar no Mercado Pago
+                    Pagar agora
                   </button>
                 )}
               {admin && (

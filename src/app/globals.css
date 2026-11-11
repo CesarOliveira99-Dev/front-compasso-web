@@ -5284,3 +5284,21 @@ tbody tr:hover {
 .weekly-mode input[type=radio] { flex:0 0 17px; width:17px; height:17px; margin-top:2px; accent-color:#527d6b; }
 .weekly-times { flex-wrap:wrap; }
 .weekly-store-hours { display:grid; gap:6px; margin-top:12px; }
+
+/* Payment details remain in the app; sensitive card fields belong to the provider. */
+.dialog:has(.compasso-payment) { width: min(680px, calc(100vw - 32px)); }
+.compasso-payment { display: grid; gap: 18px; min-width: 0; }
+.payment-summary { display: flex; align-items: center; gap: 14px; padding: 18px; border: 1px solid var(--border, #e5e7eb); border-radius: 16px; background: var(--surface, #fff); }
+.payment-summary > div { display: grid; gap: 5px; min-width: 0; }
+.payment-summary small { color: var(--muted, #64748b); overflow-wrap: anywhere; }
+.payment-summary-icon { color: #6954d9; background: #f0edff; padding: 12px; border-radius: 13px; display: flex; }
+.payment-amount { margin-left: auto; white-space: nowrap; font-size: 1.2rem; }
+.payment-security { display: flex; align-items: flex-start; gap: 8px; color: var(--muted, #64748b); font-size: .8rem; line-height: 1.5; margin: 0; }
+.payment-security svg { flex-shrink: 0; margin-top: 2px; }
+.payment-loading { display: flex; justify-content: center; align-items: center; gap: 12px; padding: 24px; }
+.payment-message { padding: 16px; border-radius: 12px; background: #f7f7fc; line-height: 1.6; }
+.payment-success { padding: 28px 14px; text-align: center; color: #23794d; background: #f0faf4; border-radius: 16px; }
+.payment-success svg { margin: 0 auto 12px; }
+.payment-success p { margin-top: 8px; }
+.payment-brick { min-width: 0; }
+@media (max-width: 480px) { .payment-summary { flex-wrap: wrap; padding: 14px; } .payment-summary-icon { display: none; } .payment-amount { width: 100%; margin-left: 0; } }

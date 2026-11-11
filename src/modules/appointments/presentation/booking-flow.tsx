@@ -52,7 +52,7 @@ export function BookingFlow(props: FlowProps) {
       ? [{ id: 'pix_manual', label: 'Pix direto ao estabelecimento' }]
       : []),
     ...(settings.onlinePaymentsEnabled
-      ? [{ id: 'online', label: 'Mercado Pago — Pix ou cartão' }]
+      ? [{ id: 'online', label: 'Crédito ou Pix' }]
       : []),
   ];
   const [paymentMethod, setPaymentMethod] = useState(methods[0]?.id || '');
@@ -393,7 +393,7 @@ export function BookingFlow(props: FlowProps) {
                         : paymentMethod === 'pix_manual'
                           ? 'Após agendar, veja a chave em Meus pedidos. A loja confirma o recebimento.'
                           : paymentMethod === 'online'
-                            ? 'Após agendar, continue em Meus pedidos para abrir o Mercado Pago. Serviços com triagem aguardam aprovação.'
+                            ? 'Após agendar, continue em Meus pedidos para pagar com crédito ou Pix. Serviços com triagem aguardam aprovação.'
                             : 'Entre em contato com a loja para agendar.'}
                     </p>
                     {!!methods.length && (
