@@ -1,4 +1,5 @@
 'use client';
+import { IdentityInput } from './identity-input';
 import { useState, type FormEvent } from 'react';
 import { api } from '@/modules/shared/infrastructure/api';
 import { Field } from '@/modules/shared/presentation/ui';
@@ -109,7 +110,7 @@ export function GoogleOnboarding({
         ) : role === 'admin' ? (
           <>
             <Field label="Nome do negócio">
-              <input name="businessName" required minLength={2} maxLength={100} />
+              <IdentityInput kind="businessName" name="businessName" required placeholder="O nome do seu espaço" />
             </Field>
             <BusinessAddressFields />
           </>
@@ -118,17 +119,10 @@ export function GoogleOnboarding({
             Sua conta vale para todos os estabelecimentos. Escolha onde agendar depois.
           </p>
         )}
+        {!memberships.length && !existing && <Field label="Seu nome"><IdentityInput kind="name" name="name" required defaultValue={data.profile.name} autoComplete="name" /></Field>}
         {!memberships.length && !existing && (
           <Field label="Telefone">
-            <input
-              name="phone"
-              type="tel"
-              required
-              minLength={10}
-              maxLength={20}
-              autoComplete="tel"
-              placeholder="(18) 99999-9999"
-            />
+            <IdentityInput kind="phone" name="phone" required type="tel" inputMode="tel" autoComplete="tel" placeholder="(18) 99999-9999" />
           </Field>
         )}
         {existing && !selection?.linked && (

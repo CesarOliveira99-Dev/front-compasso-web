@@ -1,7 +1,7 @@
 'use client';
 import { money } from '@/modules/shared/domain/format';
 import { api } from '@/modules/shared/infrastructure/api';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import type { SectionProps } from '@/modules/shared/presentation/ui';
 
 interface Plan { id: string; name: string; priceCents: number; employees: number; monthlyEmails: number; dailyEmails: number; extraEmployeePriceCents?: number }
@@ -16,6 +16,8 @@ const number = (value: number) => value.toLocaleString('pt-BR');
 const date = (value: number) => new Date(value).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 export function StorePlans({ status, props, busy, refresh }: { status: PlanStatus; props: SectionProps; busy: boolean; refresh: () => void }) {
   const { entitlement, subscription } = status;
+  const group = useId();
+  const [selectedPlan, setSelectedPlan] = useState(subscription?.planId || entitlement.plan?.id || 'essencial');
   const [extras, setExtras] = useState(Math.min(90, Math.max(0, status.employeesUsed - 10)));
   function choose(plan: Plan) {
     const extraEmployees = plan.id === 'equipe' ? (subscription?.planId === 'equipe' ? subscription.extraEmployees || 0 : extras) : 0;
@@ -50,13 +52,16 @@ export function StorePlans({ status, props, busy, refresh }: { status: PlanStatu
         </div>; })}
     </div>
     <p className="form-note">Confirmações e lembretes compartilham a franquia mensal e o limite diário. A contagem inclui envios em verificação e reinicia no horário de Brasília. Senhas e segurança ficam fora da franquia da loja. Sem cobrança automática de excedentes.</p>
+    <p className="form-note">Selecione um card para comparar. A seleção não contrata nem altera sua assinatura.</p>
     <div className="store-plan-grid">{status.plans.map(plan => {
       const current = subscription?.planId === plan.id && !['cancelled', 'canceled'].includes(subscription.status);
       const other = subscription && !['cancelled', 'canceled'].includes(subscription.status) && !current;
       const selectedExtras = plan.id === 'equipe' ? (current ? subscription.extraEmployees || 0 : extras) : 0;
       const capacity = status.employeesUsed > plan.employees + selectedExtras;
-      return <article className={`store-plan ${entitlement.plan?.id === plan.id ? 'selected' : ''}`} key={plan.id}>
-        <h4>{plan.name}</h4><p className="plan-price">{money(plan.priceCents)}<small> / mês</small></p>
+      return <article className={`store-plan ${selectedPlan === plan.id ? 'selected' : ''}`} key={plan.id} onClick={() => setSelectedPlan(plan.id)}>
+        <label className="plan-card-choice"><input type="radio" name={`${group}-plan`} value={plan.id} checked={selectedPlan === plan.id} onChange={() => setSelectedPlan(plan.id)} aria-label={`Comparar plano ${plan.name}`} /><strong>{plan.name}</strong></label>
+        {current && <small>Seu plano contratado</small>}
+        <p className="plan-price">{money(plan.priceCents)}<small> / mês</small></p>
         <ul><li>{plan.id === 'equipe' ? '10 colaboradores incluídos' : `Até ${plan.employees} funcionário(s)`}</li><li>{number(plan.monthlyEmails)} e-mails por mês</li><li>Até {plan.dailyEmails} e-mails por dia</li></ul>
         {plan.extraEmployeePriceCents && <><strong>R$25,00 por colaborador extra</strong><small>A partir do 11º colaborador, por mês. Até 90 extras no autosserviço. As franquias de e-mail permanecem iguais.</small>
           {!current && <label className="field"><span>Colaboradores extras</span><input aria-label="Colaboradores extras no plano Equipe" type="number" min={Math.max(0, status.employeesUsed - 10)} max={90} step={1} value={extras} onChange={event => setExtras(Math.min(90, Math.max(0, Math.trunc(Number(event.target.value) || 0))))} /><small>Total: {money(plan.priceCents + extras * plan.extraEmployeePriceCents)} / mês • até {10 + extras} colaboradores</small></label>}
@@ -66,6 +71,10 @@ export function StorePlans({ status, props, busy, refresh }: { status: PlanStatu
         {capacity && <small>Desative os funcionários excedentes para escolher este plano.</small>}
       </article>;
     })}</div>
+    {status.plans.filter(plan => plan.id === selectedPlan).map(plan => {
+      const extra = plan.id === 'equipe' ? subscription?.planId === 'equipe' ? subscription.extraEmployees || 0 : extras : 0;
+      return <div className="plan-comparison" role="status" aria-live="polite" key={plan.id}><strong>Comparando: {plan.name} — {money(plan.priceCents + extra * (plan.extraEmployeePriceCents || 0))} / mês</strong><p>Até {plan.employees + extra} colaboradores • {number(plan.monthlyEmails)} e-mails por mês • até {plan.dailyEmails} por dia.</p><small>Os limites de uso acima continuam mostrando seu período atual. Para contratar o plano escolhido, confirme no botão do card.</small></div>;
+    })}
     {subscription?.planId === 'equipe' && <ExtraEmployeeControls status={status} props={props} />}
     {!status.billingEnabled && <p>A contratação será habilitada após a validação dos pagamentos. Nenhuma mensalidade será cobrada agora.</p>}
     {status.setupPending && <p role="status">Uma contratação aguarda conferência. Atualize a situação antes de tentar novamente.</p>}

@@ -1,4 +1,5 @@
 'use client';
+import { IdentityInput } from './identity-input';
 import { Brand } from '@/modules/shared/presentation/brand';
 import { api } from '@/modules/shared/infrastructure/api';
 import { Field } from '@/modules/shared/presentation/ui';
@@ -143,33 +144,15 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
                       </select>
                     </Field>
                     <Field label="Seu nome">
-                      <input
-                        name="name"
-                        required
-                        minLength={2}
-                        placeholder="Como podemos chamar você?"
-                        autoComplete="name"
-                      />
+                      <IdentityInput kind="name" name="name" required autoComplete="name" placeholder="Como podemos chamar você?" />
                     </Field>
                     <Field label="Telefone">
-                      <input
-                        name="phone"
-                        required
-                        minLength={10}
-                        placeholder="(11) 99999-9999"
-                        autoComplete="tel"
-                      />
+                      <IdentityInput kind="phone" name="phone" required type="tel" inputMode="tel" autoComplete="tel" placeholder="(18) 99999-9999" />
                     </Field>
                     {role === 'admin' && (
                       <>
                         <Field label="Nome do negócio">
-                          <input
-                            name="businessName"
-                            required
-                            minLength={2}
-                            maxLength={100}
-                            placeholder="O nome do seu espaço"
-                          />
+                          <IdentityInput kind="businessName" name="businessName" required placeholder="O nome do seu espaço" />
                         </Field>
                         <BusinessAddressFields />
                       </>
@@ -177,13 +160,7 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
                   </>
                 )}
                 <Field label="E-mail">
-                  <input
-                    name="email"
-                    type="email"
-                    required
-                    placeholder="voce@exemplo.com"
-                    autoComplete="email"
-                  />
+                  <IdentityInput kind="email" name="email" type="email" required autoComplete="email" placeholder="voce@exemplo.com" />
                 </Field>
                 <PasswordField
                   key={register ? 'new-password' : 'login-password'}

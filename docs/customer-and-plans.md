@@ -6,6 +6,14 @@ Meus pedidos mostra apenas o status de pagamento no cabeçalho do cliente, com r
 
 Meus agendamentos mantém a tabela no desktop e usa cartões com rótulos no celular. Os filtros se empilham para não estender a página; botões existentes de reagendamento/cancelamento e os dois estados de atendimento/pagamento são preservados.
 
+## Cadastro e comparação de planos
+
+Nome pessoal, telefone, e-mail, nome do negócio, senha e confirmação exibem erros junto ao campo durante a digitação e ao sair do campo. A confirmação é reavaliada se a senha original mudar. Nome pessoal aceita letras Unicode, acentos, espaços, pontos, apóstrofos e hífens, mas nenhum caractere numérico; até 100 caracteres e pelo menos duas letras. O nome do negócio continua aceitando números, como Studio 54.
+
+Telefone brasileiro: DDD + 8 ou 9 dígitos, opcionalmente com código 55; até 20 caracteres de apresentação e até 13 dígitos. A API valida antes de remover a formatação e armazena apenas os dígitos. Cadastro por senha, novo vínculo por convite, conclusão Google, perfil e configuração do responsável usam as regras correspondentes. Em novo cadastro Google, o nome de exibição pode ser corrigido; e-mail e identificador Google continuam sendo obtidos exclusivamente da identidade verificada. Não há migração forçada de cadastros antigos nem mudança nas regras de autenticação de contas existentes.
+
+Seu plano Compasso aparece antes da preparação da loja e do formulário de configurações. Os cards são selecionáveis por clique ou teclado, com radio buttons e resumo de comparação de preço, colaboradores e franquias. A seleção não muda o plano, os limites vigentes, o teste ou a cobrança; contratar exige a confirmação existente. A conexão Mercado Pago continua separada, abaixo das configurações.
+
 ## Colaboradores extras
 
 O Equipe informa **R$25,00 por colaborador extra**, mensalmente acima dos dez incluídos. A contratação inicial permite escolher extras e mostra o total. Para um Equipe já autorizado e pago, os controles em Equipe, Profissionais e Planos abrem confirmação com base + extras e novo total antes de alterar a recorrência. Onze vagas: R$124,90/mês; doze: R$149,90/mês. Não há cobrança avulsa/rateio; o novo valor se aplica a cobranças ainda não geradas. Desativar um cadastro não cancela uma vaga extra contratada: a redução explícita no painel muda a mensalidade e exige vagas desocupadas. Franquias de e-mail permanecem iguais. Uma alteração incerta orienta Atualizar situação e impede nova contratação de extras até reconciliação.

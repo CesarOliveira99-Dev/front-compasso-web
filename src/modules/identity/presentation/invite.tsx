@@ -1,4 +1,5 @@
 'use client';
+import { IdentityInput } from './identity-input';
 import { Brand } from '@/modules/shared/presentation/brand';
 import { useEffect, useState } from 'react';
 import { api } from '@/modules/shared/infrastructure/api';
@@ -12,6 +13,7 @@ export function InvitePage() {
     [busy, setBusy] = useState(false),
     [login, setLogin] = useState(false),
     [google, setGoogle] = useState(false),
+    [googleName, setGoogleName] = useState(''),
     [signedIn, setSignedIn] = useState(false);
   useEffect(() => {
     const token = location.hash.slice(1);
@@ -70,7 +72,7 @@ export function InvitePage() {
                     const form = Object.fromEntries(new FormData(event.currentTarget));
                     try {
                       if (google) {
-                        await api('auth/google/complete', 'POST', { phone: form.phone });
+                        await api('auth/google/complete', 'POST', { phone: form.phone, name: form.name });
                         location.assign('/');
                       } else if (login) {
                         const result = await api<{ status?: string }>('auth/login', 'POST', form);
@@ -90,20 +92,20 @@ export function InvitePage() {
                     }
                   }}
                 >
-                  {!google && !login && (
+                  {!login && (
                     <Field label="Seu nome">
-                      <input name="name" required maxLength={100} />
+                      <IdentityInput kind="name" name="name" required defaultValue={googleName} autoComplete="name" placeholder="Como podemos chamar você?" />
                     </Field>
                   )}
                   {!login && (
                     <Field label="Telefone">
-                      <input name="phone" type="tel" required minLength={10} maxLength={20} />
+                      <IdentityInput kind="phone" name="phone" required type="tel" inputMode="tel" autoComplete="tel" placeholder="(18) 99999-9999" />
                     </Field>
                   )}
                   {!google && (
                     <>
                       <Field label="E-mail">
-                        <input name="email" type="email" required />
+                        <IdentityInput kind="email" name="email" type="email" required autoComplete="email" placeholder="voce@exemplo.com" />
                       </Field>
                       <PasswordField register={!login} />
                       {!login && <PasswordField register confirm />}
@@ -128,7 +130,7 @@ export function InvitePage() {
                       onSuccess={async (result) => {
                         if ('status' in result && result.status === 'authenticated')
                           location.assign('/');
-                        else setGoogle(true);
+                        else { if ('profile' in result) setGoogleName(result.profile.name); setGoogle(true); }
                       }}
                     />
                     <button

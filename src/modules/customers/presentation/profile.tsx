@@ -1,4 +1,5 @@
 'use client';
+import { IdentityInput } from '@/modules/identity/presentation/identity-input';
 import {EmailVerification} from '@/modules/identity/presentation/email-verification';
 import type { Customer } from '@/modules/shared/domain/models';
 import {
@@ -122,20 +123,16 @@ export function ProfilePage(props: SectionProps) {
               }}
             >
               <Field label="Nome">
-                <input
+                <IdentityInput kind="name"
                   name="name"
                   defaultValue={customer.name}
-                  minLength={2}
-                  maxLength={100}
                   required
                 />
               </Field>
               <Field label="Telefone">
-                <input
+                <IdentityInput kind="phone"
                   name="phone"
                   defaultValue={customer.phone}
-                  minLength={10}
-                  maxLength={20}
                   required
                 />
               </Field>
