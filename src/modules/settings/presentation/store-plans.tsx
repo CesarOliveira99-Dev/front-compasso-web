@@ -1,27 +1,33 @@
 'use client';
 import { money } from '@/modules/shared/domain/format';
 import { api } from '@/modules/shared/infrastructure/api';
+import { useState } from 'react';
 import type { SectionProps } from '@/modules/shared/presentation/ui';
 
-interface Plan { id: string; name: string; priceCents: number; employees: number; monthlyEmails: number; dailyEmails: number }
+interface Plan { id: string; name: string; priceCents: number; employees: number; monthlyEmails: number; dailyEmails: number; extraEmployeePriceCents?: number }
 export interface PlanStatus {
   billingEnabled: boolean; plans: Plan[]; employeesUsed: number; setupPending: boolean;
+  extrasPending?: boolean;
   entitlement: { mode: 'trial' | 'active' | 'expired' | 'pilot'; plan: Plan | null; expiresAt: number | null };
-  subscription: { status: string; planId: string; paidThrough?: number } | null;
+  subscription: { status: string; planId: string; priceCents?: number; extraEmployees?: number; paidThrough?: number } | null;
   emailUsage: { daily: { used: number; limit: number | null }; monthly: { used: number; limit: number | null } };
 }
 const number = (value: number) => value.toLocaleString('pt-BR');
 const date = (value: number) => new Date(value).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 export function StorePlans({ status, props, busy, refresh }: { status: PlanStatus; props: SectionProps; busy: boolean; refresh: () => void }) {
   const { entitlement, subscription } = status;
+  const [extras, setExtras] = useState(Math.min(90, Math.max(0, status.employeesUsed - 10)));
   function choose(plan: Plan) {
+    const extraEmployees = plan.id === 'equipe' ? (subscription?.planId === 'equipe' ? subscription.extraEmployees || 0 : extras) : 0;
+    const total = plan.priceCents + extraEmployees * (plan.extraEmployeePriceCents || 0);
     props.openDialog({ title: `Contratar ${plan.name}`, submitLabel: 'Continuar no Mercado Pago',
-      content: <><p>{money(plan.priceCents)} por mês, com renovação automática após sua autorização. Cancele pelo Mercado Pago.</p>
-        <p>{plan.employees} funcionário(s), {number(plan.monthlyEmails)} e-mails por mês e até {plan.dailyEmails} por dia.</p>
+      content: <><p>{money(total)} por mês, com renovação automática após sua autorização. Cancele pelo Mercado Pago.</p>
+        {plan.id === 'equipe' && <p>Base de {money(plan.priceCents)} + {extraEmployees} colaborador(es) extra(s) a R$25,00 por mês cada.</p>}
+        <p>{plan.employees + extraEmployees} funcionário(s), {number(plan.monthlyEmails)} e-mails por mês e até {plan.dailyEmails} por dia.</p>
         <p>{entitlement.mode === 'trial' && entitlement.expiresAt
           ? `A primeira cobrança será programada para depois do teste, em ${date(entitlement.expiresAt)}.`
           : 'A contratação inicia uma assinatura mensal paga.'} Clientes não pagam assinatura.</p></>,
-      onSubmit: async () => { const result = await api<{ url: string }>('payments/subscribe', 'POST', { planId: plan.id }); window.location.assign(result.url); },
+      onSubmit: async () => { const result = await api<{ url: string }>('payments/subscribe', 'POST', { planId: plan.id, extraEmployees }); window.location.assign(result.url); },
     });
   }
   return <section className="panel integration-card store-plans">
@@ -47,19 +53,50 @@ export function StorePlans({ status, props, busy, refresh }: { status: PlanStatu
     <div className="store-plan-grid">{status.plans.map(plan => {
       const current = subscription?.planId === plan.id && !['cancelled', 'canceled'].includes(subscription.status);
       const other = subscription && !['cancelled', 'canceled'].includes(subscription.status) && !current;
-      const capacity = status.employeesUsed > plan.employees;
+      const selectedExtras = plan.id === 'equipe' ? (current ? subscription.extraEmployees || 0 : extras) : 0;
+      const capacity = status.employeesUsed > plan.employees + selectedExtras;
       return <article className={`store-plan ${entitlement.plan?.id === plan.id ? 'selected' : ''}`} key={plan.id}>
         <h4>{plan.name}</h4><p className="plan-price">{money(plan.priceCents)}<small> / mês</small></p>
-        <ul><li>Até {plan.employees} funcionário(s)</li><li>{number(plan.monthlyEmails)} e-mails por mês</li><li>Até {plan.dailyEmails} e-mails por dia</li></ul>
+        <ul><li>{plan.id === 'equipe' ? '10 colaboradores incluídos' : `Até ${plan.employees} funcionário(s)`}</li><li>{number(plan.monthlyEmails)} e-mails por mês</li><li>Até {plan.dailyEmails} e-mails por dia</li></ul>
+        {plan.extraEmployeePriceCents && <><strong>R$25,00 por colaborador extra</strong><small>A partir do 11º colaborador, por mês. Até 90 extras no autosserviço. As franquias de e-mail permanecem iguais.</small>
+          {!current && <label className="field"><span>Colaboradores extras</span><input aria-label="Colaboradores extras no plano Equipe" type="number" min={Math.max(0, status.employeesUsed - 10)} max={90} step={1} value={extras} onChange={event => setExtras(Math.min(90, Math.max(0, Math.trunc(Number(event.target.value) || 0))))} /><small>Total: {money(plan.priceCents + extras * plan.extraEmployeePriceCents)} / mês • até {10 + extras} colaboradores</small></label>}
+        </>}
         <button type="button" className="button secondary" disabled={busy || !status.billingEnabled || status.setupPending || !!other || capacity || (current && subscription.status !== 'pending')}
           onClick={() => choose(plan)}>{current ? subscription.status === 'pending' ? 'Concluir contratação' : 'Assinatura atual' : 'Escolher plano'}</button>
         {capacity && <small>Desative os funcionários excedentes para escolher este plano.</small>}
       </article>;
     })}</div>
+    {subscription?.planId === 'equipe' && <ExtraEmployeeControls status={status} props={props} />}
     {!status.billingEnabled && <p>A contratação será habilitada após a validação dos pagamentos. Nenhuma mensalidade será cobrada agora.</p>}
     {status.setupPending && <p role="status">Uma contratação aguarda conferência. Atualize a situação antes de tentar novamente.</p>}
     {(subscription || status.setupPending) && <div className="plan-manage"><button className="button secondary" type="button" disabled={busy} onClick={refresh}>Atualizar situação</button>
       <a href="https://www.mercadopago.com.br/subscriptions" target="_blank" rel="noreferrer">Gerenciar ou cancelar no Mercado Pago</a>
       <p>Para trocar de plano, cancele a assinatura atual e aguarde o fim do período pago. Seus dados serão mantidos.</p></div>}
+  </section>;
+}
+
+export function ExtraEmployeeControls({ status, props }: { status: PlanStatus; props: SectionProps }) {
+  const subscription = status.subscription;
+  const [busy, setBusy] = useState(false);
+  if (subscription?.planId !== 'equipe' || status.entitlement.mode !== 'active' || subscription.status !== 'authorized') return null;
+  const current = subscription.extraEmployees || 0;
+  const minimum = Math.max(0, status.employeesUsed - 10);
+  const base = status.plans.find(plan => plan.id === 'equipe');
+  if (!base?.extraEmployeePriceCents) return null;
+  function confirm(extraEmployees: number) {
+    const total = base!.priceCents + extraEmployees * base!.extraEmployeePriceCents!;
+    props.openDialog({ title: extraEmployees > current ? 'Adicionar colaborador extra' : 'Reduzir colaboradores extras', submitLabel: `Confirmar ${money(total)} / mês`,
+      content: <><p>Seu Equipe ficará com {10 + extraEmployees} vagas: 10 incluídas e {extraEmployees} extra(s).</p><p><strong>{money(base!.priceCents)} + {extraEmployees} × R$25,00 = {money(total)} por mês.</strong></p>
+        <p>O novo valor será aplicado à recorrência no Mercado Pago, às cobranças ainda não geradas. Não há cobrança avulsa nem rateio agora.</p>
+        <p>Vagas extras permanecem contratadas até você reduzir a quantidade. Desativar um cadastro libera a vaga para outra pessoa, mas não cancela a vaga contratada. As franquias de e-mail continuam iguais.</p></>,
+      onSubmit: async () => { setBusy(true); try { await props.mutate('payments/subscription/extras', 'POST', { extraEmployees, expectedPriceCents: total }, 'Mensalidade e vagas atualizadas.'); } finally { setBusy(false); } },
+    });
+  }
+  return <section className="plan-access"><h3>Colaboradores extras</h3><p>R$25,00 por colaborador extra, por mês.</p><p>{current} extra(s) contratado(s) • até {10 + current} colaboradores • <strong>{money(subscription.priceCents || base.priceCents)} / mês</strong></p>
+    {status.extrasPending ? <p role="status">Uma alteração aguarda conferência. Use Atualizar situação nos planos antes de incluir colaboradores.</p> : <div className="plan-manage">
+      <button type="button" className="button secondary" disabled={busy || !status.billingEnabled || current >= 90} onClick={() => confirm(current + 1)}>Adicionar uma vaga extra</button>
+      <button type="button" className="button secondary" disabled={busy || !status.billingEnabled || current <= minimum} onClick={() => confirm(current - 1)}>Remover uma vaga extra</button>
+      <small>Antes de reduzir abaixo das vagas ocupadas, desative os colaboradores excedentes. O dono não ocupa uma vaga.</small>
+    </div>}
   </section>;
 }

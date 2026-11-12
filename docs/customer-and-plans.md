@@ -6,6 +6,10 @@ Meus pedidos mostra apenas o status de pagamento no cabeçalho do cliente, com r
 
 Meus agendamentos mantém a tabela no desktop e usa cartões com rótulos no celular. Os filtros se empilham para não estender a página; botões existentes de reagendamento/cancelamento e os dois estados de atendimento/pagamento são preservados.
 
+## Colaboradores extras
+
+O Equipe informa **R$25,00 por colaborador extra**, mensalmente acima dos dez incluídos. A contratação inicial permite escolher extras e mostra o total. Para um Equipe já autorizado e pago, os controles em Equipe, Profissionais e Planos abrem confirmação com base + extras e novo total antes de alterar a recorrência. Onze vagas: R$124,90/mês; doze: R$149,90/mês. Não há cobrança avulsa/rateio; o novo valor se aplica a cobranças ainda não geradas. Desativar um cadastro não cancela uma vaga extra contratada: a redução explícita no painel muda a mensalidade e exige vagas desocupadas. Franquias de e-mail permanecem iguais. Uma alteração incerta orienta Atualizar situação e impede nova contratação de extras até reconciliação.
+
 ## Descoberta por cidade
 
 A busca textual continua disponível para qualquer região. O uso de localização identifica a cidade, não calcula distância em quilômetros nem um raio entre lojas. A API aplica cidade e UF; digitar na busca remove esse filtro geográfico. Sem resultados na cidade, há ação para consultar outras regiões.
