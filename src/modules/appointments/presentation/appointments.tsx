@@ -45,7 +45,7 @@ export function AppointmentsPage(props: SectionProps) {
           </AddButton>
         }
       />
-      <div className="toolbar">
+      <div className="toolbar appointments-toolbar">
         <div className="tabs">
           {[
             ['all', 'Todos'],
@@ -101,7 +101,7 @@ export function AppointmentsPage(props: SectionProps) {
       <section className="panel">
         {appointments.length ? (
           <div className="table-scroll">
-            <table>
+            <table className="appointments-table">
               <thead>
                 <tr>
                   <th>CLIENTE / SERVIÇO</th>
@@ -115,7 +115,7 @@ export function AppointmentsPage(props: SectionProps) {
               <tbody>
                 {appointments.map((a, index) => (
                   <tr key={a.id}>
-                    <td>
+                    <td data-label={admin ? 'Cliente / Serviço' : 'Serviço'}>
                       <div className="person-cell">
                         <Avatar name={a.customerName} color={index} />
                         <div>
@@ -124,7 +124,7 @@ export function AppointmentsPage(props: SectionProps) {
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Data e horário">
                       <span className="table-date">
                         {day(a.startsAt)}
                         <small>{a.professionalName || props.data.settings.name}</small>
@@ -133,16 +133,16 @@ export function AppointmentsPage(props: SectionProps) {
                         </small>
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Valor">
                       <strong>{money(a.priceCents)}</strong>
                     </td>
-                    <td>
+                    <td data-label="Atendimento">
                       <Badge status={a.status} />
                     </td>
-                    <td>
+                    <td data-label="Pagamento">
                       <Badge status={a.paymentStatus} />
                     </td>
-                    <td>
+                    <td data-label="Ações">
                       <div className="row-actions">
                         {a.status === 'confirmed' && admin && (
                           <button

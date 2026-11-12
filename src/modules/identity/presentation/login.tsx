@@ -208,6 +208,7 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
                 {register && role === 'customer' && (
                   <p className="form-note">Sua conta vale para todos os estabelecimentos. Escolha onde agendar depois.</p>
                 )}
+        {register && role === 'admin' && <p className="form-note">Sua loja começa com 14 dias grátis, sem cartão obrigatório e sem cobrança automática ao final. Clientes não pagam assinatura.</p>}
                 {error && (
                   <p className="error-message" role="alert">
                     {error}

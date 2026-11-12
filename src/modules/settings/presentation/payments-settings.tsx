@@ -1,15 +1,9 @@
 'use client';
 import { useState } from 'react';
 import { api } from '@/modules/shared/infrastructure/api';
-import { money } from '@/modules/shared/domain/format';
+import { StorePlans, type PlanStatus } from './store-plans';
 import { useResource, ResourceState, type SectionProps } from '@/modules/shared/presentation/ui';
-interface PaymentStatus {
-  configured: boolean;
-  connected: boolean;
-  billingEnabled: boolean;
-  monthlyPriceCents: number;
-  subscription: { status: string } | null;
-}
+interface PaymentStatus extends PlanStatus { configured: boolean; connected: boolean }
 export function PaymentsSettings(props: SectionProps) {
   const [revision, setRevision] = useState(0);
   const resource = useResource<PaymentStatus>('payments/status', revision + props.revision);
@@ -61,62 +55,7 @@ export function PaymentsSettings(props: SectionProps) {
           recebimentos e marca os pedidos como pagos.
         </p>
       </section>
-      <section className="panel integration-card">
-        <h3>Seu plano Compasso</h3>
-        {resource.value?.billingEnabled ? (
-          <>
-            <p>
-              {money(resource.value.monthlyPriceCents)} por mês. Cobrança recorrente pelo Mercado
-              Pago.
-            </p>
-            <p>Situação: {resource.value.subscription?.status || 'Sem assinatura'}</p>
-            {!resource.value.subscription && (
-              <button
-                type="button"
-                className="button primary"
-                disabled={busy}
-                onClick={() => action('payments/subscribe')}
-              >
-                Assinar Compasso
-              </button>
-            )}
-            {resource.value.subscription && (
-              <>
-                <button
-                  type="button"
-                  className="button secondary"
-                  disabled={busy}
-                  onClick={() => action('payments/subscription/refresh', false)}
-                >
-                  Atualizar situação
-                </button>
-                {resource.value.subscription.status === 'pending' && (
-                  <button
-                    type="button"
-                    className="button secondary"
-                    disabled={busy}
-                    onClick={() => action('payments/subscribe')}
-                  >
-                    Concluir assinatura
-                  </button>
-                )}
-                <a
-                  href="https://www.mercadopago.com.br/subscriptions"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Gerenciar ou cancelar no Mercado Pago
-                </a>
-              </>
-            )}
-          </>
-        ) : (
-          <p>
-            A contratação dos planos será habilitada em breve. Nenhuma mensalidade será cobrada
-            agora.
-          </p>
-        )}
-      </section>
+      {resource.value && <StorePlans status={resource.value} props={props} busy={busy} refresh={() => action('payments/subscription/refresh', false)} />}
     </>
   );
 }

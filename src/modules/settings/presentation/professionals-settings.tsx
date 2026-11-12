@@ -1,4 +1,5 @@
 'use client';
+import { ExtraEmployeeControls, type PlanStatus } from './store-plans';
 import { WeeklyHours, hoursFromForm } from '@/modules/shared/presentation/weekly-hours';
 import { ScheduleExceptions } from './schedule-exceptions';
 import type { Professional } from '@/modules/shared/domain/models';
@@ -13,6 +14,7 @@ import {
 } from '@/modules/shared/presentation/ui';
 export function ProfessionalsSettings(props: SectionProps) {
   const resource = useResource<Professional[]>('professionals', props.revision);
+  const billing = useResource<PlanStatus>('payments/status', props.revision);
   function edit(professional?: Professional) {
     const settings = props.data.settings;
     props.openDialog({
@@ -78,6 +80,7 @@ export function ProfessionalsSettings(props: SectionProps) {
         <AddButton onClick={() => edit()}>Adicionar</AddButton>
       </div>
       <p>Cada profissional tem sua agenda. Cadastros antigos ficam na agenda principal.</p>
+      {billing.value && <ExtraEmployeeControls status={billing.value} props={props} />}
       <ResourceState {...resource} />
       {resource.value?.map((p) => (
         <div className="order-line" key={p.id}>

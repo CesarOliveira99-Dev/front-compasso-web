@@ -5302,3 +5302,60 @@ tbody tr:hover {
 .payment-success p { margin-top: 8px; }
 .payment-brick { min-width: 0; }
 @media (max-width: 480px) { .payment-summary { flex-wrap: wrap; padding: 14px; } .payment-summary-icon { display: none; } .payment-amount { width: 100%; margin-left: 0; } }
+
+/* Store subscriptions */
+.store-plans { display: grid; gap: 20px; }
+.store-plans > div > h3 { font-size: 22px; }
+.settings-payments { display: grid; gap: 24px; margin-top: 24px; }
+.store-trial-banner { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+.plan-access { padding: 18px; border-radius: 14px; background: var(--surface-muted, #f3f6f4); }
+.plan-access.trial, .plan-access.active { border-left: 4px solid #598c68; }
+.plan-access.expired { border-left: 4px solid #ba7a30; }
+.store-plan-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.store-plan { display: flex; flex-direction: column; gap: 12px; padding: 22px; border: 1px solid var(--border, #ddd); border-radius: 16px; }
+.store-plan.selected { border-color: #598c68; }
+.store-plan h4 { font-size: 18px; margin: 0; }
+.store-plan .plan-price { font-size: 27px; font-weight: 650; margin: 0; color: #253d32; }
+.store-plan .plan-price small { display: inline; font-size: 13px; font-weight: 400; }
+.store-plan ul { padding-left: 18px; line-height: 1.9; flex: 1; }
+.store-plan small, .plan-usage small { display: block; line-height: 1.5; }
+.plan-usage { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.plan-usage progress { width: 100%; height: 8px; accent-color: #598c68; }
+.quota-warning { color: #8b5b1c; }
+.quota-warning progress { accent-color: #b17b31; }
+.plan-manage { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
+.plan-manage p { width: 100%; }
+@media (max-width: 850px) { .store-plan-grid, .plan-usage { grid-template-columns: 1fr; } }
+
+.order-title-button { border: 0; background: none; padding: 0; font: inherit; font-weight: inherit; text-align: left; text-decoration: underline; text-underline-offset: 4px; }
+.discovery-location-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 16px 0 24px; }
+.discovery-location-controls > small, .discovery-location-controls > p { flex-basis: 100%; line-height: 1.6; }
+.order-details { display: grid; gap: 18px; }
+.order-details dl { display: grid; gap: 12px; margin: 0; }
+.order-details dl > div { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.order-details dd { margin: 0; }
+.order-detail-items { padding: 0; margin: 0; list-style: none; }
+.order-detail-items li { display: flex; justify-content: space-between; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.order-detail-items small { display: block; margin-top: 6px; }
+.appointments-toolbar, .appointments-toolbar > *, .appointments-toolbar .toolbar-controls > * { min-width: 0; }
+@media (max-width: 700px) {
+  .appointments-toolbar { display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; }
+  .appointments-toolbar .tabs { display: flex; flex-wrap: wrap; width: 100%; max-width: 100%; }
+  .appointments-toolbar .tabs button { flex: 1 1 auto; padding: 10px; }
+  .appointments-toolbar .toolbar-controls { display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; }
+  .appointments-toolbar .toolbar-controls > select, .appointments-toolbar .toolbar-controls > input, .appointments-toolbar .search-field { width: 100%; min-width: 0; max-width: 100%; }
+  .appointments-toolbar .search-field input { width: 100%; min-width: 0; }
+  .appointments-table { display: block; min-width: 0; width: 100%; }
+  .appointments-table thead { display: none; }
+  .appointments-table tbody { display: grid; width: 100%; }
+  .appointments-table tr { display: grid; width: 100%; padding: 16px; border-bottom: 1px solid var(--line); }
+  .appointments-table td { display: grid; grid-template-columns: minmax(82px, 30%) minmax(0, 1fr); align-items: start; gap: 12px; padding: 8px 0; border: 0; white-space: normal; overflow-wrap: anywhere; font-size: 13px; }
+  .appointments-table td::before { content: attr(data-label); font-size: 11px; color: var(--muted); padding-top: 3px; }
+  .appointments-table .person-cell, .appointments-table .person-cell > div { min-width: 0; }
+  .appointments-table .person-cell small, .appointments-table .table-date small { white-space: normal; }
+  .appointments-table .person-cell strong { font-size: 13px; }
+  .appointments-table .person-cell small, .appointments-table .table-date small { font-size: 12px; }
+  .appointments-table .badge { font-size: 11px; }
+  .appointments-table .row-actions { flex-wrap: wrap; }
+  .order-header > .badge { max-width: 100%; white-space: normal; }
+}

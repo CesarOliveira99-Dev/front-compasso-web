@@ -221,7 +221,6 @@ export function SettingsPage(props: SectionProps) {
         <aside className="settings-aside">
           <RecommendationPanel revision={props.revision} />
           <EmailVerification verified={props.data.user.emailVerified} />
-          <PaymentsSettings {...props} />
           <section className="panel integration-card">
             <span className="stat-icon sage">
               <Smartphone size={23} />
@@ -242,6 +241,7 @@ export function SettingsPage(props: SectionProps) {
           </div>
         </aside>
       </form>
+      <div className="settings-payments"><PaymentsSettings {...props} /></div>
     </>
   );
 }
