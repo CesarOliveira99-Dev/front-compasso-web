@@ -5305,6 +5305,15 @@ tbody tr:hover {
 
 /* Store subscriptions */
 .store-plans { display: grid; gap: 20px; }
+.settings-plans-first { margin-bottom: 24px; }
+.plan-card-choice { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 18px; }
+.plan-card-choice input { width: 18px; height: 18px; margin: 0; accent-color: #598c68; }
+.store-plan { cursor: pointer; }
+.store-plan.selected { box-shadow: 0 0 0 2px #598c68; background: #f9fcfa; }
+.plan-comparison { padding: 18px; border-radius: 12px; border: 1px solid var(--line); }
+.field-validation-error { display: block; color: #a33121; font-size: 12px; line-height: 1.5; margin-top: 6px; }
+input[aria-invalid="true"] { border-color: #a33121; }
+.password-control:has(.field-validation-error) .password-toggle { top: 22px; }
 .store-plans > div > h3 { font-size: 22px; }
 .settings-payments { display: grid; gap: 24px; margin-top: 24px; }
 .store-trial-banner { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }

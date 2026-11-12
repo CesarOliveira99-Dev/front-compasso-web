@@ -1,4 +1,5 @@
 'use client';
+import { IdentityInput } from '@/modules/identity/presentation/identity-input';
 import { WeeklyHours, hoursFromForm } from '@/modules/shared/presentation/weekly-hours';
 import { EmailVerification } from '@/modules/identity/presentation/email-verification';
 import {
@@ -38,6 +39,7 @@ export function SettingsPage(props: SectionProps) {
         title="Configurações"
         description="Pequenos ajustes para uma rotina que funciona para você."
       />
+      <div className="settings-plans-first"><PaymentsSettings {...props} view="plans" /></div>
       {settings.setupComplete === false && (
         <section className="panel setup-welcome">
           <h2>Vamos preparar sua loja?</h2>
@@ -95,31 +97,25 @@ export function SettingsPage(props: SectionProps) {
             </div>
             <div className="form-row">
               <Field label="Seu nome">
-                <input
+                <IdentityInput kind="name"
                   name="name"
                   required
                   defaultValue={settings.name}
-                  minLength={2}
-                  maxLength={100}
                 />
               </Field>
               <Field label="Nome do negócio">
-                <input
+                <IdentityInput kind="businessName"
                   name="businessName"
                   required
                   defaultValue={settings.businessName}
-                  minLength={2}
-                  maxLength={100}
                 />
               </Field>
             </div>
             <Field label="Telefone do estabelecimento">
-              <input
+              <IdentityInput kind="phone"
                 name="phone"
                 type="tel"
                 required
-                minLength={10}
-                maxLength={20}
                 defaultValue={settings.phone || props.data.user.phone}
               />
             </Field>

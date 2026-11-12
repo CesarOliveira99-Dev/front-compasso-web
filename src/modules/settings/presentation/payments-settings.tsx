@@ -4,7 +4,7 @@ import { api } from '@/modules/shared/infrastructure/api';
 import { StorePlans, type PlanStatus } from './store-plans';
 import { useResource, ResourceState, type SectionProps } from '@/modules/shared/presentation/ui';
 interface PaymentStatus extends PlanStatus { configured: boolean; connected: boolean }
-export function PaymentsSettings(props: SectionProps) {
+export function PaymentsSettings(props: SectionProps & { view?: 'plans' | 'connection' }) {
   const [revision, setRevision] = useState(0);
   const resource = useResource<PaymentStatus>('payments/status', revision + props.revision);
   const [busy, setBusy] = useState(false);
@@ -23,6 +23,7 @@ export function PaymentsSettings(props: SectionProps) {
       setBusy(false);
     }
   }
+  if (props.view === 'plans') return <><ResourceState {...resource} />{resource.value && <StorePlans status={resource.value} props={props} busy={busy} refresh={() => action('payments/subscription/refresh', false)} />}</>;
   return (
     <>
       <section className="panel integration-card">
@@ -55,7 +56,6 @@ export function PaymentsSettings(props: SectionProps) {
           recebimentos e marca os pedidos como pagos.
         </p>
       </section>
-      {resource.value && <StorePlans status={resource.value} props={props} busy={busy} refresh={() => action('payments/subscription/refresh', false)} />}
     </>
   );
 }

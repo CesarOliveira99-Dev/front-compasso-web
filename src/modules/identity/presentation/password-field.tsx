@@ -2,6 +2,7 @@
 import { useId, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Field } from '@/modules/shared/presentation/ui';
+import { IdentityInput } from './identity-input';
 
 export function PasswordField({
   confirm = false,
@@ -16,13 +17,13 @@ export function PasswordField({
   return (
     <Field label={confirm ? 'Confirmar senha' : 'Senha'}>
       <div className="password-control">
-        <input
+        <IdentityInput
+          kind={confirm ? 'confirmPassword' : 'password'}
           id={inputId}
           name={confirm ? 'confirmPassword' : 'password'}
           type={visible ? 'text' : 'password'}
           required
           minLength={8}
-          maxLength={128}
           placeholder={confirm ? 'Digite sua senha novamente' : 'Sua senha de acesso'}
           autoComplete={register ? 'new-password' : 'current-password'}
         />
