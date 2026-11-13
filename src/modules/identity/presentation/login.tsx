@@ -26,6 +26,7 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
   const [registrationKey] = useState(() => crypto.randomUUID());
   const [register, setRegister] = useState(false);
   const [role, setRole] = useState('customer');
+  const [workspaceMode, setWorkspaceMode] = useState('store');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [onboarding, setOnboarding] = useState<GoogleOnboardingData | null>(null);
@@ -46,8 +47,9 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
         'POST',
         {
           ...Object.fromEntries(form),
+          role, workspaceMode,
           ...(register ? { idempotencyKey: registrationKey } : {}),
-          ...(register && role === 'admin' ? { address: addressFromForm(form) } : {}),
+          ...(register && role === 'admin' && workspaceMode !== 'solo' ? { address: addressFromForm(form) } : {}),
         },
       );
       if (result.status === 'store_selection_required') {
@@ -134,13 +136,14 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
                   ? 'Crie sua conta e encontre seu ritmo.'
                   : 'Entre para acompanhar o que vem pela frente.'}
               </p>
+              {!register && <div className="login-workspace-choices"><button type="button" className="button secondary" onClick={()=>{setRegister(true);setRole('admin');setWorkspaceMode('solo');}}>Quero minha agenda individual</button><small>Compasso Solo: agenda privada, só sua. R$15/mês ou R$110/ano.</small></div>}
               <form ref={formRef} onSubmit={submit}>
                 {register && (
                   <>
                     <Field label="Tipo de conta">
-                      <select name="role" value={role} onChange={(e) => setRole(e.target.value)}>
+                      <select name="role" value={workspaceMode === 'solo' && role === 'admin' ? 'solo' : role} onChange={(e) => {setRole(e.target.value === 'solo' ? 'admin' : e.target.value);setWorkspaceMode(e.target.value === 'solo' ? 'solo' : 'store');}}>
                         <option value="customer">Sou cliente</option>
-                        <option value="admin">Quero administrar meu negócio</option>
+                        <option value="admin">Quero administrar meu negócio</option><option value="solo">Quero minha agenda individual</option>
                       </select>
                     </Field>
                     <Field label="Seu nome">
@@ -149,12 +152,12 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
                     <Field label="Telefone">
                       <IdentityInput kind="phone" name="phone" required type="tel" inputMode="tel" autoComplete="tel" placeholder="(18) 99999-9999" />
                     </Field>
-                    {role === 'admin' && (
+                    {role === 'admin' && workspaceMode !== 'solo' && (
                       <>
                         <Field label="Nome do negócio">
                           <IdentityInput kind="businessName" name="businessName" required placeholder="O nome do seu espaço" />
                         </Field>
-                        <BusinessAddressFields />
+                        {workspaceMode !== 'solo' && <BusinessAddressFields />}
                       </>
                     )}
                   </>
@@ -185,7 +188,7 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
                 {register && role === 'customer' && (
                   <p className="form-note">Sua conta vale para todos os estabelecimentos. Escolha onde agendar depois.</p>
                 )}
-        {register && role === 'admin' && <p className="form-note">Sua loja começa com 14 dias grátis, sem cartão obrigatório e sem cobrança automática ao final. Clientes não pagam assinatura.</p>}
+        {register && role === 'admin' && <p className="form-note">{workspaceMode === 'solo' ? 'Sua agenda' : 'Sua loja'} começa com 14 dias grátis, sem cartão obrigatório e sem cobrança automática ao final. Clientes não pagam assinatura.</p>}
                 {error && (
                   <p className="error-message" role="alert">
                     {error}

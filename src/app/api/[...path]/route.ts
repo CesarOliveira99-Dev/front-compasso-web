@@ -1,4 +1,5 @@
 import {UploadGate} from '@/modules/bff/infrastructure/upload-gate';
+import { isWorkspacePath } from '@/modules/bff/domain/workspace-route';
 const uploads=new UploadGate();
 import {boundedBody,BodyTooLarge} from '@/modules/bff/infrastructure/bounded-body';
 import { backend } from '@/modules/bff/infrastructure/backend-client';
@@ -20,7 +21,8 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
     !paymentsAllowed.test(path) &&
     !professionalsAllowed.test(path) &&
     !googleAllowed.test(path) &&
-    !/^media(?:\/[a-f0-9-]{36})?$/.test(path)
+    !/^media(?:\/[a-f0-9-]{36})?$/.test(path) &&
+    !isWorkspacePath(path)
   )
     return NextResponse.json({ message: 'Rota não encontrada.' }, { status: 404 });
   if (request.method !== 'GET') {
@@ -29,6 +31,11 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
       return NextResponse.json({ message: 'Origem inválida.' }, { status: 403 });
   }
   try {
+    if (path === 'workspace/export' && request.method === 'GET') {
+      const response = await backend(path + request.nextUrl.search);
+      if (!response.ok) return NextResponse.json(await response.json(), { status: response.status });
+      return new NextResponse(response.body, { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="compasso-atendimentos.csv"', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
+    }
     if (path.startsWith('media/')) {
       const response = await backend(path,{headers:request.headers.get('range')?{Range:request.headers.get('range')!}:{}});
       if (!response.ok)

@@ -1,4 +1,7 @@
 'use client';
+import { SoloWorkspace } from './solo-workspace';
+import { WorkspaceTools } from './workspace-tools';
+import { WorkspaceAppearance } from './agenda-preferences';
 import dynamic from 'next/dynamic';
 import { EmployeeWorkspace } from './employee';
 import { TeamPage } from '@/modules/settings/presentation/team';
@@ -121,6 +124,7 @@ const adminNavigation = [
       { id: 'home', name: 'Calendário', icon: CalendarDays },
       { id: 'appointments', name: 'Histórico de atendimentos', icon: ClipboardList },
       { id: 'customers', name: 'Clientes', icon: Users },
+      { id: 'tools', name: 'Fichas e análises', icon: ChartNoAxesCombined },
       { id: 'team', name: 'Equipe', icon: Users },
       { id: 'triage', name: 'Triagem', icon: ClipboardList },
       { id: 'feedback', name: 'Avaliações', icon: MessageCircle },
@@ -341,9 +345,11 @@ export function Workspace() {
     (page === 'settings' ? 'Configurações' : page === 'cart' ? 'Sua sacola' : 'Visão geral');
   const unread = data.notifications.filter((n) => !n.read).length;
   const props: SectionProps = { data, revision, mutate, notify, openDialog, navigate };
-  if (data.user.role === 'employee') return <EmployeeWorkspace {...props} logout={logout} />;
+  if (data.settings.workspaceMode === 'solo') return <><SoloWorkspace {...props} logout={logout} />{dialog && <Dialog key={dialog.key} dialog={dialog} close={()=>setDialog(undefined)}/>} {toast&&<div className={`toast ${toast.error?'error':''}`} role="status">{toast.message}</div>}</>;
+  if (data.user.role === 'employee') return <><EmployeeWorkspace {...props} logout={logout} />{toast&&<div className={`toast ${toast.error?'error':''}`} role="status">{toast.message}</div>}</>;
   let content;
   switch (page) {
+    case 'tools': content = <WorkspaceTools {...props} />; break;
     case 'team':
       content = admin ? <TeamPage {...props} /> : <Discovery />;
       break;
@@ -696,6 +702,7 @@ export function Workspace() {
           </section>
         )}
         <main className="main-content" key={page}>
+          {admin && <WorkspaceAppearance revision={revision} />}
           {data.user.role === 'admin' && page !== 'settings' && <StoreTrialBanner revision={revision} manage={() => setPage('settings')} />}
           {fatal && (
             <div className="error-message" role="alert">

@@ -34,6 +34,7 @@ export function GoogleOnboarding({
     : data.stores.filter((store) => store.existingAccount);
   const choices = memberships.length ? memberships : existingStores;
   const [role, setRole] = useState('customer');
+  const [workspaceMode, setWorkspaceMode] = useState('store');
   const [slug, setSlug] = useState(choices.length === 1 ? choices[0].slug : '');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -47,7 +48,8 @@ export function GoogleOnboarding({
       const form = new FormData(event.currentTarget);
       const body = {
         ...Object.fromEntries(form),
-        ...(role === 'admin' ? { address: addressFromForm(form) } : {}),
+        role, workspaceMode,
+        ...(role === 'admin' && workspaceMode !== 'solo' ? { address: addressFromForm(form) } : {}),
       };
       await api('auth/google/complete', 'POST', body);
       await onLogin();
@@ -67,15 +69,16 @@ export function GoogleOnboarding({
           <Field label="Como você quer usar o Compasso?">
             <select
               name="role"
-              value={role}
+              value={workspaceMode === 'solo' && role === 'admin' ? 'solo' : role}
               onChange={(event) => {
-                setRole(event.target.value);
+                setRole(event.target.value === 'solo' ? 'admin' : event.target.value);
+                setWorkspaceMode(event.target.value === 'solo' ? 'solo' : 'store');
                 setSlug('');
                 setError('');
               }}
             >
               <option value="customer">Sou cliente</option>
-              <option value="admin">Quero administrar meu novo negócio</option>
+              <option value="admin">Quero administrar meu novo negócio</option><option value="solo">Quero minha agenda individual</option>
             </select>
           </Field>
         )}
@@ -107,16 +110,16 @@ export function GoogleOnboarding({
               ))}
             </select>
           </Field>
-        ) : role === 'admin' ? (
+        ) : role === 'admin' && workspaceMode !== 'solo' ? (
           <>
             <Field label="Nome do negócio">
               <IdentityInput kind="businessName" name="businessName" required placeholder="O nome do seu espaço" />
             </Field>
-            <BusinessAddressFields />
+            {workspaceMode !== 'solo' && <BusinessAddressFields />}
           </>
         ) : (
           <p className="form-note">
-            Sua conta vale para todos os estabelecimentos. Escolha onde agendar depois.
+            {workspaceMode === 'solo' ? 'Sua agenda é privada e tem acesso individual, com 14 dias para experimentar.' : 'Sua conta vale para todos os estabelecimentos. Escolha onde agendar depois.'}
           </p>
         )}
         {!memberships.length && !existing && <Field label="Seu nome"><IdentityInput kind="name" name="name" required defaultValue={data.profile.name} autoComplete="name" /></Field>}
@@ -134,7 +137,7 @@ export function GoogleOnboarding({
             <PasswordField />
           </>
         )}
-        {!existing && role === 'admin' && <p className="form-note">Sua loja começa com 14 dias grátis, sem cartão obrigatório e sem cobrança automática ao final. Clientes não pagam assinatura.</p>}
+        {!existing && role === 'admin' && <p className="form-note">{workspaceMode === 'solo' ? 'Sua agenda' : 'Sua loja'} começa com 14 dias grátis, sem cartão obrigatório e sem cobrança automática ao final. Clientes não pagam assinatura.</p>}
         {error && (
           <p className="error-message" role="alert">
             {error}

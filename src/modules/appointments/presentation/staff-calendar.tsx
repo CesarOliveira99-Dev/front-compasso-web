@@ -1,5 +1,5 @@
-'use client';
-import { useEffect, useMemo, useState } from 'react';
+"use client";
+import { useEffect, useMemo, useState } from "react";
 import {
   CalendarClock,
   CalendarDays,
@@ -8,9 +8,9 @@ import {
   Columns3,
   MoveHorizontal,
   Plus,
-} from 'lucide-react';
-import type { Appointment, Bootstrap } from '@/modules/shared/domain/models';
-import { Badge, Empty, PageHeading } from '@/modules/shared/presentation/ui';
+} from "lucide-react";
+import type { Appointment, Bootstrap } from "@/modules/shared/domain/models";
+import { Badge, Empty, PageHeading } from "@/modules/shared/presentation/ui";
 import {
   addDays,
   appointmentLanes,
@@ -27,7 +27,7 @@ import {
   weekLabel,
   weekStart,
   type CalendarView,
-} from '../domain/calendar';
+} from "../domain/calendar";
 
 interface Props {
   data: Bootstrap;
@@ -35,13 +35,13 @@ interface Props {
   onNew?: () => void;
 }
 export function StaffCalendar({ data, onOpen, onNew }: Props) {
-  const timezone = data.settings.timezone || 'America/Sao_Paulo';
+  const timezone = data.settings.timezone || "America/Sao_Paulo";
   const [today, setToday] = useState(() => dateInZone(new Date(), timezone));
   const [selectedDate, setSelectedDate] = useState(today);
   const [month, setMonth] = useState(today.slice(0, 7));
-  const [view, setView] = useState<CalendarView>('Semana');
-  const [professional, setProfessional] = useState('');
-  const employee = data.user.role === 'employee';
+  const [view, setView] = useState<CalendarView>("Semana");
+  const [professional, setProfessional] = useState("");
+  const employee = data.user.role === "employee";
   useEffect(() => {
     const update = () => setToday(dateInZone(new Date(), timezone));
     update();
@@ -50,20 +50,21 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
   }, [timezone]);
   const accessible = data.appointments.filter(
     (a) =>
-      a.status !== 'cancelled' &&
+      a.status !== "cancelled" &&
       (!employee ||
-        (Boolean(data.user.professionalId) && a.professionalId === data.user.professionalId)),
+        (Boolean(data.user.professionalId) &&
+          a.professionalId === data.user.professionalId)),
   );
   const professionals = Array.from(
     new Map(
       accessible.map((a) => [
-        a.professionalId || 'principal',
+        a.professionalId || "principal",
         a.professionalName || data.settings.name,
       ]),
     ).entries(),
   ).sort((a, b) => a[0].localeCompare(b[0]));
   const appointments = accessible.filter(
-    (a) => !professional || (a.professionalId || 'principal') === professional,
+    (a) => !professional || (a.professionalId || "principal") === professional,
   );
   const byDate = useMemo(() => {
     const grouped = new Map<string, Appointment[]>();
@@ -73,14 +74,21 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
       list.push(appointment);
       grouped.set(key, list);
     }
-    for (const list of grouped.values()) list.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+    for (const list of grouped.values())
+      list.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
     return grouped;
-  }, [data.appointments, professional, employee, data.user.professionalId, timezone]);
+  }, [
+    data.appointments,
+    professional,
+    employee,
+    data.user.professionalId,
+    timezone,
+  ]);
   const days = weekDays(selectedDate);
   const range =
-    view === 'Mês'
+    view === "Mês"
       ? monthDays(month).filter((key) => key.startsWith(month))
-      : view === 'Semana'
+      : view === "Semana"
         ? days
         : [selectedDate];
   const periodAppointments = range.flatMap((key) => byDate.get(key) || []);
@@ -89,7 +97,9 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
     0,
     Math.min(
       data.settings.openingHour,
-      ...weekAppointments.map((a) => Math.floor(clockMinutes(a.startsAt, timezone) / 60)),
+      ...weekAppointments.map((a) =>
+        Math.floor(clockMinutes(a.startsAt, timezone) / 60),
+      ),
     ),
   );
   const closing = Math.min(
@@ -112,19 +122,20 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
     ? 96
     : 64;
   const label =
-    view === 'Mês'
-      ? calendarLabel(month + '-01', { month: 'long', year: 'numeric' })
-      : view === 'Semana'
+    view === "Mês"
+      ? calendarLabel(month + "-01", { month: "long", year: "numeric" })
+      : view === "Semana"
         ? weekLabel(selectedDate)
         : calendarLabel(selectedDate);
-  const periodKey = view + '-' + (view === 'Mês' ? month : weekStart(selectedDate));
+  const periodKey =
+    view + "-" + (view === "Mês" ? month : weekStart(selectedDate));
   function color(appointment: Appointment) {
-    if (appointment.status === 'pending') return 'pastel-pink';
-    if (appointment.status === 'completed') return 'pastel-neutral';
+    if (appointment.status === "pending") return "pastel-pink";
+    if (appointment.status === "completed") return "pastel-neutral";
     const index = professionals.findIndex(
-      ([id]) => id === (appointment.professionalId || 'principal'),
+      ([id]) => id === (appointment.professionalId || "principal"),
     );
-    return ['pastel-mint', 'pastel-blue', 'pastel-lavender', 'pastel-cream'][
+    return ["pastel-mint", "pastel-blue", "pastel-lavender", "pastel-cream"][
       Math.max(0, index) % 4
     ];
   }
@@ -134,14 +145,17 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
     setView(nextView);
   }
   function shift(direction: number) {
-    if (view === 'Mês') {
+    if (view === "Mês") {
       const next = shiftMonth(month, direction);
-      if (validDateKey(next + '-01')) {
+      if (validDateKey(next + "-01")) {
         setMonth(next);
-        setSelectedDate(next + '-01');
+        setSelectedDate(next + "-01");
       }
     } else {
-      const next = addDays(selectedDate, direction * (view === 'Semana' ? 7 : 1));
+      const next = addDays(
+        selectedDate,
+        direction * (view === "Semana" ? 7 : 1),
+      );
       if (validDateKey(next)) selectDate(next);
     }
   }
@@ -149,41 +163,44 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
     setView(next);
   }
   function openMonth(value: string) {
-    if (validDateKey(value + '-01')) {
+    if (validDateKey(value + "-01")) {
       setMonth(value);
-      setSelectedDate(value + '-01');
-      setView('Mês');
+      setSelectedDate(value + "-01");
+      setView("Mês");
     }
   }
   const daily = byDate.get(selectedDate) || [];
   return (
     <section className="staff-calendar">
-      <section className="staff-quick-calendar" aria-label="Escolher dia da agenda">
+      <section
+        className="staff-quick-calendar"
+        aria-label="Escolher dia da agenda"
+      >
         <div className="staff-quick-calendar-heading">
           <button
             aria-label="Mês anterior no seletor"
             onClick={() => {
               const next = shiftMonth(month, -1);
-              if (validDateKey(next + '-01')) selectDate(next + '-01');
+              if (validDateKey(next + "-01")) selectDate(next + "-01");
             }}
           >
             <ChevronLeft size={17} />
           </button>
           <strong aria-live="polite">
-            {calendarLabel(month + '-01', { month: 'long', year: 'numeric' })}
+            {calendarLabel(month + "-01", { month: "long", year: "numeric" })}
           </strong>
           <button
             aria-label="Próximo mês no seletor"
             onClick={() => {
               const next = shiftMonth(month, 1);
-              if (validDateKey(next + '-01')) selectDate(next + '-01');
+              if (validDateKey(next + "-01")) selectDate(next + "-01");
             }}
           >
             <ChevronRight size={17} />
           </button>
         </div>
         <div className="staff-quick-calendar-grid">
-          {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((day) => (
+          {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day) => (
             <span key={day} aria-hidden="true">
               {day}
             </span>
@@ -193,23 +210,26 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
             return (
               <button
                 key={key}
-                className={`${key.startsWith(month) ? '' : 'outside'} ${count ? 'has-appointments' : ''}`}
+                className={`${key.startsWith(month) ? "" : "outside"} ${count ? "has-appointments" : ""}`}
                 aria-pressed={key === selectedDate}
-                aria-current={key === today ? 'date' : undefined}
-                aria-label={`${calendarLabel(key)}; ${count} ${count === 1 ? 'atendimento' : 'atendimentos'}. Abrir dia`}
-                onClick={() => selectDate(key, 'Dia')}
+                aria-current={key === today ? "date" : undefined}
+                aria-label={`${calendarLabel(key)}; ${count} ${count === 1 ? "atendimento" : "atendimentos"}. Abrir dia`}
+                onClick={() => selectDate(key, "Dia")}
               >
                 {dateFromKey(key).getUTCDate()}
               </button>
             );
           })}
         </div>
-        <p>Os dias destacados têm atendimentos. Selecione uma data para ver os horários.</p>
+        <p>
+          Os dias destacados têm atendimentos. Selecione uma data para ver os
+          horários.
+        </p>
       </section>
       <div className="staff-calendar-main">
         <PageHeading
-          title={employee ? 'Sua agenda' : 'Calendário'}
-          description={`${data.settings.businessName} · ${employee ? 'Seus atendimentos' : 'Agenda da equipe'}`}
+          title={employee ? "Sua agenda" : "Calendário"}
+          description={`${data.settings.businessName} · ${data.settings.workspaceMode === "solo" ? "Sua agenda privada" : employee ? "Seus atendimentos" : "Agenda da equipe"}`}
           action={
             onNew && (
               <button className="button primary" onClick={onNew}>
@@ -235,16 +255,22 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
             >
               <ChevronRight size={16} />
             </button>
-            <button className="button secondary" onClick={() => selectDate(today, 'Semana')}>
+            <button
+              className="button secondary"
+              onClick={() => selectDate(today, "Semana")}
+            >
               Hoje
             </button>
           </div>
-          <div className="calendar-view-switch" aria-label="Visualização do calendário">
+          <div
+            className="calendar-view-switch"
+            aria-label="Visualização do calendário"
+          >
             {(
               [
-                { label: 'Dia', icon: CalendarClock },
-                { label: 'Semana', icon: Columns3 },
-                { label: 'Mês', icon: CalendarDays },
+                { label: "Dia", icon: CalendarClock },
+                { label: "Semana", icon: Columns3 },
+                { label: "Mês", icon: CalendarDays },
               ] as const
             ).map(({ label: option, icon: Icon }) => (
               <button
@@ -278,7 +304,7 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
               onChange={(e) => {
                 if (validDateKey(e.target.value)) {
                   setSelectedDate(e.target.value);
-                  setView('Semana');
+                  setView("Semana");
                 }
               }}
             >
@@ -296,22 +322,29 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
               <span key={id}>
                 <b
                   className={
-                    ['pastel-mint', 'pastel-blue', 'pastel-lavender', 'pastel-cream'][i % 4]
+                    [
+                      "pastel-mint",
+                      "pastel-blue",
+                      "pastel-lavender",
+                      "pastel-cream",
+                    ][i % 4]
                   }
                 />
                 {name}
               </span>
             ))}
-            <span>
-              <b className="pastel-pink" />
-              Em triagem
-            </span>
+            {data.settings.workspaceMode !== "solo" && (
+              <span>
+                <b className="pastel-pink" />
+                Em triagem
+              </span>
+            )}
             <span>
               <b className="pastel-neutral" />
               Concluído
             </span>
           </div>
-          {!employee && (
+          {!employee && data.settings.workspaceMode !== "solo" && (
             <select
               aria-label="Filtrar agenda por profissional"
               value={professional}
@@ -326,7 +359,7 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
             </select>
           )}
         </div>
-        {view !== 'Dia' && (
+        {view !== "Dia" && (
           <div className="calendar-pan-hint">
             <span>
               <MoveHorizontal size={16} /> Deslize para ver todos os dias
@@ -334,7 +367,7 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
             <small>Rolagem lateral</small>
           </div>
         )}
-        {view === 'Mês' ? (
+        {view === "Mês" ? (
           <>
             <div
               className="staff-calendar-pan"
@@ -345,30 +378,46 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
             >
               <div className="staff-month">
                 <div className="staff-month-head">
-                  {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((day) => (
-                    <span key={day}>{day}</span>
-                  ))}
+                  {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map(
+                    (day) => (
+                      <span key={day}>{day}</span>
+                    ),
+                  )}
                 </div>
                 <div className="staff-month-grid">
                   {monthDays(month).map((key) => {
                     const list = byDate.get(key) || [];
                     return (
                       <button
-                        className={`staff-month-day ${key.startsWith(month) ? '' : 'outside'} ${key === selectedDate ? 'selected' : ''}`}
+                        className={`staff-month-day ${key.startsWith(month) ? "" : "outside"} ${key === selectedDate ? "selected" : ""}`}
                         key={key}
-                        aria-current={key === today ? 'date' : undefined}
+                        aria-current={key === today ? "date" : undefined}
                         aria-label={`Abrir semana de ${calendarLabel(key)}; ${list.length} atendimentos`}
-                        onClick={() => selectDate(key, 'Semana')}
+                        onClick={() => selectDate(key, "Semana")}
                       >
-                        <span className="month-day-number">{dateFromKey(key).getUTCDate()}</span>
+                        <span className="month-day-number">
+                          {dateFromKey(key).getUTCDate()}
+                        </span>
                         <span className="staff-month-events">
                           {list.slice(0, 2).map((a) => (
-                            <span className={`staff-month-event ${color(a)}`} key={a.id}>
-                              {clockLabel(a.startsAt, timezone)}{' '}
-                              <strong>{a.customerName.split(' ')[0]}</strong>
+                            <span
+                              style={
+                                a.categoryColor
+                                  ? {
+                                      borderLeft: `4px solid ${a.categoryColor}`,
+                                    }
+                                  : undefined
+                              }
+                              className={`staff-month-event ${color(a)}`}
+                              key={a.id}
+                            >
+                              {clockLabel(a.startsAt, timezone)}{" "}
+                              <strong>{a.customerName.split(" ")[0]}</strong>
                             </span>
                           ))}
-                          {list.length > 2 && <small>+{list.length - 2} atendimentos</small>}
+                          {list.length > 2 && (
+                            <small>+{list.length - 2} atendimentos</small>
+                          )}
                         </span>
                       </button>
                     );
@@ -380,7 +429,7 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
               Selecione uma data para abrir a semana correspondente.
             </p>
           </>
-        ) : view === 'Semana' ? (
+        ) : view === "Semana" ? (
           <div
             className="staff-calendar-pan"
             key={periodKey}
@@ -392,20 +441,25 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
               <div className="staff-week-corner" />
               {days.map((key) => (
                 <button
-                  className={`staff-week-day ${selectedDate === key ? 'selected' : ''}`}
+                  className={`staff-week-day ${selectedDate === key ? "selected" : ""}`}
                   key={key}
-                  aria-current={key === today ? 'date' : undefined}
+                  aria-current={key === today ? "date" : undefined}
                   aria-label={`Selecionar ${calendarLabel(key)}`}
                   onClick={() => setSelectedDate(key)}
                 >
-                  <strong>{String(dateFromKey(key).getUTCDate()).padStart(2, '0')}</strong>
-                  <span>{calendarLabel(key, { weekday: 'short' })}</span>
+                  <strong>
+                    {String(dateFromKey(key).getUTCDate()).padStart(2, "0")}
+                  </strong>
+                  <span>{calendarLabel(key, { weekday: "short" })}</span>
                 </button>
               ))}
-              <div className="staff-time-axis" style={{ height: (closing - opening) * rowHeight }}>
+              <div
+                className="staff-time-axis"
+                style={{ height: (closing - opening) * rowHeight }}
+              >
                 {Array.from({ length: closing - opening }, (_, i) => (
                   <span key={i} style={{ height: rowHeight }}>
-                    {String(opening + i).padStart(2, '0')}:00
+                    {String(opening + i).padStart(2, "0")}:00
                   </span>
                 ))}
               </div>
@@ -420,28 +474,38 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
                 >
                   {appointmentLanes(byDate.get(key) || []).map(
                     ({ appointment: a, lane, lanes }) => {
-                      const duration = (Date.parse(a.endsAt) - Date.parse(a.startsAt)) / 60000,
+                      const duration =
+                          (Date.parse(a.endsAt) - Date.parse(a.startsAt)) /
+                          60000,
                         height = (duration * rowHeight) / 60 - 6;
                       return (
                         <button
-                          className={`staff-calendar-event ${color(a)} ${height < 70 ? 'compact' : ''}`}
+                          className={`staff-calendar-event ${color(a)} ${height < 70 ? "compact" : ""}`}
                           key={a.id}
                           style={{
+                            borderLeft: a.categoryColor
+                              ? `5px solid ${a.categoryColor}`
+                              : undefined,
                             top:
-                              ((clockMinutes(a.startsAt, timezone) - opening * 60) * rowHeight) /
+                              ((clockMinutes(a.startsAt, timezone) -
+                                opening * 60) *
+                                rowHeight) /
                                 60 +
                               3,
                             height: Math.max(16, height),
                             left: `calc(${(lane * 100) / lanes}% + 3px)`,
                             width: `calc(${100 / lanes}% - 6px)`,
                           }}
-                          aria-label={`${a.customerName}, ${a.itemName}, ${clockLabel(a.startsAt, timezone)}–${clockLabel(a.endsAt, timezone)}, ${a.professionalName || data.settings.name}, ${a.status === 'pending' ? 'Em triagem' : a.status === 'completed' ? 'Concluído' : 'Confirmado'}`}
+                          aria-label={`${a.customerName}, ${a.itemName}, ${clockLabel(a.startsAt, timezone)}–${clockLabel(a.endsAt, timezone)}, ${a.professionalName || data.settings.name}, ${a.status === "pending" ? "Em triagem" : a.status === "completed" ? "Concluído" : "Confirmado"}`}
                           title={`${a.customerName} · ${a.itemName} · ${clockLabel(a.startsAt, timezone)}`}
                           onClick={() => onOpen(a)}
                         >
                           <span>{clockLabel(a.startsAt, timezone)}</span>
                           <strong>{a.customerName}</strong>
-                          <span className="event-service">{a.itemName}</span>
+                          <span className="event-service">
+                            {a.itemName}
+                            {a.categoryName ? ` · ${a.categoryName}` : ""}
+                          </span>
                         </button>
                       );
                     },
@@ -457,9 +521,9 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
                 <button
                   key={key}
                   aria-pressed={key === selectedDate}
-                  onClick={() => selectDate(key, 'Dia')}
+                  onClick={() => selectDate(key, "Dia")}
                 >
-                  <span>{calendarLabel(key, { weekday: 'short' })}</span>
+                  <span>{calendarLabel(key, { weekday: "short" })}</span>
                   <strong>{dateFromKey(key).getUTCDate()}</strong>
                 </button>
               ))}
@@ -469,6 +533,11 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
               daily.map((a) => (
                 <button
                   className={`staff-day-card ${color(a)}`}
+                  style={
+                    a.categoryColor
+                      ? { borderLeft: `5px solid ${a.categoryColor}` }
+                      : undefined
+                  }
                   key={a.id}
                   onClick={() => onOpen(a)}
                 >
@@ -483,19 +552,28 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
                 </button>
               ))
             ) : (
-              <Empty title="Agenda livre" description="Nenhum atendimento nesta data." />
+              <Empty
+                title="Agenda livre"
+                description="Nenhum atendimento nesta data."
+              />
             )}
           </section>
         )}
         <div className="staff-calendar-summary" aria-live="polite">
           <span>
-            <strong>{periodAppointments.length}</strong>{' '}
-            {periodAppointments.length === 1 ? 'atendimento' : 'atendimentos'}{' '}
-            {view === 'Mês' ? 'no mês' : view === 'Semana' ? 'na semana' : 'no dia'}
+            <strong>{periodAppointments.length}</strong>{" "}
+            {periodAppointments.length === 1 ? "atendimento" : "atendimentos"}{" "}
+            {view === "Mês"
+              ? "no mês"
+              : view === "Semana"
+                ? "na semana"
+                : "no dia"}
           </span>
           <span>
-            <strong>{periodAppointments.filter((a) => a.status === 'pending').length}</strong> em
-            triagem
+            <strong>
+              {periodAppointments.filter((a) => a.status === "pending").length}
+            </strong>{" "}
+            em triagem
           </span>
           <span>Fuso: {timezone}</span>
         </div>

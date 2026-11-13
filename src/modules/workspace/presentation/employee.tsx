@@ -1,4 +1,6 @@
 'use client';
+import { WorkspaceTools } from './workspace-tools';
+import { WorkspaceAppearance } from './agenda-preferences';
 import { useState } from 'react';
 import { Bell, CalendarDays, Clock3, LogOut } from 'lucide-react';
 import { EmailVerification } from '@/modules/identity/presentation/email-verification';
@@ -22,6 +24,7 @@ export function EmployeeWorkspace(props: SectionProps & { logout: () => Promise<
   const resource = useResource<Professional[]>('professionals', props.revision),
     profile = resource.value?.find((item) => item.id === props.data.user.professionalId);
   const navigation = [
+    { id: 'tools', name: 'Fichas e análises', icon: CalendarDays },
     { id: 'agenda', name: 'Minha agenda', icon: CalendarDays },
     { id: 'horarios', name: 'Meus horários', icon: Clock3 },
     { id: 'avisos', name: 'Notificações', icon: Bell },
@@ -80,9 +83,10 @@ export function EmployeeWorkspace(props: SectionProps & { logout: () => Promise<
             </button>
           </div>
         </header>
-        <main className="employee-content">
+        <main className="employee-content"><WorkspaceAppearance revision={props.revision} />
+          {tab === 'tools' && <WorkspaceTools {...props} openDialog={setDialog} navigate={()=>setTab('tools')} />}
           {message && <p role="status">{message}</p>}
-          {tab === 'agenda' && <CalendarPage {...props} openDialog={setDialog} />}
+          {tab === 'agenda' && <CalendarPage {...props} openDialog={setDialog} navigate={()=>{setDialog(undefined);setTab('tools');}} />}
           {tab === 'horarios' && (
             <>
               <EmailVerification verified={props.data.user.emailVerified} />

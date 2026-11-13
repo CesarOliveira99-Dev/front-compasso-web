@@ -62,6 +62,7 @@ export interface CatalogItem {
   active: boolean;
 }
 export interface Appointment {
+  categoryId?: string; categoryName?: string; categoryColor?: string;
   professionalId?: string;
   professionalName?: string;
   id: string;
@@ -107,6 +108,8 @@ export interface Notification {
   createdAt: string;
 }
 export interface Settings {
+  workspaceMode?: 'store' | 'solo';
+  ownerId?: string;
   ratingCount?: number;
   averageRating?: number;
   address?: BusinessAddress;
