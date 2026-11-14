@@ -238,8 +238,11 @@ export function SettingsPage(props: SectionProps) {
           </div>
         </aside>
       </form>
-      <ReminderModelsEditor {...props} />
-      <div className="settings-payments"><PaymentsSettings {...props} /></div>
+      <div className="settings-followup">
+        <ReminderModelsEditor {...props} />
+        <div className="settings-payments"><PaymentsSettings {...props} /></div>
+      </div>
     </>
   );
 }
+
