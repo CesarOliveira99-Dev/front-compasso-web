@@ -665,3 +665,28 @@ h4 {
     height: 100%;
   }
 }
+/* Keep settings sections on the same column, including independent editors. */
+.settings-followup {
+  width: calc(100% - 304px);
+  min-width: 0;
+  display: grid;
+  gap: 24px;
+  margin-top: 24px;
+}
+.settings-followup .settings-payments { margin-top: 0; }
+.settings-followup .panel-heading { padding: 0; margin: 0; min-height: 0; gap: 16px; flex-wrap: wrap; }
+.settings-followup .care-list-row { gap: 20px; flex-wrap: wrap; }
+.settings-followup .row-actions { gap: 10px; flex-wrap: wrap; }
+.settings-payments .integration-card { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding: 25px; }
+.settings-payments .integration-card :is(h3,p) { margin: 0; }
+.settings-payments .integration-card p { max-width: 65ch; line-height: 1.7; }
+.settings-save { gap: 16px; flex-wrap: wrap; }
+.plan-manage { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 20px; }
+.sidebar-bottom .workspace-switcher { margin: 8px 0 14px; width: 100%; }
+@media (min-width: 1051px) and (max-width: 1250px) {
+  .settings-followup { width: calc(100% - 259px); }
+}
+@media (max-width: 1050px) {
+  .settings-followup { width: 100%; }
+}
+
