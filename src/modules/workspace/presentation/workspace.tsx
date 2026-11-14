@@ -620,7 +620,6 @@ export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} =
             <strong>{currentLabel}</strong>
           </div>
           <div className="topbar-actions">
-            {admin && <button className="button secondary" onClick={logout}><LogOut size={17} /> Sair</button>}
             <button className="topbar-search" aria-label="Pesquisar na plataforma" onClick={search}>
               <Search size={16} />
               <span>Encontre algo…</span>
@@ -645,7 +644,19 @@ export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} =
               {unread > 0 && <span className="notification-dot" />}
             </button>
             <span className="topbar-divider" />
-            <button
+            {admin ? <details className="account-dropdown"
+              onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false; }}
+              onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus(); } }}>
+              <summary className="topbar-user" aria-label={`Conta de ${data.user.name}`}>
+                <Avatar name={data.user.name} size="small" />
+                <span>{data.user.name.split(' ')[0]}</span>
+                <ChevronDown size={14} />
+              </summary>
+              <div className="account-dropdown-options">
+                <button type="button" onClick={event => { event.currentTarget.closest('details')?.removeAttribute('open'); navigate('settings'); }}><Settings size={17} />Configurações</button>
+                <button type="button" onClick={logout}><LogOut size={17} />Sair</button>
+              </div>
+            </details> : <button
               className="topbar-user"
               aria-label={`Conta de ${data.user.name}`}
               onClick={() => navigate(admin ? 'settings' : 'profile')}
@@ -653,7 +664,7 @@ export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} =
               <Avatar name={data.user.name} size="small" />
               <span>{data.user.name.split(' ')[0]}</span>
               <ChevronDown size={14} />
-            </button>
+            </button>}
           </div>
         </header>
         <nav className="pulse-section-nav" aria-label="Atalhos principais">
