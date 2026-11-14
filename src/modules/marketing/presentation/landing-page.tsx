@@ -129,9 +129,6 @@ export function LandingPage() {
               width={1144}
               height={1078}
             />
-            <figcaption>
-              Interface real do Compasso, com dados de demonstração.
-            </figcaption>
           </figure>
         </section>
         <section className="marketing-section" id="para-voce">
@@ -364,12 +361,6 @@ export function LandingPage() {
               </article>
             ))}
           </div>
-          <p className="marketing-pricing-note">
-            O teste não gera cobrança automática. A contratação é confirmada
-            separadamente nas configurações. As franquias de e-mail são dos
-            planos de lojas; mensagens manuais pelo WhatsApp não são envios
-            automáticos.
-          </p>
         </section>
         <section className="marketing-section marketing-faq" id="duvidas">
           <div className="marketing-section-heading">
