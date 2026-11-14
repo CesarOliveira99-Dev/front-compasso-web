@@ -1,6 +1,6 @@
-import type { Appointment } from '@/modules/shared/domain/models';
+import type { Appointment } from "@/modules/shared/domain/models";
 
-export type CalendarView = 'Dia' | 'Semana' | 'Mês';
+export type CalendarView = "Dia" | "Semana" | "Mês";
 export function dateFromKey(key: string): Date {
   return new Date(`${key}T12:00:00Z`);
 }
@@ -15,11 +15,11 @@ export function validDateKey(key: string): boolean {
   );
 }
 export function dateInZone(date: Date, timezone: string): string {
-  return new Intl.DateTimeFormat('sv-SE', {
+  return new Intl.DateTimeFormat("sv-SE", {
     timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   }).format(date);
 }
 export function addDays(key: string, count: number): string {
@@ -35,9 +35,11 @@ export function weekDays(key: string): string[] {
   return Array.from({ length: 7 }, (_, i) => addDays(start, i));
 }
 export function monthDays(month: string): string[] {
-  const first = month + '-01',
+  const first = month + "-01",
     date = dateFromKey(first),
-    last = dateKey(new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 12)));
+    last = dateKey(
+      new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 12)),
+    );
   const start = weekStart(first),
     end = addDays(weekStart(last), 6),
     days = [];
@@ -48,37 +50,44 @@ export function monthWeeks(month: string): string[] {
   return monthDays(month).filter((_, i) => i % 7 === 0);
 }
 export function shiftMonth(month: string, amount: number): string {
-  const date = dateFromKey(month + '-01');
+  const date = dateFromKey(month + "-01");
   date.setUTCMonth(date.getUTCMonth() + amount);
   return dateKey(date).slice(0, 7);
 }
 export function calendarLabel(
   key: string,
-  options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'long', year: 'numeric' },
+  options: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  },
 ): string {
-  return dateFromKey(key).toLocaleDateString('pt-BR', { ...options, timeZone: 'UTC' });
+  return dateFromKey(key).toLocaleDateString("pt-BR", {
+    ...options,
+    timeZone: "UTC",
+  });
 }
 export function weekLabel(key: string): string {
   const start = weekStart(key);
-  return `${calendarLabel(start, { day: '2-digit', month: 'short' })} – ${calendarLabel(addDays(start, 6), { day: '2-digit', month: 'short', year: 'numeric' })}`;
+  return `${calendarLabel(start, { day: "2-digit", month: "short" })} – ${calendarLabel(addDays(start, 6), { day: "2-digit", month: "short", year: "numeric" })}`;
 }
 export function clockMinutes(iso: string, timezone: string): number {
-  const parts = new Intl.DateTimeFormat('en-GB', {
+  const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: timezone,
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
   }).formatToParts(new Date(iso));
   return (
-    Number(parts.find((p) => p.type === 'hour')?.value) * 60 +
-    Number(parts.find((p) => p.type === 'minute')?.value)
+    Number(parts.find((p) => p.type === "hour")?.value) * 60 +
+    Number(parts.find((p) => p.type === "minute")?.value)
   );
 }
 export function clockLabel(iso: string, timezone: string): string {
-  return new Date(iso).toLocaleTimeString('pt-BR', {
+  return new Date(iso).toLocaleTimeString("pt-BR", {
     timeZone: timezone,
-    hour: '2-digit',
-    minute: '2-digit',
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 export interface CalendarPlacement {
@@ -87,8 +96,12 @@ export interface CalendarPlacement {
   lanes: number;
 }
 /** Overlapping professionals get separate lanes; adjacent bookings may share one. */
-export function appointmentLanes(appointments: Appointment[]): CalendarPlacement[] {
-  const sorted = [...appointments].sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
+export function appointmentLanes(
+  appointments: Appointment[],
+): CalendarPlacement[] {
+  const sorted = [...appointments].sort(
+    (a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt),
+  );
   const result: CalendarPlacement[] = [];
   let cluster: CalendarPlacement[] = [],
     ends: number[] = [],
@@ -114,4 +127,30 @@ export function appointmentLanes(appointments: Appointment[]): CalendarPlacement
   }
   flush();
   return result;
+}
+/** Split only the visual interval; opening a segment still uses the original appointment. */
+export function appointmentDates(
+  appointment: Pick<Appointment, "startsAt" | "endsAt">,
+  timezone: string,
+) {
+  const first = dateInZone(new Date(appointment.startsAt), timezone),
+    last = dateInZone(new Date(Date.parse(appointment.endsAt) - 1), timezone),
+    dates: string[] = [];
+  for (let key = first; key <= last; key = addDays(key, 1)) dates.push(key);
+  return dates;
+}
+export function appointmentDaySegment(
+  appointment: Pick<Appointment, "startsAt" | "endsAt">,
+  key: string,
+  timezone: string,
+) {
+  const start =
+    dateInZone(new Date(appointment.startsAt), timezone) === key
+      ? clockMinutes(appointment.startsAt, timezone)
+      : 0;
+  const end =
+    dateInZone(new Date(appointment.endsAt), timezone) === key
+      ? clockMinutes(appointment.endsAt, timezone)
+      : 1440;
+  return { start, end };
 }

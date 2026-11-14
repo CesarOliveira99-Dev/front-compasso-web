@@ -1,4 +1,6 @@
 'use client';
+import { setApiWorkspaceScope } from '@/modules/shared/infrastructure/api';
+import { WorkspaceSwitcher } from './workspace-switcher';
 import { SoloWorkspace } from './solo-workspace';
 import { WorkspaceTools } from './workspace-tools';
 import { WorkspaceAppearance } from './agenda-preferences';
@@ -177,6 +179,7 @@ export function Workspace() {
     try {
       const value = await api<Bootstrap | {status:'discovery'; user:User}>('bootstrap');
       if ('status' in value && value.status === 'discovery') {
+        setApiWorkspaceScope(value.user.tenantId);
         setPersonalUser(value.user);
         setData(undefined);
         setFatal('');
@@ -196,6 +199,7 @@ export function Workspace() {
         );
         loadedUser.current = value.user.id;
       }
+      setApiWorkspaceScope(value.user.tenantId);
       setData(value);
       setFatal('');
       return value;
@@ -263,6 +267,7 @@ export function Workspace() {
   async function logout() {
     try {
       await api('auth/logout', 'POST', {});
+      setApiWorkspaceScope();
       setData(undefined);
       loadedUser.current = '';
       setCartState([]);
@@ -440,6 +445,7 @@ export function Workspace() {
           </div>
           <span className="store-indicator" />
         </div>
+        {admin && <WorkspaceSwitcher props={props} beforeOpen={()=>setMobile(false)}/>}
         <nav aria-label="Navegação principal">
           {navigation.map((group) => (
             <div className="nav-group" key={group.label}>
@@ -559,6 +565,7 @@ export function Workspace() {
             <span>Preciso de uma mão</span>
           </button>
           <div className="sidebar-profile">
+            {admin && <WorkspaceSwitcher props={props}/>}
             <Avatar name={data.user.name} />
             <div>
               <strong>{data.user.name}</strong>

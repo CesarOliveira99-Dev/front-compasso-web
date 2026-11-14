@@ -4,6 +4,7 @@ import { money, day } from "@/modules/shared/domain/format";
 import { ResourceState, useResource } from "@/modules/shared/presentation/ui";
 import type { AgendaAnalysis } from "./tools-types";
 import { AgendaPie, AttendanceTrend } from "./agenda-charts";
+import { workspaceRequestHeaders } from "@/modules/shared/infrastructure/api";
 const periods = [
   { days: 7, label: "Semanal" },
   { days: 30, label: "Mensal" },
@@ -11,6 +12,32 @@ const periods = [
 ];
 export function AgendaAnalytics({ revision }: { revision: number }) {
   const [days, setDays] = useState(30);
+  const [exporting, setExporting] = useState(false),
+    [exportError, setExportError] = useState("");
+  async function download() {
+    setExporting(true);
+    setExportError("");
+    try {
+      const response = await fetch(`/api/workspace/export?days=${days}`, {
+        headers: workspaceRequestHeaders(),
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Não foi possível exportar.");
+      }
+      const url = URL.createObjectURL(await response.blob()),
+        link = document.createElement("a");
+      link.href = url;
+      link.download = "compasso-atendimentos.csv";
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      setExportError((error as Error).message);
+    } finally {
+      setExporting(false);
+    }
+  }
   const resource = useResource<AgendaAnalysis>(
       `workspace/analytics?days=${days}`,
       revision,
@@ -97,12 +124,18 @@ export function AgendaAnalytics({ revision }: { revision: number }) {
               rows={current.services}
             />
           </div>
-          <a
+          {exportError && (
+            <p className="error-message" role="alert">
+              {exportError}
+            </p>
+          )}
+          <button
             className="button secondary"
-            href={`/api/workspace/export?days=${days}`}
+            disabled={exporting}
+            onClick={download}
           >
             Exportar atendimentos em CSV
-          </a>
+          </button>
         </>
       )}
     </section>

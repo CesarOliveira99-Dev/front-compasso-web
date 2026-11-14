@@ -15,7 +15,7 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
   const professionalsAllowed = /^professionals(?:\/[\w-]+)?$/;
   const googleAllowed = /^auth\/google(?:\/(?:config|challenge|link|complete))?$/;
   if (
-    !/^auth\/(?:store\/[\w-]+|switch-store|last-visit(?:\/review)?|discovery|team(?:\/(?:invite|[\w-]+))?|invite\/(?:preview|register|accept)|password\/request|email\/request|account\/complete)$/.test(path) &&
+    !/^auth\/(?:store\/[\w-]+|switch-store|workspaces(?:\/(?:switch))?|last-visit(?:\/review)?|discovery|team(?:\/(?:invite|[\w-]+))?|invite\/(?:preview|register|accept)|password\/request|email\/request|account\/complete)$/.test(path) &&
     !allowed.test(path) &&
     !/^insights\/expenses\/[a-f0-9-]{36}$/.test(path) &&
     !paymentsAllowed.test(path) &&
@@ -32,7 +32,11 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
   }
   try {
     if (path === 'workspace/export' && request.method === 'GET') {
-      const response = await backend(path + request.nextUrl.search);
+      const response = await backend(path + request.nextUrl.search, {
+        headers: request.headers.get('x-compasso-workspace')
+          ? { 'X-Compasso-Workspace': request.headers.get('x-compasso-workspace')! }
+          : {},
+      });
       if (!response.ok) return NextResponse.json(await response.json(), { status: response.status });
       return new NextResponse(response.body, { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="compasso-atendimentos.csv"', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
     }
@@ -71,7 +75,7 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
       const response = await backend('media', {
         method: 'POST',
         body: upload as BodyInit,
-        headers: { 'Content-Type': request.headers.get('content-type') || '' },
+        headers: { 'Content-Type': request.headers.get('content-type') || '', ...(request.headers.get('x-compasso-workspace') ? {'X-Compasso-Workspace':request.headers.get('x-compasso-workspace')!} : {}) },
       });
       return NextResponse.json(await response.json(), { status: response.status });
       }finally{release();}
@@ -84,6 +88,9 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
       });
     const response = await backend(`${path}${request.nextUrl.search}`, {
       method: request.method,
+      headers: request.headers.get('x-compasso-workspace')
+        ? { 'X-Compasso-Workspace': request.headers.get('x-compasso-workspace')! }
+        : {},
       body,
     });
     const data = await response.json();
@@ -102,7 +109,7 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
       (path === 'auth/login' ||
         path === 'auth/register' ||
         path === 'auth/google' ||
-        path === 'auth/google/complete' || path === 'auth/invite/register' || path === 'auth/invite/accept' || path === 'auth/switch-store') &&
+        path === 'auth/google/complete' || path === 'auth/invite/register' || path === 'auth/invite/accept' || path === 'auth/switch-store' || path === 'auth/workspaces' || path === 'auth/workspaces/switch') &&
       response.ok &&
       typeof data.token === 'string'
     ) {

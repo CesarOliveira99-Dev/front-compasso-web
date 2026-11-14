@@ -1,9 +1,13 @@
-'use client';
-import { useEffect, useRef, useState } from 'react';
-import { day, localInput, money, time } from '@/modules/shared/domain/format';
-import type { Appointment, Customer, Professional } from '@/modules/shared/domain/models';
-import { api } from '@/modules/shared/infrastructure/api';
-import { Field, type SectionProps } from '@/modules/shared/presentation/ui';
+"use client";
+import { useEffect, useRef, useState } from "react";
+import { day, localInput, money, time } from "@/modules/shared/domain/format";
+import type {
+  Appointment,
+  Customer,
+  Professional,
+} from "@/modules/shared/domain/models";
+import { api } from "@/modules/shared/infrastructure/api";
+import { Field, type SectionProps } from "@/modules/shared/presentation/ui";
 interface Availability {
   priceCents: number;
   durationMinutes: number;
@@ -20,59 +24,87 @@ type FlowProps = SectionProps & {
   close: () => void;
   setDialogBusy: (busy: boolean) => void;
 };
-const steps = ['Serviço', 'Profissional', 'Dia', 'Horário', 'Confirmar'];
+const steps = ["Serviço", "Profissional", "Dia", "Horário", "Confirmar"];
 export function BookingFlow(props: FlowProps) {
   const { appointment, professionals, data } = props;
-  const admin = data.user.role === 'admin';
-  const [step, setStep] = useState(appointment ? 2 : props.initialItemId ? 1 : 0);
-  const [itemId, setItemId] = useState(appointment?.itemId || props.initialItemId || '');
-  const [professionalId, setProfessionalId] = useState(
-    appointment ? appointment.professionalId || 'principal' : '',
+  const admin = data.user.role === "admin";
+  const [step, setStep] = useState(
+    appointment ? 2 : props.initialItemId ? 1 : 0,
   );
-  const [date, setDate] = useState('');
-  const [startsAt, setStartsAt] = useState('');
-  const [customerId, setCustomerId] = useState('');
-  const [notes, setNotes] = useState('');
-  const [coupon, setCoupon] = useState('');
-  const [error, setError] = useState('');
+  const [itemId, setItemId] = useState(
+    appointment?.itemId || props.initialItemId || "",
+  );
+  const [professionalId, setProfessionalId] = useState(
+    appointment ? appointment.professionalId || "principal" : "",
+  );
+  const [date, setDate] = useState("");
+  const [startsAt, setStartsAt] = useState("");
+  const [customerId, setCustomerId] = useState(appointment?.customerId || "");
+  const [durationInput, setDurationInput] = useState<string>();
+  const canCustomize = admin || data.user.role === "employee";
+  const [notes, setNotes] = useState("");
+  const [coupon, setCoupon] = useState("");
+  const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [retry, setRetry] = useState(0);
-  const [availability, setAvailability] = useState<{ key: string; value: Availability }>();
-  const [availabilityError, setAvailabilityError] = useState('');
+  const [availability, setAvailability] = useState<{
+    key: string;
+    value: Availability;
+  }>();
+  const [availabilityError, setAvailabilityError] = useState("");
   const [quote, setQuote] = useState<{ key: string; value: Quote }>();
-  const [quoteError, setQuoteError] = useState('');
+  const [quoteError, setQuoteError] = useState("");
   const [quoteKey] = useState(() => crypto.randomUUID());
-  const submitted = useRef<{ fingerprint: string; key: string } | undefined>(undefined);
+  const submitted = useRef<{ fingerprint: string; key: string } | undefined>(
+    undefined,
+  );
   const settings = data.settings;
   const methods = [
     ...(settings.payOnAppointment
-      ? [{ id: 'on_day', label: 'Pagar pessoalmente após o serviço' }]
+      ? [{ id: "on_day", label: "Pagar pessoalmente após o serviço" }]
       : []),
     ...(settings.manualPixEnabled
-      ? [{ id: 'pix_manual', label: 'Pix direto ao estabelecimento' }]
+      ? [{ id: "pix_manual", label: "Pix direto ao estabelecimento" }]
       : []),
     ...(settings.onlinePaymentsEnabled
-      ? [{ id: 'online', label: 'Crédito ou Pix' }]
+      ? [{ id: "online", label: "Crédito ou Pix" }]
       : []),
   ];
-  const [paymentMethod, setPaymentMethod] = useState(methods[0]?.id || '');
+  const [paymentMethod, setPaymentMethod] = useState(methods[0]?.id || "");
   const item = data.catalog.find((item) => item.id === itemId);
-  const professional = professionals.find((profile) => profile.id === professionalId);
+  const professional = professionals.find(
+    (profile) => profile.id === professionalId,
+  );
   const eligible = professionals.filter(
     (profile) =>
-      profile.active && (!profile.serviceIds.length || profile.serviceIds.includes(itemId)),
+      profile.active &&
+      (!profile.serviceIds.length || profile.serviceIds.includes(itemId)),
   );
+  const defaultDuration = appointment
+    ? (Date.parse(appointment.endsAt) - Date.parse(appointment.startsAt)) /
+      60000
+    : item?.durationMinutes;
+  const durationMinutes = canCustomize
+    ? Number(durationInput ?? defaultDuration)
+    : defaultDuration;
+  const validDuration =
+    Number.isInteger(durationMinutes) &&
+    Number(durationMinutes) >= 1 &&
+    Number(durationMinutes) <= 720;
   const query = new URLSearchParams({
     itemId,
     professionalId,
     date,
     ...(appointment ? { appointmentId: appointment.id } : {}),
+    ...(canCustomize && validDuration
+      ? { durationMinutes: String(durationMinutes) }
+      : {}),
   }).toString();
-  const currentAvailability = availability?.key === query ? availability.value : undefined;
-  const slot = currentAvailability?.slots.find((slot) => slot.startsAt === startsAt);
-  const durationMinutes = appointment
-    ? (Date.parse(appointment.endsAt) - Date.parse(appointment.startsAt)) / 60000
-    : item?.durationMinutes;
+  const currentAvailability =
+    availability?.key === query ? availability.value : undefined;
+  const slot = currentAvailability?.slots.find(
+    (slot) => slot.startsAt === startsAt,
+  );
   const needsNotes = !!item?.requiresTriage && notes.trim().length < 5;
   const orderInput = JSON.stringify({
     items: [{ itemId, professionalId, startsAt, quantity: 1, notes }],
@@ -83,9 +115,9 @@ export function BookingFlow(props: FlowProps) {
   const currentQuote = quote?.key === orderInput ? quote.value : undefined;
   useEffect(() => {
     let current = true;
-    setAvailabilityError('');
+    setAvailabilityError("");
     setAvailability(undefined);
-    if (!date || !professionalId || !itemId) return;
+    if (!date || !professionalId || !itemId || !validDuration) return;
     api<Availability>(`appointments/availability?${query}`)
       .then((value) => {
         if (current) setAvailability({ key: query, value });
@@ -96,14 +128,22 @@ export function BookingFlow(props: FlowProps) {
     return () => {
       current = false;
     };
-  }, [query, date, professionalId, itemId, retry]);
+  }, [query, date, professionalId, itemId, retry, validDuration]);
   useEffect(() => {
     let current = true;
     setQuote(undefined);
-    setQuoteError('');
-    if (step !== 4 || admin || appointment || !slot || !paymentMethod || needsNotes) return;
+    setQuoteError("");
+    if (
+      step !== 4 ||
+      admin ||
+      appointment ||
+      !slot ||
+      !paymentMethod ||
+      needsNotes
+    )
+      return;
     const timer = setTimeout(() => {
-      api<Quote>('orders/quote', 'POST', JSON.parse(orderInput))
+      api<Quote>("orders/quote", "POST", JSON.parse(orderInput))
         .then((value) => {
           if (current) setQuote({ key: orderInput, value });
         })
@@ -115,34 +155,49 @@ export function BookingFlow(props: FlowProps) {
       current = false;
       clearTimeout(timer);
     };
-  }, [orderInput, step, admin, appointment, slot, paymentMethod, needsNotes, retry]);
+  }, [
+    orderInput,
+    step,
+    admin,
+    appointment,
+    slot,
+    paymentMethod,
+    needsNotes,
+    retry,
+  ]);
   async function confirm() {
-    if (!slot || !currentAvailability || busy) return;
-    if (!appointment && (needsNotes || (admin ? !customerId : !currentQuote || !paymentMethod)))
+    if (!slot || !currentAvailability || busy || !validDuration) return;
+    if (
+      !appointment &&
+      (needsNotes || (admin ? !customerId : !currentQuote || !paymentMethod))
+    )
       return;
     setBusy(true);
     props.setDialogBusy(true);
-    setError('');
+    setError("");
     try {
       if (appointment)
         await props.mutate(
           `appointments/${appointment.id}`,
-          'PATCH',
-          { startsAt },
-          'Horário atualizado.',
+          "PATCH",
+          { startsAt, ...(canCustomize ? { durationMinutes } : {}) },
+          "Horário atualizado.",
         );
       else {
-        const direct = admin || (paymentMethod === 'on_day' && !coupon.trim());
+        const direct = admin || (paymentMethod === "on_day" && !coupon.trim());
         const body = direct
           ? {
               itemId,
               professionalId,
               startsAt,
               notes,
-              ...(admin ? { customerId } : {}),
+              ...(admin ? { customerId, durationMinutes } : {}),
               expectedPriceCents: currentAvailability.priceCents,
             }
-          : { ...JSON.parse(orderInput), expectedTotalCents: currentQuote?.totalCents };
+          : {
+              ...JSON.parse(orderInput),
+              expectedTotalCents: currentQuote?.totalCents,
+            };
         const fingerprint = JSON.stringify({ direct, body });
         const submission =
           submitted.current?.fingerprint === fingerprint
@@ -150,20 +205,22 @@ export function BookingFlow(props: FlowProps) {
             : { fingerprint, key: crypto.randomUUID() };
         submitted.current = submission;
         await props.mutate(
-          direct ? 'appointments' : 'orders',
-          'POST',
+          direct ? "appointments" : "orders",
+          "POST",
           { ...body, idempotencyKey: submission.key },
           item?.requiresTriage
-            ? 'Solicitação enviada para triagem.'
-            : paymentMethod === 'on_day' || admin
-              ? 'Agendamento confirmado. Pagamento pendente para o atendimento.'
-              : 'Agendamento registrado. Consulte o pagamento em Meus pedidos.',
+            ? "Solicitação enviada para triagem."
+            : paymentMethod === "on_day" || admin
+              ? "Agendamento confirmado. Pagamento pendente para o atendimento."
+              : "Agendamento registrado. Consulte o pagamento em Meus pedidos.",
         );
-        props.navigate(direct ? 'appointments' : 'orders');
+        props.navigate(direct ? "appointments" : "orders");
       }
       props.close();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Não foi possível confirmar.');
+      setError(
+        error instanceof Error ? error.message : "Não foi possível confirmar.",
+      );
       setRetry((value) => value + 1);
     } finally {
       setBusy(false);
@@ -174,7 +231,7 @@ export function BookingFlow(props: FlowProps) {
     <div className="booking-flow">
       <ol className="booking-steps" aria-label="Etapas do agendamento">
         {steps.map((label, index) => (
-          <li key={label} aria-current={index === step ? 'step' : undefined}>
+          <li key={label} aria-current={index === step ? "step" : undefined}>
             <span>{index + 1}</span>
             {label}
           </li>
@@ -186,7 +243,7 @@ export function BookingFlow(props: FlowProps) {
             <h3>Qual cuidado você procura?</h3>
             <div className="booking-options">
               {data.catalog
-                .filter((item) => item.active && item.kind === 'service')
+                .filter((item) => item.active && item.kind === "service")
                 .map((service) => (
                   <button
                     type="button"
@@ -194,15 +251,17 @@ export function BookingFlow(props: FlowProps) {
                     key={service.id}
                     onClick={() => {
                       setItemId(service.id);
-                      setProfessionalId('');
-                      setDate('');
-                      setStartsAt('');
+                      setDurationInput(undefined);
+                      setProfessionalId("");
+                      setDate("");
+                      setStartsAt("");
                       setStep(1);
                     }}
                   >
                     <strong>{service.name}</strong>
                     <small>
-                      {service.durationMinutes} min · {money(service.currentPriceCents)}
+                      {service.durationMinutes} min ·{" "}
+                      {money(service.currentPriceCents)}
                     </small>
                   </button>
                 ))}
@@ -221,8 +280,8 @@ export function BookingFlow(props: FlowProps) {
                   key={profile.id}
                   onClick={() => {
                     setProfessionalId(profile.id);
-                    setDate('');
-                    setStartsAt('');
+                    setDate("");
+                    setStartsAt("");
                     setStep(2);
                   }}
                 >
@@ -232,7 +291,10 @@ export function BookingFlow(props: FlowProps) {
               ))}
             </div>
             {!eligible.length && (
-              <p>Nenhum profissional disponível para este serviço. Entre em contato com a loja.</p>
+              <p>
+                Nenhum profissional disponível para este serviço. Entre em
+                contato com a loja.
+              </p>
             )}
           </>
         )}
@@ -242,6 +304,46 @@ export function BookingFlow(props: FlowProps) {
             <p>
               {item?.name} · {professional?.name}
             </p>
+            {admin && !appointment && (
+              <Field label="Cliente">
+                <select
+                  value={customerId}
+                  onChange={(event) => setCustomerId(event.target.value)}
+                >
+                  <option value="">Selecione um cliente</option>
+                  {props.customers.map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
+            {canCustomize && (
+              <Field
+                label="Duração deste atendimento (minutos)"
+                hint="Começa com a duração do serviço. Ajuste apenas este atendimento, de 1 a 720 minutos."
+              >
+                <input
+                  aria-label="Duração deste atendimento em minutos"
+                  type="number"
+                  min={1}
+                  max={720}
+                  step={1}
+                  required
+                  value={durationInput ?? defaultDuration ?? 60}
+                  onChange={(event) => {
+                    setDurationInput(event.target.value);
+                    setStartsAt("");
+                  }}
+                />
+                {!validDuration && (
+                  <small className="error-message" role="alert">
+                    Informe uma duração inteira entre 1 e 720 minutos.
+                  </small>
+                )}
+              </Field>
+            )}
             <Field label="Dia do atendimento">
               <input
                 type="date"
@@ -249,14 +351,19 @@ export function BookingFlow(props: FlowProps) {
                 value={date}
                 onChange={(event) => {
                   setDate(event.target.value);
-                  setStartsAt('');
+                  setStartsAt("");
                 }}
               />
             </Field>
             <button
               type="button"
               className="button primary"
-              disabled={!date || date < localInput().slice(0, 10)}
+              disabled={
+                !date ||
+                date < localInput().slice(0, 10) ||
+                !validDuration ||
+                (admin && !appointment && !customerId)
+              }
               onClick={() => setStep(3)}
             >
               Ver horários livres
@@ -270,7 +377,9 @@ export function BookingFlow(props: FlowProps) {
               {professional?.name} · {day(date)} · {durationMinutes} min
             </p>
             <p className="form-note">
-              Horário de Brasília. O atendimento inteiro precisa caber na agenda.
+              {settings.workspaceMode === "solo"
+                ? "Agenda aberta 24 horas. O intervalo escolhido precisa estar livre."
+                : "Horário de Brasília. O atendimento inteiro precisa caber na agenda."}
             </p>
             {!currentAvailability && !availabilityError && (
               <p role="status">Consultando horários…</p>
@@ -331,37 +440,31 @@ export function BookingFlow(props: FlowProps) {
             </div>
             {!slot && (
               <p className="error-message" role="alert">
-                Este horário precisa ser consultado novamente. Volte para os horários livres.
+                Este horário precisa ser consultado novamente. Volte para os
+                horários livres.
               </p>
             )}
             {appointment ? (
-              <p>O reagendamento mantém o valor e o pagamento já registrados.</p>
+              <p>
+                O reagendamento mantém o valor e o pagamento já registrados.
+              </p>
             ) : (
               <>
                 {admin && (
-                  <Field label="Cliente">
-                    <select
-                      value={customerId}
-                      onChange={(event) => setCustomerId(event.target.value)}
-                    >
-                      <option value="">Selecione um cliente</option>
-                      {props.customers.map((customer) => (
-                        <option key={customer.id} value={customer.id}>
-                          {customer.name}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
+                  <p>
+                    Cliente:{" "}
+                    {props.customers.find((c) => c.id === customerId)?.name}
+                  </p>
                 )}
                 <Field
                   label={
                     item?.requiresTriage
-                      ? 'Descreva sua necessidade (obrigatório)'
-                      : 'Observações (opcional)'
+                      ? "Descreva sua necessidade (obrigatório)"
+                      : "Observações (opcional)"
                   }
                   hint={
                     item?.requiresTriage
-                      ? 'No mínimo 5 caracteres. A loja precisa aprovar a triagem.'
+                      ? "No mínimo 5 caracteres. A loja precisa aprovar a triagem."
                       : undefined
                   }
                 >
@@ -377,9 +480,13 @@ export function BookingFlow(props: FlowProps) {
                     <Field label="Como prefere pagar?">
                       <select
                         value={paymentMethod}
-                        onChange={(event) => setPaymentMethod(event.target.value)}
+                        onChange={(event) =>
+                          setPaymentMethod(event.target.value)
+                        }
                       >
-                        {!methods.length && <option value="">Nenhuma forma disponível</option>}
+                        {!methods.length && (
+                          <option value="">Nenhuma forma disponível</option>
+                        )}
                         {methods.map((method) => (
                           <option key={method.id} value={method.id}>
                             {method.label}
@@ -388,20 +495,22 @@ export function BookingFlow(props: FlowProps) {
                       </select>
                     </Field>
                     <p className="form-note">
-                      {paymentMethod === 'on_day'
-                        ? 'Você apenas agenda agora. O pagamento fica pendente e é feito pessoalmente após o serviço.'
-                        : paymentMethod === 'pix_manual'
-                          ? 'Após agendar, veja a chave em Meus pedidos. A loja confirma o recebimento.'
-                          : paymentMethod === 'online'
-                            ? 'Após agendar, continue em Meus pedidos para pagar com crédito ou Pix. Serviços com triagem aguardam aprovação.'
-                            : 'Entre em contato com a loja para agendar.'}
+                      {paymentMethod === "on_day"
+                        ? "Você apenas agenda agora. O pagamento fica pendente e é feito pessoalmente após o serviço."
+                        : paymentMethod === "pix_manual"
+                          ? "Após agendar, veja a chave em Meus pedidos. A loja confirma o recebimento."
+                          : paymentMethod === "online"
+                            ? "Após agendar, continue em Meus pedidos para pagar com crédito ou Pix. Serviços com triagem aguardam aprovação."
+                            : "Entre em contato com a loja para agendar."}
                     </p>
                     {!!methods.length && (
                       <Field label="Cupom (opcional)">
                         <input
                           value={coupon}
                           maxLength={40}
-                          onChange={(event) => setCoupon(event.target.value.toUpperCase())}
+                          onChange={(event) =>
+                            setCoupon(event.target.value.toUpperCase())
+                          }
                         />
                       </Field>
                     )}
@@ -410,9 +519,12 @@ export function BookingFlow(props: FlowProps) {
                         {quoteError}
                       </p>
                     )}
-                    {!currentQuote && !quoteError && !needsNotes && !!paymentMethod && (
-                      <p role="status">Conferindo o valor…</p>
-                    )}
+                    {!currentQuote &&
+                      !quoteError &&
+                      !needsNotes &&
+                      !!paymentMethod && (
+                        <p role="status">Conferindo o valor…</p>
+                      )}
                   </>
                 )}
               </>
@@ -424,19 +536,20 @@ export function BookingFlow(props: FlowProps) {
                 busy ||
                 !slot ||
                 (!appointment &&
-                  (needsNotes || (admin ? !customerId : !currentQuote || !paymentMethod)))
+                  (needsNotes ||
+                    (admin ? !customerId : !currentQuote || !paymentMethod)))
               }
               onClick={confirm}
             >
               {busy
-                ? 'Confirmando…'
+                ? "Confirmando…"
                 : appointment
-                  ? 'Salvar novo horário'
+                  ? "Salvar novo horário"
                   : item?.requiresTriage
-                    ? 'Solicitar agendamento'
-                    : !admin && paymentMethod === 'on_day'
-                      ? 'Agendar e pagar após o serviço'
-                      : 'Confirmar agendamento'}
+                    ? "Solicitar agendamento"
+                    : !admin && paymentMethod === "on_day"
+                      ? "Agendar e pagar após o serviço"
+                      : "Confirmar agendamento"}
             </button>
           </>
         )}
@@ -452,14 +565,19 @@ export function BookingFlow(props: FlowProps) {
               className="button secondary"
               disabled={busy}
               onClick={() => {
-                setError('');
+                setError("");
                 setStep(step - 1);
               }}
             >
               Voltar
             </button>
           )}
-          <button type="button" className="text-button" disabled={busy} onClick={props.close}>
+          <button
+            type="button"
+            className="text-button"
+            disabled={busy}
+            onClick={props.close}
+          >
             Fechar
           </button>
         </div>

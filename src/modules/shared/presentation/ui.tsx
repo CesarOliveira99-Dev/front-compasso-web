@@ -1,9 +1,23 @@
-'use client';
-import { AlertCircle, ArrowUpRight, Check, LoaderCircle, Plus, X } from 'lucide-react';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { initials, statusLabel } from '../domain/format';
-import type { Bootstrap } from '../domain/models';
-import { api } from '../infrastructure/api';
+"use client";
+import {
+  AlertCircle,
+  ArrowUpRight,
+  Check,
+  LoaderCircle,
+  Plus,
+  X,
+} from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { initials, statusLabel } from "../domain/format";
+import type { Bootstrap } from "../domain/models";
+import { api } from "../infrastructure/api";
 export type Mutate = <T = unknown>(
   path: string,
   method: string,
@@ -14,7 +28,11 @@ export interface DialogState {
   title: string;
   description?: string;
   content:
-    ReactNode | ((controls: { close: () => void; setBusy: (busy: boolean) => void }) => ReactNode);
+    | ReactNode
+    | ((controls: {
+        close: () => void;
+        setBusy: (busy: boolean) => void;
+      }) => ReactNode);
   submitLabel?: string;
   onSubmit?: (form: FormData) => Promise<void>;
 }
@@ -28,26 +46,36 @@ export interface SectionProps {
 }
 export function Avatar({
   name,
-  size = '',
+  size = "",
   color = 0,
 }: {
   name: string;
   size?: string;
   color?: number;
 }) {
-  return <span className={`avatar ${size} color-${color % 5}`}>{initials(name)}</span>;
-}
-export function Badge({ status, children }: { status?: string; children?: ReactNode }) {
   return (
-    <span className={`badge ${status || ''}`}>
+    <span className={`avatar ${size} color-${color % 5}`}>
+      {initials(name)}
+    </span>
+  );
+}
+export function Badge({
+  status,
+  children,
+}: {
+  status?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <span className={`badge ${status || ""}`}>
       <span className="badge-dot" />
-      {children || statusLabel[status || ''] || status}
+      {children || statusLabel[status || ""] || status}
     </span>
   );
 }
 export function Empty({
-  title = 'Tudo tranquilo por aqui',
-  description = 'Os novos registros aparecerão neste espaço.',
+  title = "Tudo tranquilo por aqui",
+  description = "Os novos registros aparecerão neste espaço.",
   action,
 }: {
   title?: string;
@@ -104,10 +132,17 @@ export function Field({
     </label>
   );
 }
-export function Dialog({ dialog, close }: { dialog: DialogState; close: () => void }) {
+export function Dialog({
+  dialog,
+  close,
+}: {
+  dialog: DialogState;
+  close: () => void;
+}) {
+  const titleId = useId();
   const ref = useRef<HTMLDialogElement>(null);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   useEffect(() => {
     const element = ref.current;
     element?.showModal();
@@ -117,6 +152,7 @@ export function Dialog({ dialog, close }: { dialog: DialogState; close: () => vo
     <dialog
       ref={ref}
       className="dialog"
+      aria-labelledby={titleId}
       onCancel={(event) => {
         event.preventDefault();
         if (!busy) close();
@@ -125,10 +161,15 @@ export function Dialog({ dialog, close }: { dialog: DialogState; close: () => vo
       <div className="dialog-header">
         <div>
           <span className="eyebrow">COMPASSO</span>
-          <h2>{dialog.title}</h2>
+          <h2 id={titleId}>{dialog.title}</h2>
           {dialog.description && <p>{dialog.description}</p>}
         </div>
-        <button className="icon-button" aria-label="Fechar" onClick={close} disabled={busy}>
+        <button
+          className="icon-button"
+          aria-label="Fechar"
+          onClick={close}
+          disabled={busy}
+        >
           <X size={20} />
         </button>
       </div>
@@ -139,19 +180,19 @@ export function Dialog({ dialog, close }: { dialog: DialogState; close: () => vo
             if (!dialog.onSubmit) return;
             const form = new FormData(event.currentTarget);
             setBusy(true);
-            setError('');
+            setError("");
             try {
               await dialog.onSubmit(form);
               close();
             } catch (e) {
-              setError(e instanceof Error ? e.message : 'Ocorreu um erro.');
+              setError(e instanceof Error ? e.message : "Ocorreu um erro.");
             } finally {
               setBusy(false);
             }
           }}
         >
           <div className="dialog-content">
-            {typeof dialog.content === 'function'
+            {typeof dialog.content === "function"
               ? dialog.content({ close, setBusy })
               : dialog.content}
             {error && (
@@ -162,18 +203,27 @@ export function Dialog({ dialog, close }: { dialog: DialogState; close: () => vo
             )}
           </div>
           <div className="dialog-footer">
-            <button type="button" className="button secondary" onClick={close} disabled={busy}>
+            <button
+              type="button"
+              className="button secondary"
+              onClick={close}
+              disabled={busy}
+            >
               Cancelar
             </button>
             <button className="button primary" disabled={busy}>
-              {busy ? <LoaderCircle size={17} className="spin" /> : <Check size={17} />}
-              {dialog.submitLabel || 'Salvar'}
+              {busy ? (
+                <LoaderCircle size={17} className="spin" />
+              ) : (
+                <Check size={17} />
+              )}
+              {dialog.submitLabel || "Salvar"}
             </button>
           </div>
         </form>
       ) : (
         <div className="dialog-content">
-          {typeof dialog.content === 'function'
+          {typeof dialog.content === "function"
             ? dialog.content({ close, setBusy })
             : dialog.content}
         </div>
@@ -182,25 +232,37 @@ export function Dialog({ dialog, close }: { dialog: DialogState; close: () => vo
   );
 }
 export function useResource<T>(path: string, revision: number) {
-  const [value, setValue] = useState<T>();
-  const [error, setError] = useState('');
+  const [snapshot, setSnapshot] = useState<{ path: string; value: T }>(),
+    [error, setError] = useState("");
+  const sequence = useRef(0);
+  const refresh = useCallback(async () => {
+    const request = ++sequence.current;
+    setError("");
+    try {
+      const value = await api<T>(path);
+      if (request === sequence.current) setSnapshot({ path, value });
+      return value;
+    } catch (error) {
+      if (request === sequence.current) setError((error as Error).message);
+      throw error;
+    }
+  }, [path]);
   useEffect(() => {
-    let active = true;
-    setError('');
-    api<T>(path)
-      .then((v) => {
-        if (active) setValue(v);
-      })
-      .catch((e) => {
-        if (active) setError(e.message);
-      });
+    void refresh().catch(() => {});
     return () => {
-      active = false;
+      sequence.current++;
     };
-  }, [path, revision]);
-  return { value, error, loading: !value && !error };
+  }, [refresh, revision]);
+  const value = snapshot?.path === path ? snapshot.value : undefined;
+  return { value, error, loading: !value && !error, refresh };
 }
-export function ResourceState({ loading, error }: { loading: boolean; error: string }) {
+export function ResourceState({
+  loading,
+  error,
+}: {
+  loading: boolean;
+  error: string;
+}) {
   return loading ? (
     <div className="loading-inline">
       <LoaderCircle className="spin" size={20} />
@@ -232,7 +294,13 @@ export function PanelHeading({
     </div>
   );
 }
-export function ActionLink({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+export function ActionLink({
+  children,
+  onClick,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+}) {
   return (
     <button className="text-button" onClick={onClick}>
       {children}
@@ -240,9 +308,17 @@ export function ActionLink({ children, onClick }: { children: ReactNode; onClick
     </button>
   );
 }
-export const text = (form: FormData, key: string) => String(form.get(key) || '').trim();
-export const number = (form: FormData, key: string) => Number(form.get(key) || 0);
-export function AddButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+export const text = (form: FormData, key: string) =>
+  String(form.get(key) || "").trim();
+export const number = (form: FormData, key: string) =>
+  Number(form.get(key) || 0);
+export function AddButton({
+  children,
+  onClick,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+}) {
   return (
     <button type="button" className="button primary" onClick={onClick}>
       <Plus size={17} />

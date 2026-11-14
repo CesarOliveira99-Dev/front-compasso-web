@@ -14,7 +14,7 @@ export interface GoogleOnboardingData {
   personalAccountExists?: boolean;
   status: 'onboarding_required';
   profile: { name: string; email: string };
-  stores: { slug: string; businessName: string; linked: boolean; existingAccount: boolean }[];
+  stores: { workspaceMode?: "solo"|"store"; slug: string; businessName: string; linked: boolean; existingAccount: boolean }[];
 }
 export type GoogleSignInResult =
   GoogleOnboardingData | { status: 'authenticated' } | { linked: boolean };
@@ -84,7 +84,7 @@ export function GoogleOnboarding({
         )}
         {role === 'customer' && choices.length > 0 ? (
           <Field
-            label="Sua loja"
+            label="Seu espaço"
             hint={
               !data.stores.length
                 ? 'Ainda não há lojas disponíveis. Você pode cadastrar seu negócio.'
@@ -105,7 +105,7 @@ export function GoogleOnboarding({
               </option>
               {choices.map((store) => (
                 <option key={store.slug} value={store.slug}>
-                  {store.businessName}
+                  {store.workspaceMode === 'solo' ? 'Minha agenda Solo' : 'Empresa'} · {store.businessName}
                 </option>
               ))}
             </select>

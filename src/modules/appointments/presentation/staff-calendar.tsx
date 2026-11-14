@@ -13,6 +13,8 @@ import type { Appointment, Bootstrap } from "@/modules/shared/domain/models";
 import { Badge, Empty, PageHeading } from "@/modules/shared/presentation/ui";
 import {
   addDays,
+  appointmentDates,
+  appointmentDaySegment,
   appointmentLanes,
   calendarLabel,
   clockLabel,
@@ -69,10 +71,11 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
   const byDate = useMemo(() => {
     const grouped = new Map<string, Appointment[]>();
     for (const appointment of appointments) {
-      const key = dateInZone(new Date(appointment.startsAt), timezone);
-      const list = grouped.get(key) || [];
-      list.push(appointment);
-      grouped.set(key, list);
+      for (const key of appointmentDates(appointment, timezone)) {
+        const list = grouped.get(key) || [];
+        list.push(appointment);
+        grouped.set(key, list);
+      }
     }
     for (const list of grouped.values())
       list.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
@@ -91,31 +94,45 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
       : view === "Semana"
         ? days
         : [selectedDate];
-  const periodAppointments = range.flatMap((key) => byDate.get(key) || []);
-  const weekAppointments = days.flatMap((key) => byDate.get(key) || []);
-  const opening = Math.max(
-    0,
-    Math.min(
-      data.settings.openingHour,
-      ...weekAppointments.map((a) =>
-        Math.floor(clockMinutes(a.startsAt, timezone) / 60),
-      ),
-    ),
-  );
-  const closing = Math.min(
-    24,
-    Math.max(
-      opening + 1,
-      data.settings.closingHour,
-      ...weekAppointments.map((a) =>
-        Math.ceil(
-          (clockMinutes(a.startsAt, timezone) +
-            (Date.parse(a.endsAt) - Date.parse(a.startsAt)) / 60000) /
-            60,
-        ),
-      ),
-    ),
-  );
+  const periodAppointments = [
+    ...new Map(
+      range.flatMap((key) => byDate.get(key) || []).map((a) => [a.id, a]),
+    ).values(),
+  ];
+  const weekAppointments = [
+    ...new Map(
+      days.flatMap((key) => byDate.get(key) || []).map((a) => [a.id, a]),
+    ).values(),
+  ];
+  const opening =
+    data.settings.workspaceMode === "solo"
+      ? 0
+      : Math.max(
+          0,
+          Math.min(
+            data.settings.openingHour,
+            ...weekAppointments.map((a) =>
+              Math.floor(clockMinutes(a.startsAt, timezone) / 60),
+            ),
+          ),
+        );
+  const closing =
+    data.settings.workspaceMode === "solo"
+      ? 24
+      : Math.min(
+          24,
+          Math.max(
+            opening + 1,
+            data.settings.closingHour,
+            ...weekAppointments.map((a) =>
+              Math.ceil(
+                (clockMinutes(a.startsAt, timezone) +
+                  (Date.parse(a.endsAt) - Date.parse(a.startsAt)) / 60000) /
+                  60,
+              ),
+            ),
+          ),
+        );
   const rowHeight = weekAppointments.some(
     (a) => Date.parse(a.endsAt) - Date.parse(a.startsAt) < 1800000,
   )
@@ -474,9 +491,8 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
                 >
                   {appointmentLanes(byDate.get(key) || []).map(
                     ({ appointment: a, lane, lanes }) => {
-                      const duration =
-                          (Date.parse(a.endsAt) - Date.parse(a.startsAt)) /
-                          60000,
+                      const segment = appointmentDaySegment(a, key, timezone);
+                      const duration = segment.end - segment.start,
                         height = (duration * rowHeight) / 60 - 6;
                       return (
                         <button
@@ -487,9 +503,7 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
                               ? `5px solid ${a.categoryColor}`
                               : undefined,
                             top:
-                              ((clockMinutes(a.startsAt, timezone) -
-                                opening * 60) *
-                                rowHeight) /
+                              ((segment.start - opening * 60) * rowHeight) /
                                 60 +
                               3,
                             height: Math.max(16, height),
@@ -500,7 +514,11 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
                           title={`${a.customerName} · ${a.itemName} · ${clockLabel(a.startsAt, timezone)}`}
                           onClick={() => onOpen(a)}
                         >
-                          <span>{clockLabel(a.startsAt, timezone)}</span>
+                          <span>
+                            {dateInZone(new Date(a.startsAt), timezone) === key
+                              ? clockLabel(a.startsAt, timezone)
+                              : "Continuação"}
+                          </span>
                           <strong>{a.customerName}</strong>
                           <span className="event-service">
                             {a.itemName}

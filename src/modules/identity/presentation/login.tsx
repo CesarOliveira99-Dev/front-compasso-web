@@ -178,7 +178,7 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
                       </option>
                       {loginStores.map((store) => (
                         <option key={store.slug} value={store.slug}>
-                          {store.businessName}
+                          {store.workspaceMode === 'solo' ? 'Minha agenda Solo' : 'Empresa'} · {store.businessName}
                           {store.city ? ` — ${store.city}/${store.state}` : ''}
                         </option>
                       ))}

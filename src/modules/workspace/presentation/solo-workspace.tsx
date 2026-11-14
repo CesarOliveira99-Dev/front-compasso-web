@@ -12,12 +12,9 @@ import {
   useResource,
   type SectionProps,
 } from "@/modules/shared/presentation/ui";
-import {
-  WeeklyHours,
-  hoursFromForm,
-} from "@/modules/shared/presentation/weekly-hours";
 import { CalendarPage } from "@/modules/appointments/presentation/calendar-page";
 import { WalletPage } from "@/modules/wallet/presentation/wallet";
+import { WorkspaceSwitcher } from "./workspace-switcher";
 import { WorkspaceClients } from "./workspace-clients";
 import { AgendaAnalytics } from "./agenda-analytics";
 import { AgendaPreferencesEditor } from "./agenda-preferences";
@@ -314,68 +311,56 @@ function SoloServices(props: SectionProps) {
     </section>
   );
 }
-function SoloSettings(props: SectionProps) {
-  const settings = props.data.settings;
+function SoloAgendaName(props: SectionProps) {
   return (
     <section className="panel settings-panel">
-      <h2>Configurar minha agenda</h2>
+      <h2>Minha agenda</h2>
       <form
         className="form-grid"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          const form = new FormData(e.currentTarget);
+        onSubmit={async (event) => {
+          event.preventDefault();
+          const form = new FormData(event.currentTarget);
           try {
             await props.mutate(
               "settings",
               "PATCH",
               {
-                name: settings.name,
-                businessName: String(form.get("businessName")),
-                phone: settings.phone,
-                description: "",
-                media: [],
-                timezone: "America/Sao_Paulo",
-                completionMode: "manual",
-                payOnAppointment: true,
-                payOnDelivery: false,
-                bankAccount: "",
-                pixKey: "",
-                setupComplete: true,
-                ...hoursFromForm(form),
+                ...props.data.settings,
+                businessName: String(form.get("agendaName")),
               },
-              "Agenda configurada.",
+              "Nome da agenda salvo.",
             );
-          } catch (e) {
-            props.notify((e as Error).message, true);
+          } catch (error) {
+            props.notify((error as Error).message, true);
           }
         }}
       >
         <Field label="Nome da agenda">
           <input
-            name="businessName"
-            required
+            name="agendaName"
             minLength={2}
             maxLength={100}
-            defaultValue={settings.businessName}
+            required
+            defaultValue={props.data.settings.businessName}
           />
         </Field>
-        <WeeklyHours initial={settings} />
-        <button className="button primary">Salvar horários</button>
+        <p>
+          Aberta todos os dias, 24 horas. Você define o início e a duração de
+          cada compromisso.
+        </p>
+        <button className="button primary">Salvar nome</button>
       </form>
-      <p>
-        Exclusiva de {props.data.user.name}. Não há link público nem
-        visualização por clientes.
-      </p>
     </section>
   );
 }
+
 function SoloRegistrations(props: SectionProps) {
   const [section, setSection] = useState("services");
   return (
     <>
       <PageHeading
         title="Cadastros"
-        description="Organize seus serviços, categorias, aparência e horários de atendimento."
+        description="Organize seus serviços, categorias e a aparência da sua agenda."
       />
       <div
         className="tabs solo-registration-tabs"
@@ -385,7 +370,6 @@ function SoloRegistrations(props: SectionProps) {
         {[
           ["services", "Serviços"],
           ["preferences", "Categorias e tema"],
-          ["hours", "Horários"],
         ].map(([id, label]) => (
           <button
             key={id}
@@ -399,8 +383,12 @@ function SoloRegistrations(props: SectionProps) {
         ))}
       </div>
       {section === "services" && <SoloServices {...props} />}
-      {section === "preferences" && <AgendaPreferencesEditor {...props} />}
-      {section === "hours" && <SoloSettings {...props} />}
+      {section === "preferences" && (
+        <>
+          <SoloAgendaName {...props} />
+          <AgendaPreferencesEditor {...props} />
+        </>
+      )}
     </>
   );
 }
@@ -419,17 +407,22 @@ function SoloMenu({
   page,
   navigate,
   logout,
+  workspaceProps,
+  beforeSwitch,
 }: {
   name: string;
   page: string;
   navigate: (page: string) => void;
   logout: () => Promise<void>;
+  workspaceProps: SectionProps;
+  beforeSwitch?: () => void;
 }) {
   return (
     <>
       <Brand />
       <h2>Compasso Solo</h2>
       <p className="solo-menu-owner">{name}</p>
+      <WorkspaceSwitcher props={workspaceProps} beforeOpen={beforeSwitch} />
       <nav className="solo-menu-nav" aria-label="Navegação do Solo">
         {soloNavigation.map(([key, label]) => (
           <button
@@ -456,6 +449,10 @@ export function SoloWorkspace(
 ) {
   const [page, setPage] = useState("calendar");
   const [menuOpen, setMenuOpen] = useState(false);
+  const billing = useResource<SoloStatus>("payments/status", props.revision);
+  const subscribedPlan = billing.value?.plans.find(
+    (plan) => plan.id === billing.value?.subscription?.planId,
+  );
   const drawer = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const element = drawer.current;
@@ -504,6 +501,7 @@ export function SoloWorkspace(
           page={page}
           navigate={navigate}
           logout={props.logout}
+          workspaceProps={props}
         />
       </aside>
       <header className="solo-mobile-topbar">
@@ -573,6 +571,8 @@ export function SoloWorkspace(
             page={page}
             navigate={navigate}
             logout={props.logout}
+            workspaceProps={props}
+            beforeSwitch={() => setMenuOpen(false)}
           />
         </div>
       </dialog>
@@ -586,7 +586,7 @@ export function SoloWorkspace(
             <small>Sua agenda privada, no seu compasso.</small>
           </div>
           <button className="text-button" onClick={() => navigate("billing")}>
-            Ver minha assinatura
+            Plano {subscribedPlan?.name || "Solo"}
           </button>
         </div>
         {page === "calendar" && <CalendarPage {...local} />}{" "}

@@ -5467,3 +5467,56 @@ input[aria-invalid="true"] { border-color: #a33121; }
 @keyframes solo-drawer-in { from {transform:translateX(-100%)} to {transform:translateX(0)} }
 @media(max-width:800px){.solo-sidebar{display:none}.solo-mobile-topbar{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--surface,#fff);border-bottom:1px solid var(--line)}.solo-mobile-topbar .brand{margin:0}.solo-mobile-topbar .brand img{max-width:180px}.solo-main{padding:18px}.solo-private-note{gap:16px}}
 @media(prefers-reduced-motion:reduce){.solo-drawer[open]{animation:none}}
+.workspace-choice{display:flex;justify-content:space-between;align-items:center;gap:18px;width:100%;padding:18px;border:1px solid var(--line);border-radius:12px;text-align:left;}
+.workspace-choice.current{border-color:var(--accent);background:var(--accent-soft);opacity:1;}
+.workspace-choice > span:first-child{display:grid;gap:6px;min-width:0;}.workspace-choice small{overflow-wrap:anywhere;color:var(--muted);}
+.workspace-switcher{display:flex;align-items:center;justify-content:center;gap:8px;}
+.solo-drawer-panel .workspace-switcher{width:100%;}
+@media(max-width:600px){.workspace-choice{padding:14px;gap:10px}.topbar .workspace-switcher{font-size:12px;padding:8px;}}
+
+/* Solo mobile: compact flow, readable text and one spacing system across its pages. */
+.wallet-period-form{padding:20px;margin:0 0 20px;display:grid;gap:16px;}.wallet-period-form h2{margin:0;font-size:17px;}.wallet-period-form p{line-height:1.6;color:var(--muted);}
+.wallet-period-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:14px;align-items:end;}.wallet-period-fields .field{min-width:0;margin:0;}
+@media(max-width:800px){
+ .solo-shell{display:block;min-height:100dvh;}
+ .solo-mobile-topbar{height:64px;min-height:64px;padding:10px 16px;box-sizing:border-box;}
+ .solo-main{padding:16px;font-size:14px;line-height:1.6;}
+ .solo-private-note{padding:14px;margin-bottom:20px;gap:10px;}
+ .solo-greeting{min-width:0;flex:1 1 180px;}.solo-greeting .customer-greeting{font-size:19px;line-height:1.3;}.solo-greeting small{font-size:12px;line-height:1.5;}
+ .solo-private-note>.text-button{font-size:12px;min-height:36px;white-space:normal;text-align:left;}
+ .solo-main .page-heading{padding:0;margin:0 0 20px;gap:14px;align-items:flex-start;}
+ .solo-main .page-heading h1{font-size:26px;line-height:1.2;letter-spacing:-.6px;}
+ .solo-main .page-heading p{font-size:14px;line-height:1.6;max-width:none;margin:8px 0 0;}
+ .solo-main .settings-panel{padding:18px;gap:18px;margin-bottom:18px;}
+ .solo-main .settings-panel>.panel-heading{padding:0;margin:0;min-height:0;flex-wrap:wrap;gap:12px;align-items:center;}
+ .solo-main .panel-heading h2{font-size:17px;line-height:1.4;color:var(--ink);margin:0;}
+ .solo-main .settings-panel>.panel-heading h2{flex:1 1 110px;}
+ .solo-main .panel-heading p{font-size:13px;line-height:1.6;}
+ .solo-main .panel>.panel-heading{padding:18px;}
+ .solo-main .settings-panel>.panel-heading{padding:0;}
+ .solo-main .button,.solo-drawer .button{font-size:14px;min-height:44px;line-height:1.4;padding:11px 14px;white-space:normal;}
+ .solo-main :is(input,select,textarea),.dialog :is(input,select,textarea){font-size:16px;max-width:100%;min-width:0;}
+ .solo-main .field>span,.dialog .field>span{font-size:14px;line-height:1.5;}.solo-main .field>small{font-size:12px;line-height:1.5;}
+ .solo-main .form-row,.dialog .form-row{grid-template-columns:minmax(0,1fr);gap:14px;}
+ .solo-main .order-line{padding:16px 0;gap:12px;align-items:center;flex-wrap:wrap;}
+ .solo-main .order-line>div{min-width:0;flex:1 1 145px;}
+ .solo-main .order-line strong{font-size:14px;line-height:1.5;font-weight:600;color:var(--ink);overflow-wrap:anywhere;}
+ .solo-main .order-line small{font-size:12px;line-height:1.5;color:var(--muted);overflow-wrap:anywhere;}
+ .solo-registration-tabs{margin-bottom:18px;}.solo-registration-tabs button{font-size:13px;min-height:44px;min-width:0;line-height:1.4;}
+ .solo-main .staff-quick-calendar{display:none;}.solo-main .staff-calendar-layout{grid-template-columns:minmax(0,1fr);}
+ .solo-main .staff-calendar-pan{max-height:65dvh;overflow:auto;overscroll-behavior:contain;}
+ .solo-main .staff-calendar-pickers{gap:12px;}.solo-main .staff-calendar-pickers label{min-width:0;}
+ .solo-main .staff-calendar-meta{flex-wrap:wrap;gap:12px;}
+ .solo-main .wallet-grid{grid-template-columns:minmax(0,1fr);gap:14px;}
+ .solo-main .stat-card{padding:18px;min-height:0;gap:10px;}.solo-main .stat-label{font-size:13px;line-height:1.5;}.solo-main .stat-detail{font-size:12px;line-height:1.5;}
+ .solo-main .stat-card>strong.money-stat,.solo-main .wallet-main-card strong{font-size:25px;line-height:1.3;overflow-wrap:anywhere;max-width:100%;}
+ .solo-main .finance-summary .stats-grid{padding:0 18px 18px;gap:12px;}
+ .solo-main .table-scroll{max-width:100%;}.solo-main .finance-expenses .empty-state{padding:24px 18px;min-height:0;}
+ .solo-main .agenda-metrics>div{padding:14px;}.solo-main .agenda-metrics small{font-size:12px;line-height:1.5;}
+ .solo-main .agenda-chart-description{font-size:13px;line-height:1.6;}.solo-main .agenda-chart-legend button{font-size:13px;}
+ .solo-main .solo-price-grid .store-plan{padding:18px;}.solo-main .solo-plan-description{font-size:14px;line-height:1.6;}.solo-main .solo-billing>p{font-size:14px;line-height:1.6;}
+ .wallet-period-fields{grid-template-columns:minmax(0,1fr);}.wallet-period-form{padding:18px;}.wallet-period-fields .button{width:100%;}
+ .dialog-header{padding:18px;gap:12px;}.dialog-content{padding:18px;}.dialog-footer{padding:14px 18px;gap:10px;}.dialog-footer .button{flex:1;min-height:44px;font-size:14px;white-space:normal;}
+ .booking-steps{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;}.booking-steps li{font-size:11px;min-width:0;overflow-wrap:anywhere;}
+}
+@media(max-width:380px){.solo-main .panel-heading>.button{width:100%;}.solo-main .order-line>.button{font-size:13px;}.solo-main .solo-private-note>.text-button{min-height:28px;}}

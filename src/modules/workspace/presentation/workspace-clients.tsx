@@ -48,6 +48,8 @@ export function WorkspaceClients(props: SectionProps & { embedded?: boolean }) {
           },
           "Contato cadastrado.",
         );
+        setQuery("");
+        await resource.refresh();
       },
     });
   }

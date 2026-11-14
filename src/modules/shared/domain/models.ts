@@ -14,6 +14,7 @@ export interface MediaAsset {
   alt: string;
 }
 export interface StoreSummary {
+  workspaceMode?: "store" | "solo";
   slug: string;
   businessName: string;
   city?: string;

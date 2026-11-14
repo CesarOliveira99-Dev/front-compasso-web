@@ -1,6 +1,9 @@
-'use client';
-import { day, money } from '@/modules/shared/domain/format';
-import type { Expense, Wallet as WalletData } from '@/modules/shared/domain/models';
+"use client";
+import { day, money } from "@/modules/shared/domain/format";
+import type {
+  Expense,
+  Wallet as WalletData,
+} from "@/modules/shared/domain/models";
 import {
   Badge,
   Field,
@@ -10,27 +13,44 @@ import {
   ResourceState,
   useResource,
   type SectionProps,
-} from '@/modules/shared/presentation/ui';
-import { ArrowDownLeft, Clock3, Plus, TrendingUp, Wallet } from 'lucide-react';
-import { useState } from 'react';
+} from "@/modules/shared/presentation/ui";
+import { ArrowDownLeft, Clock3, Plus, TrendingUp, Wallet } from "lucide-react";
+import { useState } from "react";
 export function WalletPage(props: SectionProps) {
-  const [days, setDays] = useState(30);
-  const [tab, setTab] = useState('received');
-  const resource = useResource<WalletData>(`insights/wallet?days=${days}`, props.revision);
+  const [period, setPeriod] = useState("30"),
+    [query, setQuery] = useState("days=30");
+  const [from, setFrom] = useState(""),
+    [to, setTo] = useState("");
+  const today = props.data.dashboard.date;
+  const rangeError =
+    from && to
+      ? from > to
+        ? "A data inicial deve ser anterior à final."
+        : to > today
+          ? "A data final deve ser até hoje."
+          : (Date.parse(to) - Date.parse(from)) / 86400000 >= 3650
+            ? "Escolha um intervalo de até 10 anos."
+            : ""
+      : "";
+  const [tab, setTab] = useState("received");
+  const resource = useResource<WalletData>(
+    `insights/wallet?${query}`,
+    props.revision,
+  );
   const wallet = resource.value;
   const categories = {
-    supplies: 'Materiais e produtos',
-    rent: 'Aluguel',
-    utilities: 'Contas e serviços',
-    other: 'Outros',
+    supplies: "Materiais e produtos",
+    rent: "Aluguel",
+    utilities: "Contas e serviços",
+    other: "Outros",
   };
   function expenseDialog(expense?: Expense) {
     const expenseId = expense?.id || crypto.randomUUID();
     props.openDialog({
-      title: expense ? 'Editar despesa paga' : 'Registrar despesa paga',
+      title: expense ? "Editar despesa paga" : "Registrar despesa paga",
       description:
-        'Registre somente gastos já pagos pela empresa. Eles serão descontados dos recebimentos do período.',
-      submitLabel: expense ? 'Salvar despesa' : 'Registrar despesa',
+        "Registre somente gastos já pagos pela empresa. Eles serão descontados dos recebimentos do período.",
+      submitLabel: expense ? "Salvar despesa" : "Registrar despesa",
       content: (
         <div className="form-grid">
           <Field label="Descrição">
@@ -44,7 +64,10 @@ export function WalletPage(props: SectionProps) {
             />
           </Field>
           <Field label="Categoria">
-            <select name="category" defaultValue={expense?.category || 'supplies'}>
+            <select
+              name="category"
+              defaultValue={expense?.category || "supplies"}
+            >
               {Object.entries(categories).map(([value, label]) => (
                 <option key={value} value={value}>
                   {label}
@@ -79,30 +102,36 @@ export function WalletPage(props: SectionProps) {
       onSubmit: async (form) => {
         await props.mutate(
           `insights/expenses/${expenseId}`,
-          'PUT',
+          "PUT",
           {
-            description: String(form.get('description') || '').trim(),
-            category: String(form.get('category')),
-            amountCents: Math.round(Number(form.get('amount')) * 100),
-            paidOn: String(form.get('paidOn')),
+            description: String(form.get("description") || "").trim(),
+            category: String(form.get("category")),
+            amountCents: Math.round(Number(form.get("amount")) * 100),
+            paidOn: String(form.get("paidOn")),
           },
-          'Despesa salva.',
+          "Despesa salva.",
         );
       },
     });
   }
   function removeExpense(expense: Expense) {
     props.openDialog({
-      title: 'Excluir despesa?',
-      description: 'O saldo do período será recalculado. Esta ação não movimenta dinheiro.',
+      title: "Excluir despesa?",
+      description:
+        "O saldo do período será recalculado. Esta ação não movimenta dinheiro.",
       content: (
         <p>
           {expense.description} · {money(expense.amountCents)}
         </p>
       ),
-      submitLabel: 'Excluir despesa',
+      submitLabel: "Excluir despesa",
       onSubmit: async () => {
-        await props.mutate(`insights/expenses/${expense.id}`, 'DELETE', {}, 'Despesa excluída.');
+        await props.mutate(
+          `insights/expenses/${expense.id}`,
+          "DELETE",
+          {},
+          "Despesa excluída.",
+        );
       },
     });
   }
@@ -110,14 +139,26 @@ export function WalletPage(props: SectionProps) {
     <>
       <PageHeading
         eyebrow="CLAREZA PARA CRESCER"
-        title="Finanças da empresa"
+        title={
+          props.data.settings.workspaceMode === "solo"
+            ? "Minhas finanças"
+            : "Finanças da empresa"
+        }
         description="Acompanhe recebimentos, despesas pagas e o saldo do período."
         action={
           <select
             className="period-select"
             aria-label="Período da carteira"
-            value={days}
-            onChange={(e) => setDays(Number(e.target.value))}
+            value={period}
+            onChange={(e) => {
+              const value = e.target.value;
+              setPeriod(value);
+              if (value !== "custom") setQuery("days=" + value);
+              else {
+                setFrom(wallet?.periodStart || today);
+                setTo(wallet?.periodEnd || today);
+              }
+            }}
           >
             <option value={30}>Últimos 30 dias</option>
             <option value={60}>Últimos 60 dias</option>
@@ -125,47 +166,119 @@ export function WalletPage(props: SectionProps) {
             <option value={180}>Últimos 6 meses</option>
             <option value={365}>Último ano</option>
             <option value={3650}>Todo o histórico (até 10 anos)</option>
+            <option value="custom">Filtrar por período</option>
           </select>
         }
       />
+      {period === "custom" && (
+        <form
+          className="panel wallet-period-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (from && to && !rangeError)
+              setQuery(new URLSearchParams({ from, to }).toString());
+          }}
+        >
+          <div>
+            <h2>Escolha o período</h2>
+            <p>
+              Informe as datas e aplique para atualizar os recebimentos e as
+              despesas.
+            </p>
+          </div>
+          <div className="wallet-period-fields">
+            <Field label="De">
+              <input
+                type="date"
+                aria-label="Data inicial do período"
+                required
+                max={to || today}
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+              />
+            </Field>
+            <Field label="Até">
+              <input
+                type="date"
+                aria-label="Data final do período"
+                required
+                min={from}
+                max={today}
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+              />
+            </Field>
+            <button
+              className="button primary"
+              disabled={!from || !to || !!rangeError}
+            >
+              Aplicar filtro
+            </button>
+          </div>
+          {rangeError && (
+            <p className="error-message" role="alert">
+              {rangeError}
+            </p>
+          )}
+        </form>
+      )}
       <ResourceState {...resource} />
       {wallet && (
         <>
           <section className="panel finance-summary">
             <PanelHeading
               title="Recebimentos e despesas"
-              detail={`${day(wallet.periodStart + 'T12:00:00Z')} a ${day(wallet.periodEnd + 'T12:00:00Z')} · por data de pagamento`}
+              detail={`${day(wallet.periodStart + "T12:00:00Z")} a ${day(wallet.periodEnd + "T12:00:00Z")} · por data de pagamento`}
             />
             <div className="stats-grid">
               <article className="stat-card">
                 <span className="stat-label">Recebido no período</span>
-                <strong className="money-stat">{money(wallet.cashReceivedCents)}</strong>
-                <span className="stat-detail">Serviços e produtos com pagamento registrado</span>
+                <strong className="money-stat">
+                  {money(wallet.cashReceivedCents)}
+                </strong>
+                <span className="stat-detail">
+                  Serviços e produtos com pagamento registrado
+                </span>
               </article>
               <article className="stat-card">
                 <span className="stat-label">Despesas pagas</span>
-                <strong className="money-stat">{money(wallet.expenseCents)}</strong>
-                <span className="stat-detail">Gastos cadastrados no período</span>
+                <strong className="money-stat">
+                  {money(wallet.expenseCents)}
+                </strong>
+                <span className="stat-detail">
+                  Gastos cadastrados no período
+                </span>
               </article>
               <article className="stat-card">
                 <span className="stat-label">Saldo do período</span>
-                <strong className="money-stat">{money(wallet.balanceCents)}</strong>
-                <span className="stat-detail">Recebido menos despesas pagas</span>
+                <strong className="money-stat">
+                  {money(wallet.balanceCents)}
+                </strong>
+                <span className="stat-detail">
+                  Recebido menos despesas pagas
+                </span>
               </article>
             </div>
             {wallet.undatedReceivedCents > 0 && (
               <p className="page-footnote">
-                Há {money(wallet.undatedReceivedCents)} em pagamentos antigos sem data registrada.
-                Eles não entram no saldo por período.
+                Há {money(wallet.undatedReceivedCents)} em pagamentos antigos
+                sem data registrada. Eles não entram no saldo por período.
               </p>
             )}
           </section>
           <section className="panel finance-expenses">
             <PanelHeading
-              title="Despesas da empresa"
+              title={
+                props.data.settings.workspaceMode === "solo"
+                  ? "Minhas despesas"
+                  : "Despesas da empresa"
+              }
               detail="Materiais, aluguel e contas já pagas."
               action={
-                <button className="button primary" onClick={() => expenseDialog()}>
+                <button
+                  className="button primary"
+                  onClick={() => expenseDialog()}
+                >
                   <Plus size={16} /> Nova despesa
                 </button>
               }
@@ -189,7 +302,7 @@ export function WalletPage(props: SectionProps) {
                           <strong>{expense.description}</strong>
                         </td>
                         <td>{categories[expense.category]}</td>
-                        <td>{day(expense.paidOn + 'T12:00:00Z')}</td>
+                        <td>{day(expense.paidOn + "T12:00:00Z")}</td>
                         <td>{money(expense.amountCents)}</td>
                         <td>
                           <div className="toolbar-controls">
@@ -215,7 +328,7 @@ export function WalletPage(props: SectionProps) {
             ) : (
               <Empty
                 title="Nenhuma despesa paga neste período"
-                description="Cadastre os gastos para acompanhar o saldo da empresa."
+                description="Cadastre os gastos para acompanhar o saldo do seu caixa."
               />
             )}
           </section>
@@ -240,7 +353,9 @@ export function WalletPage(props: SectionProps) {
                 <ArrowDownLeft size={20} />
               </span>
               <span className="stat-label">Recebido dos concluídos</span>
-              <strong className="money-stat">{money(wallet.receivedCents)}</strong>
+              <strong className="money-stat">
+                {money(wallet.receivedCents)}
+              </strong>
               <span className="stat-detail">Pagamentos registrados</span>
             </article>
             <article className="stat-card">
@@ -248,8 +363,12 @@ export function WalletPage(props: SectionProps) {
                 <Clock3 size={20} />
               </span>
               <span className="stat-label">Ainda a receber</span>
-              <strong className="money-stat">{money(wallet.unpaidCents)}</strong>
-              <span className="stat-detail">Concluídos com pagamento pendente</span>
+              <strong className="money-stat">
+                {money(wallet.unpaidCents)}
+              </strong>
+              <span className="stat-detail">
+                Concluídos com pagamento pendente
+              </span>
             </article>
           </div>
           <div className="projection-banner">
@@ -258,7 +377,10 @@ export function WalletPage(props: SectionProps) {
             </span>
             <div>
               <h3>Um olhar para o futuro</h3>
-              <p>Você tem {wallet.projection.length} atendimentos confirmados pela frente.</p>
+              <p>
+                Você tem {wallet.projection.length} atendimentos confirmados
+                pela frente.
+              </p>
             </div>
             <div>
               <strong>{money(wallet.projectedCents)}</strong>
@@ -272,27 +394,27 @@ export function WalletPage(props: SectionProps) {
             />
             <div className="table-tabs tabs finance-ledger-tabs">
               <button
-                className={tab === 'received' ? 'active' : ''}
-                onClick={() => setTab('received')}
+                className={tab === "received" ? "active" : ""}
+                onClick={() => setTab("received")}
               >
                 Recebimentos no período
               </button>
               <button
-                className={tab === 'completed' ? 'active' : ''}
-                onClick={() => setTab('completed')}
+                className={tab === "completed" ? "active" : ""}
+                onClick={() => setTab("completed")}
               >
                 Concluídos no período
               </button>
               <button
-                className={tab === 'projection' ? 'active' : ''}
-                onClick={() => setTab('projection')}
+                className={tab === "projection" ? "active" : ""}
+                onClick={() => setTab("projection")}
               >
                 Agendados futuros
               </button>
             </div>
-            {(tab === 'received'
+            {(tab === "received"
               ? wallet.cashEntries
-              : tab === 'completed'
+              : tab === "completed"
                 ? wallet.entries
                 : wallet.projection
             ).length ? (
@@ -308,9 +430,9 @@ export function WalletPage(props: SectionProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {(tab === 'received'
+                    {(tab === "received"
                       ? wallet.cashEntries
-                      : tab === 'completed'
+                      : tab === "completed"
                         ? wallet.entries
                         : wallet.projection
                     ).map((entry) => (
@@ -321,7 +443,9 @@ export function WalletPage(props: SectionProps) {
                         <td>{entry.customerName}</td>
                         <td>{day(entry.date)}</td>
                         <td>
-                          <strong className="positive">{money(entry.amountCents)}</strong>
+                          <strong className="positive">
+                            {money(entry.amountCents)}
+                          </strong>
                         </td>
                         <td>
                           <Badge status={entry.paymentStatus} />
@@ -339,9 +463,10 @@ export function WalletPage(props: SectionProps) {
             )}
           </section>
           <p className="page-footnote">
-            O saldo considera pagamentos com data registrada e despesas cadastradas. Cancelar um
-            atendimento não registra estorno. Este controle não representa saldo bancário, lucro
-            líquido ou conciliação financeira.
+            O saldo considera pagamentos com data registrada e despesas
+            cadastradas. Cancelar um atendimento não registra estorno. Este
+            controle não representa saldo bancário, lucro líquido ou conciliação
+            financeira.
           </p>
         </>
       )}

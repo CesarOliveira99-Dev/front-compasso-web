@@ -1,0 +1,252 @@
+/* Compasso editorial identity: a restrained retro serif for titles, clear sans for work. */
+:root {
+  --font-heading:
+    Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  --font-body:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --space-panel: 24px;
+  --space-section: 24px;
+}
+body {
+  font-size: 15px;
+  line-height: 1.6;
+}
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.brand-name,
+.brand-lockup {
+  font-family: var(--font-body);
+}
+.page-heading {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: var(--space-section);
+}
+.page-heading h1,
+.main-content .page-heading h1,
+.solo-main .page-heading h1,
+.employee-content .page-heading h1 {
+  font-family: var(--font-heading);
+  font-size: clamp(30px, 2.5vw, 40px);
+  font-weight: 400;
+  line-height: 1.16;
+  letter-spacing: -0.035em;
+}
+.page-heading p,
+.main-content .page-heading p,
+.solo-main .page-heading p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted);
+  margin-top: 9px;
+  max-width: 72ch;
+}
+.page-heading .eyebrow {
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  line-height: 1.6;
+}
+.panel-heading {
+  padding: var(--space-panel);
+  gap: 16px;
+  align-items: center;
+}
+.panel-heading h2,
+.solo-main .panel-heading h2,
+.main-content .panel-heading h2,
+.settings-panel > h2 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+.panel-heading p,
+.main-content .panel-heading p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-top: 7px;
+}
+.settings-panel {
+  padding: var(--space-panel);
+  gap: 20px;
+}
+.settings-panel > .panel-heading,
+.solo-main .settings-panel > .panel-heading {
+  padding: 0;
+  margin: 0;
+  gap: 16px;
+}
+.settings-panel > p {
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 76ch;
+}
+.settings-panel > h1,
+.solo-billing > h1 {
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: 400;
+}
+.agenda-chart-card h3,
+.solo-main .agenda-chart-card h3 {
+  font-family: var(--font-heading);
+  font-size: 21px;
+  line-height: 1.3;
+  font-weight: 400;
+}
+.dialog-header h2 {
+  font-family: var(--font-heading);
+  font-size: 27px;
+  line-height: 1.25;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+.dialog-header p {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.form-grid .field > span,
+.settings-panel .field > span {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 550;
+}
+.form-note,
+.settings-panel small {
+  line-height: 1.6;
+}
+.order-line strong,
+.main-content .order-line strong,
+.solo-main .order-line strong {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.order-line small,
+.main-content .order-line small,
+.solo-main .order-line small {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.plan-price,
+.money-stat,
+.agenda-metrics strong,
+.wallet-main-card > div > strong,
+.stat-card > strong {
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.solo-greeting .customer-greeting {
+  font-family: var(--font-heading);
+  font-size: 27px;
+  line-height: 1.25;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+.solo-private-note > .text-button {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.solo-greeting small {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.solo-sidebar h2 {
+  font-family: var(--font-heading);
+  font-size: 23px;
+  font-weight: 400;
+}
+.solo-sidebar nav button,
+.solo-menu-nav button {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.solo-main {
+  width: 100%;
+  max-width: 1440px;
+  justify-self: center;
+}
+@media (max-width: 800px) {
+  :root {
+    --space-panel: 18px;
+    --space-section: 20px;
+  }
+  .page-heading h1,
+  .main-content .page-heading h1,
+  .solo-main .page-heading h1,
+  .employee-content .page-heading h1 {
+    font-size: 30px;
+    line-height: 1.18;
+    letter-spacing: -0.03em;
+  }
+  .page-heading p,
+  .main-content .page-heading p,
+  .solo-main .page-heading p {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .panel-heading h2,
+  .solo-main .panel-heading h2,
+  .main-content .panel-heading h2,
+  .settings-panel > h2 {
+    font-size: 21px;
+    line-height: 1.3;
+  }
+  .solo-greeting .customer-greeting {
+    font-size: 23px;
+  }
+  .solo-main .settings-panel > .panel-heading {
+    padding: 0;
+    gap: 12px;
+  }
+  .settings-panel > h1,
+  .solo-billing > h1 {
+    font-size: 30px;
+  }
+  .solo-main .settings-panel {
+    gap: 18px;
+  }
+  .form-row {
+    min-width: 0;
+  }
+}
+
+/* Grid children must allow their own table scroller to shrink. */
+.solo-main > *,
+.main-content > *,
+.employee-content > * {
+  min-width: 0;
+}
+.table-scroll {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.finance-ledger-tabs {
+  display: flex;
+  width: calc(100% - 44px);
+  max-width: calc(100% - 44px);
+}
+
+/* A greeting is part of the page, without a separate card. */
+.solo-main .solo-private-note { padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; }
+.solo-main .solo-private-note > .text-button { text-decoration:underline; text-underline-offset:4px; }

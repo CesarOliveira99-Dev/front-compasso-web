@@ -1,4 +1,5 @@
 'use client';
+import { workspaceRequestHeaders } from '../infrastructure/api';
 import { useState } from 'react';
 import type { MediaAsset } from '../domain/models';
 export function MediaGallery({ assets }: { assets: MediaAsset[] }) {
@@ -58,7 +59,7 @@ export function MediaEditor({
             try {
               const body = new FormData();
               body.set('file', file);
-              const response = await fetch('/api/media', { method: 'POST', body });
+              const response = await fetch('/api/media', { method: 'POST', headers:workspaceRequestHeaders(), body });
               const result = await response.json();
               if (!response.ok) throw new Error(result.message || 'Falha no envio.');
               setAssets((current) => [

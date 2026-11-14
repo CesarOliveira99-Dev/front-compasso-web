@@ -7,7 +7,7 @@ import { BusinessCover } from '@/modules/dashboard/presentation/business-cover';
 export function CalendarPage(props: SectionProps) {
   return (
     <>
-      <BusinessCover settings={props.data.settings} />
+      {props.data.settings.workspaceMode!=='solo'&&<BusinessCover settings={props.data.settings} />}
       <StaffCalendar
         data={props.data}
         onOpen={(appointment) => openStaffAppointment(props, appointment)}
