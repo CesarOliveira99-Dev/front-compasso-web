@@ -403,14 +403,12 @@ const soloNavigation = [
 ];
 
 function SoloMenu({
-  name,
   page,
   navigate,
   logout,
   workspaceProps,
   beforeSwitch,
 }: {
-  name: string;
   page: string;
   navigate: (page: string) => void;
   logout: () => Promise<void>;
@@ -421,11 +419,6 @@ function SoloMenu({
     <>
       <Brand />
       <h2>Compasso Solo</h2>
-      <p className="solo-menu-owner">{name}</p>
-      <WorkspaceSwitcher props={workspaceProps} beforeOpen={beforeSwitch} />
-      <button className="button secondary" onClick={logout}>
-        Sair
-      </button>
       <nav className="solo-menu-nav" aria-label="Navegação do Solo">
         {soloNavigation.map(([key, label]) => (
           <button
@@ -439,7 +432,13 @@ function SoloMenu({
           </button>
         ))}
       </nav>
-      <small>Agenda privada · acesso individual</small>
+      <div className="solo-menu-footer">
+        <small>Agenda privada · acesso individual</small>
+        <WorkspaceSwitcher props={workspaceProps} beforeOpen={beforeSwitch} />
+        <button className="button secondary" onClick={logout}>
+          Sair
+        </button>
+      </div>
     </>
   );
 }
@@ -497,7 +496,6 @@ export function SoloWorkspace(
       <WorkspaceAppearance revision={props.revision} />
       <aside className="solo-sidebar">
         <SoloMenu
-          name={props.data.user.name}
           page={page}
           navigate={navigate}
           logout={props.logout}
@@ -517,9 +515,6 @@ export function SoloWorkspace(
           <Menu size={24} />
         </button>
         <Brand />
-        <button className="text-button solo-topbar-logout" onClick={props.logout}>
-          Sair
-        </button>
       </header>
       <dialog
         ref={drawer}
@@ -570,7 +565,6 @@ export function SoloWorkspace(
             </button>
           </div>
           <SoloMenu
-            name={props.data.user.name}
             page={page}
             navigate={navigate}
             logout={props.logout}

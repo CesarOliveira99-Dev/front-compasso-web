@@ -254,3 +254,9 @@ h4 {
 .solo-main .staff-calendar { grid-template-columns:minmax(0,1fr); }
 
 .solo-topbar-logout { margin-left:auto; min-height:44px; padding:8px; }
+
+.solo-sidebar { position:sticky; top:0; height:100dvh; overflow-y:auto; }
+.solo-menu-footer { margin-top:auto; display:grid; gap:12px; padding-top:20px; }
+.solo-menu-footer .button { width:100%; }
+.solo-menu-footer small { font-size:12px; line-height:1.5; }
+.solo-drawer-panel { min-height:100dvh; }
