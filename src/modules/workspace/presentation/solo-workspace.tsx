@@ -52,6 +52,17 @@ export function SoloBilling(props: SectionProps) {
       setBusy(false);
     }
   }
+  async function cancelPending() {
+    setBusy(true);
+    try {
+      await api("payments/subscription/cancel-pending", "POST", {});
+      setRevision((n) => n + 1);
+    } catch (e) {
+      props.notify((e as Error).message, true);
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
     <section className="panel settings-panel solo-billing">
       <h1>Compasso Solo</h1>
@@ -111,6 +122,7 @@ export function SoloBilling(props: SectionProps) {
                     disabled={
                       busy ||
                       !data.billingEnabled ||
+                      data.entitlement.mode === "trial" ||
                       data.setupPending ||
                       !!(
                         existing &&
@@ -128,12 +140,7 @@ export function SoloBilling(props: SectionProps) {
                               {plan.periodMonths === 12 ? "12 meses" : "mês"},
                               com renovação automática após sua autorização.
                             </p>
-                            <p>
-                              {data.entitlement.mode === "trial" &&
-                              data.entitlement.expiresAt
-                                ? `A primeira cobrança será programada para o término do teste, em ${new Date(data.entitlement.expiresAt).toLocaleDateString("pt-BR")}.`
-                                : "A contratação inicia um período pago."}
-                            </p>
+                            <p>A contratação inicia um período pago.</p>
                             <p>
                               Você pode cancelar a renovação no Mercado Pago. O
                               período pago permanece válido.
@@ -167,6 +174,9 @@ export function SoloBilling(props: SectionProps) {
               cobrada agora.
             </p>
           )}
+          {data.entitlement.mode === "trial" && (
+            <p>Você pode comparar os planos agora. A contratação ficará disponível quando o teste grátis terminar, sem cobrança durante o teste.</p>
+          )}
           {data.setupPending && (
             <p>
               Uma contratação aguarda conferência. Atualize a situação antes de
@@ -182,6 +192,16 @@ export function SoloBilling(props: SectionProps) {
               >
                 Atualizar situação
               </button>
+              {data.subscription?.status === "pending" && !data.subscription.paidThrough && (
+                <button className="button secondary" disabled={busy} onClick={() => props.openDialog({
+                  title: "Cancelar tentativa pendente",
+                  submitLabel: "Cancelar tentativa no Mercado Pago",
+                  content: <p>A tentativa ainda não tem período pago. Vamos confirmar o estado no Mercado Pago e cancelar somente se continuar pendente.</p>,
+                  onSubmit: cancelPending,
+                })}>
+                  Cancelar tentativa pendente
+                </button>
+              )}
               <a
                 href="https://www.mercadopago.com.br/subscriptions"
                 target="_blank"
