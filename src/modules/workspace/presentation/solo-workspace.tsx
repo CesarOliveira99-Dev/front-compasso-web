@@ -176,7 +176,7 @@ export function SoloBilling(props: SectionProps) {
             </p>
           )}
           {data.entitlement.mode === "trial" && (
-            <p>Você pode contratar durante o teste por escolha sua. O Mercado Pago poderá cobrar imediatamente; sem contratação, o teste termina sem cobrança.</p>
+            <p>Contrate e cancele quando quiser.</p>
           )}
           {data.setupPending && (
             <p>
@@ -203,17 +203,13 @@ export function SoloBilling(props: SectionProps) {
                   Cancelar tentativa pendente
                 </button>
               )}
-              <a
+              {(data.subscription?.status === 'authorized' || data.subscription?.status === 'paused') && <a
                 href="https://www.mercadopago.com.br/subscriptions"
                 target="_blank"
                 rel="noreferrer"
               >
-                Gerenciar ou cancelar no Mercado Pago
-              </a>
-              <small>
-                Para trocar entre mensal e anual, cancele e aguarde o fim do
-                período pago.
-              </small>
+                Cancelar renovação
+              </a>}
             </div>
           )}
         </>
@@ -632,3 +628,4 @@ export function SoloWorkspace(
     </div>
   );
 }
+
