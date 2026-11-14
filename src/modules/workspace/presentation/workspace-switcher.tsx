@@ -139,13 +139,13 @@ export function WorkspaceSwitcher({
       onClick={() => {
         beforeOpen?.();
         props.openDialog({
-          title: "Trocar de espaço",
+          title: "Trocar espaço",
           content: <WorkspaceChoices props={props} />,
         });
       }}
     >
       <ArrowLeftRight size={16} />
-      Trocar de espaço
+      Trocar espaço
     </button>
   );
 }

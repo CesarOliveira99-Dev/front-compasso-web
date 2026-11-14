@@ -250,3 +250,7 @@ h4 {
 /* A greeting is part of the page, without a separate card. */
 .solo-main .solo-private-note { padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; }
 .solo-main .solo-private-note > .text-button { text-decoration:underline; text-underline-offset:4px; }
+
+.solo-main .staff-calendar { grid-template-columns:minmax(0,1fr); }
+
+.solo-topbar-logout { margin-left:auto; min-height:44px; padding:8px; }

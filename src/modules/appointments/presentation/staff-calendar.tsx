@@ -189,7 +189,7 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
   const daily = byDate.get(selectedDate) || [];
   return (
     <section className="staff-calendar">
-      <section
+      {data.settings.workspaceMode !== "solo" && <section
         className="staff-quick-calendar"
         aria-label="Escolher dia da agenda"
       >
@@ -242,7 +242,7 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
           Os dias destacados têm atendimentos. Selecione uma data para ver os
           horários.
         </p>
-      </section>
+      </section>}
       <div className="staff-calendar-main">
         <PageHeading
           title={employee ? "Sua agenda" : "Calendário"}

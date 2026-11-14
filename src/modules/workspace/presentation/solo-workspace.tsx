@@ -423,6 +423,9 @@ function SoloMenu({
       <h2>Compasso Solo</h2>
       <p className="solo-menu-owner">{name}</p>
       <WorkspaceSwitcher props={workspaceProps} beforeOpen={beforeSwitch} />
+      <button className="button secondary" onClick={logout}>
+        Sair
+      </button>
       <nav className="solo-menu-nav" aria-label="Navegação do Solo">
         {soloNavigation.map(([key, label]) => (
           <button
@@ -437,9 +440,6 @@ function SoloMenu({
         ))}
       </nav>
       <small>Agenda privada · acesso individual</small>
-      <button className="button secondary" onClick={logout}>
-        Sair
-      </button>
     </>
   );
 }
@@ -517,6 +517,9 @@ export function SoloWorkspace(
           <Menu size={24} />
         </button>
         <Brand />
+        <button className="text-button solo-topbar-logout" onClick={props.logout}>
+          Sair
+        </button>
       </header>
       <dialog
         ref={drawer}

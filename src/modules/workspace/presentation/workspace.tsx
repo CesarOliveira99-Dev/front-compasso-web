@@ -565,15 +565,15 @@ export function Workspace() {
             <span>Preciso de uma mão</span>
           </button>
           <div className="sidebar-profile">
-            {admin && <WorkspaceSwitcher props={props}/>}
+
             <Avatar name={data.user.name} />
             <div>
               <strong>{data.user.name}</strong>
               <small>{admin ? 'Administradora' : 'Cliente'}</small>
             </div>
-            <button className="icon-button" aria-label="Sair da conta" onClick={logout}>
+            {!admin && <button className="icon-button" aria-label="Sair da conta" onClick={logout}>
               <LogOut size={17} />
-            </button>
+            </button>}
           </div>
         </div>
       </aside>
@@ -613,6 +613,7 @@ export function Workspace() {
             <strong>{currentLabel}</strong>
           </div>
           <div className="topbar-actions">
+            {admin && <button className="button secondary" onClick={logout}><LogOut size={17} /> Sair</button>}
             <button className="topbar-search" aria-label="Pesquisar na plataforma" onClick={search}>
               <Search size={16} />
               <span>Encontre algo…</span>
