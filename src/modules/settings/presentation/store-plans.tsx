@@ -26,7 +26,9 @@ export function StorePlans({ status, props, busy, refresh }: { status: PlanStatu
       content: <><p>{money(total)} por mês, com renovação automática após sua autorização. Cancele pelo Mercado Pago.</p>
         {plan.id === 'equipe' && <p>Base de {money(plan.priceCents)} + {extraEmployees} colaborador(es) extra(s) a R$25,00 por mês cada.</p>}
         <p>{plan.employees + extraEmployees} funcionário(s), {number(plan.monthlyEmails)} e-mails por mês e até {plan.dailyEmails} por dia.</p>
-        <p>A contratação inicia uma assinatura mensal paga. Clientes não pagam assinatura.</p></>,
+        <p>{entitlement.mode === 'trial'
+          ? 'Você pode contratar agora, mas o Mercado Pago poderá cobrar imediatamente. Após pagamento aprovado, o período pago começa na data da cobrança; os dias restantes do teste grátis não são acrescentados. Confira o valor no checkout antes de confirmar.'
+          : 'A contratação inicia uma assinatura mensal paga após a confirmação do pagamento.'} Clientes não pagam assinatura.</p></>,
       onSubmit: async () => { const result = await api<{ url: string }>('payments/subscribe', 'POST', { planId: plan.id, extraEmployees }); window.location.assign(result.url); },
     });
   }
@@ -70,7 +72,7 @@ export function StorePlans({ status, props, busy, refresh }: { status: PlanStatu
         {plan.extraEmployeePriceCents && <><strong>R$25,00 por colaborador extra</strong><small>A partir do 11º colaborador, por mês. Até 90 extras no autosserviço. As franquias de e-mail permanecem iguais.</small>
           {!current && <label className="field"><span>Colaboradores extras</span><input aria-label="Colaboradores extras no plano Equipe" type="number" min={Math.max(0, status.employeesUsed - 10)} max={90} step={1} value={extras} onChange={event => setExtras(Math.min(90, Math.max(0, Math.trunc(Number(event.target.value) || 0))))} /><small>Total: {money(plan.priceCents + extras * plan.extraEmployeePriceCents)} / mês • até {10 + extras} colaboradores</small></label>}
         </>}
-        <button type="button" className="button secondary" disabled={busy || !status.billingEnabled || entitlement.mode === 'trial' || status.setupPending || !!other || capacity || (current && subscription.status !== 'pending')}
+        <button type="button" className="button secondary" disabled={busy || !status.billingEnabled || status.setupPending || !!other || capacity || (current && subscription.status !== 'pending')}
           onClick={() => choose(plan)}>{current ? subscription.status === 'pending' ? 'Concluir contratação' : 'Assinatura atual' : 'Escolher plano'}</button>
         {capacity && <small>Desative os funcionários excedentes para escolher este plano.</small>}
       </article>;
@@ -81,7 +83,7 @@ export function StorePlans({ status, props, busy, refresh }: { status: PlanStatu
     })}
     {subscription?.planId === 'equipe' && <ExtraEmployeeControls status={status} props={props} />}
     {!status.billingEnabled && <p>A contratação será habilitada após a validação dos pagamentos. Nenhuma mensalidade será cobrada agora.</p>}
-    {entitlement.mode === 'trial' && <p>Compare os planos agora. A contratação ficará disponível quando o teste grátis terminar, sem cobrança durante o teste.</p>}
+    {entitlement.mode === 'trial' && <p>Você pode contratar durante o teste por escolha sua. O Mercado Pago poderá cobrar imediatamente; sem contratação, o teste termina sem cobrança.</p>}
     {status.setupPending && <p role="status">Uma contratação aguarda conferência. Atualize a situação antes de tentar novamente.</p>}
     {(subscription || status.setupPending) && <div className="plan-manage"><button className="button secondary" type="button" disabled={busy} onClick={refresh}>Atualizar situação</button>
       {subscription?.status === 'pending' && !subscription.paidThrough && <button className="button secondary" type="button" disabled={busy} onClick={cancelPending}>Cancelar tentativa pendente</button>}

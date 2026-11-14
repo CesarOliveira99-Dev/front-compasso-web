@@ -122,7 +122,6 @@ export function SoloBilling(props: SectionProps) {
                     disabled={
                       busy ||
                       !data.billingEnabled ||
-                      data.entitlement.mode === "trial" ||
                       data.setupPending ||
                       !!(
                         existing &&
@@ -140,7 +139,9 @@ export function SoloBilling(props: SectionProps) {
                               {plan.periodMonths === 12 ? "12 meses" : "mês"},
                               com renovação automática após sua autorização.
                             </p>
-                            <p>A contratação inicia um período pago.</p>
+                            <p>{data.entitlement.mode === "trial"
+                              ? "Você pode contratar agora, mas o Mercado Pago poderá cobrar imediatamente. Após pagamento aprovado, o período pago começa na data da cobrança; os dias restantes do teste grátis não são acrescentados. Confira o valor no checkout antes de confirmar."
+                              : "A contratação inicia um período pago após a confirmação do pagamento."}</p>
                             <p>
                               Você pode cancelar a renovação no Mercado Pago. O
                               período pago permanece válido.
@@ -175,7 +176,7 @@ export function SoloBilling(props: SectionProps) {
             </p>
           )}
           {data.entitlement.mode === "trial" && (
-            <p>Você pode comparar os planos agora. A contratação ficará disponível quando o teste grátis terminar, sem cobrança durante o teste.</p>
+            <p>Você pode contratar durante o teste por escolha sua. O Mercado Pago poderá cobrar imediatamente; sem contratação, o teste termina sem cobrança.</p>
           )}
           {data.setupPending && (
             <p>
