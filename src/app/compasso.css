@@ -264,8 +264,8 @@ textarea::placeholder {
   color: inherit !important;
 }
 .sidebar {
-  width: 190px;
-  padding: 25px 9px 0;
+  width: 240px;
+  padding: 25px 16px 0;
   background: #fff;
   border-color: var(--line);
 }
@@ -360,7 +360,7 @@ textarea::placeholder {
   font-size: 11px;
 }
 .workspace {
-  margin-left: 190px;
+  margin-left: 240px;
   width: calc(100% - 190px);
 }
 .topbar {
@@ -1472,7 +1472,7 @@ textarea::placeholder {
 }
 @media (max-width: 760px) {
   .sidebar {
-    width: 245px;
+    width: min(86vw, 320px);
     transform: translateX(-100%);
     padding-top: 22px;
     visibility: hidden;
@@ -1779,3 +1779,4 @@ textarea::placeholder {
     transition: none;
   }
 }
+
