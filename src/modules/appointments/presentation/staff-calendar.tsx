@@ -593,7 +593,6 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
             </strong>{" "}
             em triagem
           </span>
-          <span>Fuso: {timezone}</span>
         </div>
       </div>
     </section>

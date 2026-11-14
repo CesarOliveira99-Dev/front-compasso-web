@@ -182,8 +182,8 @@ h4 {
 }
 .solo-main {
   width: 100%;
-  max-width: 1440px;
-  justify-self: center;
+  max-width: none;
+  justify-self: stretch;
 }
 @media (max-width: 800px) {
   :root {
