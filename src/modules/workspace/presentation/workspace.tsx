@@ -1,4 +1,5 @@
 'use client';
+import { ClientCarePage } from './client-care';
 import { setApiWorkspaceScope } from '@/modules/shared/infrastructure/api';
 import { WorkspaceSwitcher } from './workspace-switcher';
 import { SoloWorkspace } from './solo-workspace';
@@ -127,6 +128,7 @@ const adminNavigation = [
       { id: 'appointments', name: 'Histórico de atendimentos', icon: ClipboardList },
       { id: 'customers', name: 'Clientes', icon: Users },
       { id: 'tools', name: 'Fichas e análises', icon: ChartNoAxesCombined },
+      { id: 'care', name: 'Acompanhamento', icon: Users },
       { id: 'team', name: 'Equipe', icon: Users },
       { id: 'triage', name: 'Triagem', icon: ClipboardList },
       { id: 'feedback', name: 'Avaliações', icon: MessageCircle },
@@ -160,7 +162,7 @@ const customerNavigation = [
     ],
   },
 ];
-export function Workspace() {
+export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} = {}) {
   const loadedUser = useRef('');
   const repeatedBooking = useRef(false);
   const [data, setData] = useState<Bootstrap>();
@@ -332,6 +334,7 @@ export function Workspace() {
           </div>
         )}
         <Login
+          signupMode={signupMode}
           onLogin={async () => {
             const slug = new URLSearchParams(location.search).get('loja');
             if (slug) {
@@ -360,6 +363,10 @@ export function Workspace() {
       break;
     case 'discovery':
       content = <Discovery />;
+      break;
+    case 'care-wait':
+    case 'care':
+      content = <ClientCarePage key={page} initialTab={page === 'care-wait' ? 'wait' : 'returns'} {...props} />;
       break;
     case 'appointments':
       content = <AppointmentsPage {...props} />;
@@ -554,7 +561,7 @@ export function Workspace() {
                       </div>
                     ))}
                     <p className="form-note">
-                      Pagamentos online e WhatsApp Business ainda não estão habilitados.
+                      O WhatsApp abre uma conversa manual pelo telefone do cliente, sem envio automático.
                     </p>
                   </div>
                 ),

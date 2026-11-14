@@ -1,4 +1,5 @@
 'use client';
+import { WhatsAppLink } from '@/modules/shared/presentation/whatsapp-link';
 import {
   RatingInput,
   RatingSummary,
@@ -100,15 +101,7 @@ export function FeedbackPage(props: SectionProps) {
             />
           </Field>
           {customer && (
-            <a
-              className="button secondary"
-              href={`https://wa.me/${customer.phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}?text=${encodeURIComponent(`Olá, ${customer.name.split(' ')[0]}! Obrigada pela sua avaliação sobre nosso atendimento. Gostaria de conversar com você.`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <MessageCircle size={17} />
-              Conversar pelo WhatsApp
-            </a>
+            <WhatsAppLink phone={customer.phone} message={`Olá, ${customer.name.split(' ')[0]}! Obrigada pela sua avaliação sobre nosso atendimento. Gostaria de conversar com você.`} />
           )}
           <p className="form-note">
             A resposta será salva e enviada nas notificações do cliente. O link do WhatsApp abre a

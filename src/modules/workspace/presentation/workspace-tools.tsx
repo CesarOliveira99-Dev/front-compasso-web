@@ -1,4 +1,5 @@
 "use client";
+import { FollowUpSummary } from './client-care';
 import { useState } from "react";
 import {
   PageHeading,
@@ -32,7 +33,7 @@ export function WorkspaceTools(props: SectionProps) {
         ))}
       </div>
       {tab === "clients" && <WorkspaceClients {...props} embedded />}
-      {tab === "analytics" && <AgendaAnalytics revision={props.revision} />}
+      {tab === "analytics" && <><FollowUpSummary {...props} /><AgendaAnalytics revision={props.revision} /></>}
       {tab === "preferences" && <AgendaPreferencesEditor {...props} />}
     </>
   );

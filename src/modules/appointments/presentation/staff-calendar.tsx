@@ -35,8 +35,9 @@ interface Props {
   data: Bootstrap;
   onOpen: (appointment: Appointment) => void;
   onNew?: () => void;
+  onManageBlocks?: () => void;
 }
-export function StaffCalendar({ data, onOpen, onNew }: Props) {
+export function StaffCalendar({ data, onOpen, onNew, onManageBlocks }: Props) {
   const timezone = data.settings.timezone || "America/Sao_Paulo";
   const [today, setToday] = useState(() => dateInZone(new Date(), timezone));
   const [selectedDate, setSelectedDate] = useState(today);
@@ -98,12 +99,12 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
     ...new Map(
       range.flatMap((key) => byDate.get(key) || []).map((a) => [a.id, a]),
     ).values(),
-  ];
+  ].filter(a=>!a.id.startsWith("block:"));
   const weekAppointments = [
     ...new Map(
       days.flatMap((key) => byDate.get(key) || []).map((a) => [a.id, a]),
     ).values(),
-  ];
+  ].filter(a=>!a.id.startsWith("block:"));
   const opening =
     data.settings.workspaceMode === "solo"
       ? 0
@@ -247,13 +248,7 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
         <PageHeading
           title={employee ? "Sua agenda" : "Calendário"}
           description={data.settings.workspaceMode === "solo" ? undefined : `${data.settings.businessName} · ${employee ? "Seus atendimentos" : "Agenda da equipe"}`}
-          action={
-            onNew && (
-              <button className="button primary" onClick={onNew}>
-                <Plus size={17} /> Agendamento
-              </button>
-            )
-          }
+          action={<div className="row-actions">{onManageBlocks && <button className="button secondary" onClick={onManageBlocks}>Bloquear horário</button>}{onNew && <button className="button primary" onClick={onNew}><Plus size={17}/> Agendamento</button>}</div>}
         />
         <div className="staff-calendar-toolbar">
           <div className="staff-calendar-period">
@@ -496,7 +491,7 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
                         height = (duration * rowHeight) / 60 - 6;
                       return (
                         <button
-                          className={`staff-calendar-event ${color(a)} ${height < 70 ? "compact" : ""}`}
+                          className={`staff-calendar-event ${a.id.startsWith("block:") ? "agenda-block-event" : ""} ${color(a)} ${height < 70 ? "compact" : ""}`}
                           key={a.id}
                           style={{
                             borderLeft: a.categoryColor

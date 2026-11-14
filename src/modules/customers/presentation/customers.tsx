@@ -1,4 +1,5 @@
 'use client';
+import { WhatsAppLink } from '@/modules/shared/presentation/whatsapp-link';
 import { money } from '@/modules/shared/domain/format';
 import type { Customer } from '@/modules/shared/domain/models';
 import {
@@ -11,7 +12,7 @@ import {
   useResource,
   type SectionProps,
 } from '@/modules/shared/presentation/ui';
-import { ArrowUpRight, MessageCircle, Search, Send, UserPlus } from 'lucide-react';
+import { MessageCircle, Search, Send, UserPlus } from 'lucide-react';
 import { useState } from 'react';
 export function CustomersPage(props: SectionProps) {
   const resource = useResource<Customer[]>('customers', props.revision);
@@ -48,16 +49,7 @@ export function CustomersPage(props: SectionProps) {
           <p className="form-note">
             A mensagem será entregue nas notificações do cliente dentro do Compasso.
           </p>
-          <a
-            className="button secondary"
-            href={`https://wa.me/${customer.phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <MessageCircle size={17} />
-            Abrir conversa no WhatsApp
-            <ArrowUpRight size={15} />
-          </a>
+          <WhatsAppLink phone={customer.phone} label="Abrir conversa no WhatsApp" />
         </div>
       ),
       submitLabel: 'Enviar na plataforma',

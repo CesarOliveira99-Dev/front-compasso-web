@@ -1448,3 +1448,6 @@
 .venue-team-grid > .venue-person:only-child p {
   margin: 0;
 }
+/* Section navigation follows its links, including on wide screens. */
+.venue-section-nav { width:fit-content; max-width:100%; min-width:0; }
+@media(max-width:760px) { .venue-section-nav { margin-inline:0; padding-inline:0; } }

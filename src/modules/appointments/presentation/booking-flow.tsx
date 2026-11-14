@@ -43,6 +43,8 @@ export function BookingFlow(props: FlowProps) {
   const [durationInput, setDurationInput] = useState<string>();
   const canCustomize = admin || data.user.role === "employee";
   const [notes, setNotes] = useState("");
+  const [repeatCount, setRepeatCount] = useState(1);
+  const [repeatWeeks, setRepeatWeeks] = useState(1);
   const [coupon, setCoupon] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -198,16 +200,17 @@ export function BookingFlow(props: FlowProps) {
               ...JSON.parse(orderInput),
               expectedTotalCents: currentQuote?.totalCents,
             };
-        const fingerprint = JSON.stringify({ direct, body });
+        const recurring = admin && repeatCount > 1;
+        const fingerprint = JSON.stringify({ direct, body, repeatCount, repeatWeeks });
         const submission =
           submitted.current?.fingerprint === fingerprint
             ? submitted.current
             : { fingerprint, key: crypto.randomUUID() };
         submitted.current = submission;
         await props.mutate(
-          direct ? "appointments" : "orders",
+          recurring ? "workspace/care/series" : direct ? "appointments" : "orders",
           "POST",
-          { ...body, idempotencyKey: submission.key },
+          { ...body, idempotencyKey: submission.key, ...(recurring ? {count:repeatCount,intervalWeeks:repeatWeeks} : {}) },
           item?.requiresTriage
             ? "Solicitação enviada para triagem."
             : paymentMethod === "on_day" || admin
@@ -438,6 +441,7 @@ export function BookingFlow(props: FlowProps) {
                 )}
               </strong>
             </div>
+            {admin && !appointment && <div className="form-grid"><Field label="Repetir agendamento"><select value={repeatCount} onChange={e=>setRepeatCount(Number(e.target.value))}><option value={1}>Não repetir</option>{[2,3,4,6,8,12].map(n=><option key={n} value={n}>{n} atendimentos no total</option>)}</select></Field>{repeatCount>1&&<><Field label="Intervalo entre atendimentos"><select value={repeatWeeks} onChange={e=>setRepeatWeeks(Number(e.target.value))}>{[1,2,3,4,6,8].map(n=><option value={n} key={n}>A cada {n} semana(s)</option>)}</select></Field><p className="form-note">O mesmo horário e duração serão usados. Cada data será validada; se houver conflito, nenhuma reserva da série será criada. Pagamentos ficam separados e pendentes.</p></>}</div>}
             {!slot && (
               <p className="error-message" role="alert">
                 Este horário precisa ser consultado novamente. Volte para os

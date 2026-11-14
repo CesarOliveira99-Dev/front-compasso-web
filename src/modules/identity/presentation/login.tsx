@@ -21,12 +21,12 @@ import {
 } from '@/modules/shared/presentation/business-address-fields';
 import { PasswordField } from './password-field';
 import { GoogleOnboarding, type GoogleOnboardingData } from './google-onboarding';
-export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
+export function Login({ onLogin,signupMode }: { onLogin: () => Promise<void>;signupMode?:"solo"|"store"|"customer" }) {
   const [loginStores, setLoginStores] = useState<StoreSummary[]>([]);
   const [registrationKey] = useState(() => crypto.randomUUID());
-  const [register, setRegister] = useState(false);
-  const [role, setRole] = useState('customer');
-  const [workspaceMode, setWorkspaceMode] = useState('store');
+  const [register, setRegister] = useState(!!signupMode);
+  const [role, setRole] = useState(signupMode && signupMode !== 'customer' ? 'admin' : 'customer');
+  const [workspaceMode, setWorkspaceMode] = useState(signupMode === 'solo' ? 'solo' : 'store');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [onboarding, setOnboarding] = useState<GoogleOnboardingData | null>(null);
@@ -121,6 +121,7 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
           {onboarding ? (
             <GoogleOnboarding
               data={onboarding}
+              initialMode={role === "admin" ? workspaceMode as "solo"|"store" : "customer"}
               onLogin={onLogin}
               onBack={() => {
                 setOnboarding(null);

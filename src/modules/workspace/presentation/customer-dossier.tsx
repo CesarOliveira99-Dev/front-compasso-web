@@ -1,4 +1,5 @@
 "use client";
+import { ClientSnapshot, ReturnRuleForm } from './client-care';
 import { useEffect, useState } from "react";
 import { api } from "@/modules/shared/infrastructure/api";
 import { day, money, time } from "@/modules/shared/domain/format";
@@ -10,6 +11,7 @@ import {
   type SectionProps,
 } from "@/modules/shared/presentation/ui";
 import type { CustomerDossier } from "./tools-types";
+import { WhatsAppLink } from "@/modules/shared/presentation/whatsapp-link";
 export function CustomerDossierPanel({
   customerId,
   props,
@@ -55,6 +57,9 @@ export function CustomerDossierPanel({
               ? " · Contato interno, sem acesso à plataforma"
               : ""}
           </p>
+          <WhatsAppLink phone={data.customer.phone} />
+          <ClientSnapshot customerId={customerId} revision={props.revision} />
+          <ReturnRuleForm props={props} customerId={customerId} />
           <form
             className="form-grid"
             onSubmit={async (e) => {
@@ -265,7 +270,7 @@ export function CustomerDossierPanel({
                     {a.professionalName}
                   </small>
                 </div>
-                <Badge status={a.status} />
+                <Badge status={a.attendanceOutcome === "no_show" ? "no_show" : a.status} />
                 <span>{money(a.priceCents)}</span>
               </div>
             ))

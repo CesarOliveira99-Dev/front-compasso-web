@@ -1,4 +1,5 @@
 'use client';
+import { ClientCarePage } from './client-care';
 import { WorkspaceTools } from './workspace-tools';
 import { WorkspaceAppearance } from './agenda-preferences';
 import { useState } from 'react';
@@ -25,6 +26,7 @@ export function EmployeeWorkspace(props: SectionProps & { logout: () => Promise<
     profile = resource.value?.find((item) => item.id === props.data.user.professionalId);
   const navigation = [
     { id: 'tools', name: 'Fichas e análises', icon: CalendarDays },
+    { id: 'care', name: 'Acompanhamento', icon: CalendarDays },
     { id: 'agenda', name: 'Minha agenda', icon: CalendarDays },
     { id: 'horarios', name: 'Meus horários', icon: Clock3 },
     { id: 'avisos', name: 'Notificações', icon: Bell },
@@ -84,9 +86,10 @@ export function EmployeeWorkspace(props: SectionProps & { logout: () => Promise<
           </div>
         </header>
         <main className="employee-content"><WorkspaceAppearance revision={props.revision} />
+          {tab.startsWith('care') && <ClientCarePage key={tab} initialTab={tab==='care-wait'?'wait':'returns'} {...props} openDialog={setDialog} navigate={next=>setTab(next.startsWith('care')?next:'tools')} />}
           {tab === 'tools' && <WorkspaceTools {...props} openDialog={setDialog} navigate={()=>setTab('tools')} />}
           {message && <p role="status">{message}</p>}
-          {tab === 'agenda' && <CalendarPage {...props} openDialog={setDialog} navigate={()=>{setDialog(undefined);setTab('tools');}} />}
+          {tab === 'agenda' && <CalendarPage {...props} openDialog={setDialog} navigate={next=>{setDialog(undefined);setTab(next.startsWith('care')?next:'tools');}} />}
           {tab === 'horarios' && (
             <>
               <EmailVerification verified={props.data.user.emailVerified} />

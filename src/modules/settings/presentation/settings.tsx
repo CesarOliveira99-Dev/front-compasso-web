@@ -1,4 +1,5 @@
 'use client';
+import { ReminderModelsEditor } from '@/modules/workspace/presentation/reminder-models';
 import { IdentityInput } from '@/modules/identity/presentation/identity-input';
 import { WeeklyHours, hoursFromForm } from '@/modules/shared/presentation/weekly-hours';
 import { EmailVerification } from '@/modules/identity/presentation/email-verification';
@@ -221,11 +222,11 @@ export function SettingsPage(props: SectionProps) {
             <span className="stat-icon sage">
               <Smartphone size={23} />
             </span>
-            <h3>WhatsApp Business</h3>
-            <span className="integration-status">Etapa futura</span>
+            <h3>Contato pelo WhatsApp</h3>
+            <span className="integration-status">Conversa manual</span>
             <p>
-              Os envios automáticos serão habilitados após a validação da Meta. Por enquanto, você
-              pode abrir conversas e enviar mensagens manualmente.
+              Abra a conversa pelo telefone do cliente na ficha ou no atendimento.
+              Você confere e envia a mensagem no WhatsApp, sem integração ou envio automático.
             </p>
           </section>
           <div className="info-note">
@@ -237,6 +238,7 @@ export function SettingsPage(props: SectionProps) {
           </div>
         </aside>
       </form>
+      <ReminderModelsEditor {...props} />
       <div className="settings-payments"><PaymentsSettings {...props} /></div>
     </>
   );

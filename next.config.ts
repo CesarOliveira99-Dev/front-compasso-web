@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next';
 import { mkdirSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { dirname, resolve, relative, isAbsolute } from 'node:path';
 interface BuildCompiler {
   outputPath: string;
   hooks: {
@@ -30,11 +30,14 @@ const config: NextConfig = {
                 compilation
                   .getAssets()
                   .map((asset) => dirname(resolve(compiler.outputPath, asset.name))),
-              ))
+              )) {
+                const local = relative(process.cwd(), directory);
+                if (local.startsWith('..') || isAbsolute(local)) continue;
                 mkdirSync(directory, { recursive: true });
+              }
               if (isServer && !dev) {
                 // These built-in pages write both root and nested segment files during prerender.
-                for (const route of ['_not-found', '_global-error', 'conta', 'convite', 'descobrir', 'loja'])
+                for (const route of ['_not-found', '_global-error', 'conta', 'convite', 'descobrir', 'loja', 'entrar', 'cadastro'])
                   mkdirSync(resolve(compiler.outputPath, 'app', `${route}.segments`, route), {
                     recursive: true,
                   });

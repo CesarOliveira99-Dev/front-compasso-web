@@ -126,7 +126,7 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
     }
     if (path === 'auth/logout' || response.status === 401)
       (await cookies()).delete('compasso_session');
-    return NextResponse.json(data, { status: response.status });
+    return NextResponse.json(data, { status: response.status, headers: { 'Cache-Control':'no-store', ...(response.headers.get('retry-after') ? {'Retry-After':response.headers.get('retry-after')!} : {}) } });
   } catch (error) {
     if(error instanceof BodyTooLarge)return NextResponse.json({message:'Arquivo ou requisição muito grande.'},{status:413});
     return NextResponse.json(

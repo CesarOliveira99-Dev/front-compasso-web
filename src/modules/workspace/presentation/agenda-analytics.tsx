@@ -87,13 +87,14 @@ export function AgendaAnalytics({ revision }: { revision: number }) {
               ["Agendamentos", current.total],
               ["Concluídos", current.completed],
               ["Cancelados", current.cancelled],
+              ["Não compareceram", current.missed || 0],
               ["Clientes atendidos", current.clients],
               ["Clientes de primeira visita", current.firstTimeClients],
               ["Clientes que já retornaram", current.recurringClients],
               ["Valor dos serviços concluídos", money(current.productionCents)],
             ].map(([label, value], index) => (
               <div
-                className={index === 6 ? "agenda-metric-money" : ""}
+                className={label === "Valor dos serviços concluídos" ? "agenda-metric-money" : ""}
                 key={label}
               >
                 <small>{label}</small>
@@ -107,6 +108,8 @@ export function AgendaAnalytics({ revision }: { revision: number }) {
             em Finanças.
           </p>
           <AttendanceTrend data={current} />
+          {current.comparison && <section className="agenda-chart-card"><h3>Produção em perspectiva</h3><p>Período anterior de mesma duração: {current.comparison.previousCompleted} atendimentos concluídos · {money(current.comparison.previousProductionCents)}.</p><p>{current.comparison.productionChangePercent === null ? "Ainda não há base monetária no período anterior para calcular a variação." : `${current.comparison.productionChangePercent > 0 ? '+' : ''}${current.comparison.productionChangePercent.toLocaleString('pt-BR')}% em valor dos serviços concluídos.`}</p><small>Produção de serviços. Consulte Finanças para recebimentos confirmados e despesas; este indicador não representa lucro.</small></section>}
+          {!!current.serviceProduction?.length && <section className="agenda-chart-card"><h3>Valor produzido por serviço</h3><p>Atendimentos concluídos no período. Valores de pagamentos permanecem separados.</p><div className="care-service-production">{current.serviceProduction.map(row=><div key={row.id}><div><span>{row.name} · {row.count} atendimento(s)</span><strong>{money(row.amountCents)}</strong></div><meter min={0} max={Math.max(1,...current.serviceProduction!.map(r=>r.amountCents))} value={row.amountCents} aria-label={`${row.name}: ${money(row.amountCents)}`}/></div>)}</div></section>}
           <div className="agenda-pies">
             <AgendaPie
               title="Primeira visita ou retorno"

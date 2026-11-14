@@ -1,3 +1,4 @@
+import { ClientSnapshot, ReminderComposer, ReturnRuleForm } from '@/modules/workspace/presentation/client-care';
 import { useResource } from "@/modules/shared/presentation/ui";
 import type { AgendaPreferences } from "@/modules/workspace/presentation/tools-types";
 import { useState } from "react";
@@ -9,6 +10,9 @@ import {
   type SectionProps,
 } from "@/modules/shared/presentation/ui";
 import { openBooking } from "./booking-dialog";
+import { WhatsAppLink } from "@/modules/shared/presentation/whatsapp-link";
+import { CustomerDossierPanel } from "@/modules/workspace/presentation/customer-dossier";
+import type { CustomerDossier } from "@/modules/workspace/presentation/tools-types";
 
 export function openStaffAppointment(
   props: SectionProps,
@@ -36,6 +40,10 @@ function StaffAppointmentDetails({
   close: () => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const customer = useResource<CustomerDossier>(
+    `workspace/customers/${appointment.customerId}`,
+    props.revision,
+  );
   const preferences = useResource<AgendaPreferences>(
     "workspace/preferences",
     props.revision,
@@ -61,7 +69,12 @@ function StaffAppointmentDetails({
   };
   return (
     <div className="form-grid staff-appointment-detail">
-      <Badge status={appointment.status} />
+      <Badge status={appointment.attendanceOutcome === "no_show" ? "no_show" : appointment.status} />
+      <WhatsAppLink phone={customer.value?.customer.phone} />
+      <ClientSnapshot customerId={appointment.customerId} revision={props.revision} />
+      <ReturnRuleForm props={props} customerId={appointment.customerId} itemId={appointment.itemId} professionalId={appointment.professionalId} />
+      {active && <ReminderComposer appointment={appointment} props={props} />}
+      {active && Date.parse(appointment.startsAt) <= Date.now() && <button className="button secondary" disabled={busy} onClick={()=>props.openDialog({title:"Registrar não comparecimento?",description:"O registro será separado de cancelamentos e não mudará o pagamento.",content:<p>{appointment.customerName}</p>,submitLabel:"Registrar falta",onSubmit:async()=>{await props.mutate(`workspace/care/appointments/${appointment.id}/missed`,"POST",{},"Falta registrada.");}})}>Registrar falta</button>}
       {preferences.value && (
         <Field label="Categoria e cor">
           <select
@@ -97,11 +110,18 @@ function StaffAppointmentDetails({
       <button
         className="button secondary"
         onClick={() => {
-          close();
-          props.navigate("tools");
+          props.openDialog({
+            title: `Ficha de ${appointment.customerName}`,
+            content: (
+              <CustomerDossierPanel
+                customerId={appointment.customerId}
+                props={props}
+              />
+            ),
+          });
         }}
       >
-        Abrir clientes e fichas
+        Abrir ficha do cliente
       </button>
       <p>
         Profissional: {appointment.professionalName || props.data.settings.name}

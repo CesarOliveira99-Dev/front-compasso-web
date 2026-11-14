@@ -21,10 +21,12 @@ export type GoogleSignInResult =
 
 export function GoogleOnboarding({
   data,
+  initialMode,
   onLogin,
   onBack,
 }: {
   data: GoogleOnboardingData;
+  initialMode?:"solo"|"store"|"customer";
   onLogin: () => Promise<void>;
   onBack: () => void;
 }) {
@@ -33,8 +35,8 @@ export function GoogleOnboarding({
     ? []
     : data.stores.filter((store) => store.existingAccount);
   const choices = memberships.length ? memberships : existingStores;
-  const [role, setRole] = useState('customer');
-  const [workspaceMode, setWorkspaceMode] = useState('store');
+  const [role, setRole] = useState(initialMode && initialMode !== 'customer' ? 'admin' : 'customer');
+  const [workspaceMode, setWorkspaceMode] = useState(initialMode === 'solo' ? 'solo' : 'store');
   const [slug, setSlug] = useState(choices.length === 1 ? choices[0].slug : '');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);

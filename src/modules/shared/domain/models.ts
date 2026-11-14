@@ -63,6 +63,7 @@ export interface CatalogItem {
   active: boolean;
 }
 export interface Appointment {
+  attendanceOutcome?: "no_show";
   categoryId?: string; categoryName?: string; categoryColor?: string;
   professionalId?: string;
   professionalName?: string;

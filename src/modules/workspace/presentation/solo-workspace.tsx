@@ -1,4 +1,6 @@
 "use client";
+import { ReminderModelsEditor } from "./reminder-models";
+import { ClientCarePage, FollowUpSummary } from './client-care';
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Greeting } from "@/modules/shared/presentation/greeting";
@@ -370,6 +372,7 @@ function SoloRegistrations(props: SectionProps) {
         {[
           ["services", "Serviços"],
           ["preferences", "Categorias e tema"],
+          ["reminders", "Lembretes"],
         ].map(([id, label]) => (
           <button
             key={id}
@@ -383,6 +386,7 @@ function SoloRegistrations(props: SectionProps) {
         ))}
       </div>
       {section === "services" && <SoloServices {...props} />}
+      {section === "reminders" && <ReminderModelsEditor {...props} />}
       {section === "preferences" && (
         <>
           <SoloAgendaName {...props} />
@@ -397,6 +401,7 @@ const soloNavigation = [
   ["calendar", "Minha agenda"],
   ["clients", "Clientes"],
   ["analytics", "Análises"],
+  ["care", "Acompanhamento"],
   ["registrations", "Cadastros"],
   ["wallet", "Finanças"],
   ["billing", "Meu Solo"],
@@ -595,9 +600,11 @@ export function SoloWorkspace(
               title="Análises"
               description="Acompanhe seus clientes, atendimentos e serviços por período."
             />
+            <FollowUpSummary {...local} />
             <AgendaAnalytics revision={props.revision} />
           </>
         )}{" "}
+        {page.startsWith("care") && <ClientCarePage key={page} initialTab={page === "care-wait" ? "wait" : "returns"} {...local} />}
         {page === "wallet" && <WalletPage {...local} />}{" "}
         {page === "billing" && <SoloBilling {...local} />}
       </main>

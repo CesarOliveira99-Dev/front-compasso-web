@@ -3,6 +3,7 @@ import './globals.css';
 import './compasso.css';
 import './customer-experience.css';
 import './typography.css';
+import '@/modules/marketing/presentation/landing.css';
 export const metadata: Metadata = {
   title: 'Compasso — Seu negócio, no seu ritmo',
   description: 'Agenda, clientes e cuidados em um só lugar.',

@@ -25,6 +25,7 @@ export const statusLabel: Record<string, string> = {
   confirmed: 'Confirmado',
   completed: 'Finalizado',
   cancelled: 'Cancelado',
+  no_show: 'Não compareceu',
   paid: 'Pago',
   approved: 'Aprovada',
   declined: 'Recusada',

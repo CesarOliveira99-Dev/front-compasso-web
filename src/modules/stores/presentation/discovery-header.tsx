@@ -44,7 +44,7 @@ export function DiscoveryHeader({ user: initialUser }: { user?: User }) {
             </button>
           </div>
         ) : (
-          <a className="button primary" href="/">
+          <a className="button primary" href="/entrar">
             Entrar
           </a>
         )}

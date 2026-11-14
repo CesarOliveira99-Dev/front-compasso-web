@@ -137,7 +137,7 @@ export function AppointmentsPage(props: SectionProps) {
                       <strong>{money(a.priceCents)}</strong>
                     </td>
                     <td data-label="Atendimento">
-                      <Badge status={a.status} />
+                      <Badge status={a.attendanceOutcome === "no_show" ? "no_show" : a.status} />
                     </td>
                     <td data-label="Pagamento">
                       <Badge status={a.paymentStatus} />

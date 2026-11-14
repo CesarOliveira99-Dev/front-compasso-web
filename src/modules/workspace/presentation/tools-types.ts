@@ -34,6 +34,9 @@ export interface CustomerDossier {
   } | null;
 }
 export interface AgendaAnalysis {
+  comparison?: {previousCompleted:number;previousProductionCents:number;productionChangePercent:number|null};
+  serviceProduction?: {id:string;name:string;count:number;amountCents:number}[];
+  missed: number;
   clientMix: AgendaChartSlice[];
   firstTimeClients: number;
   recurringClients: number;
