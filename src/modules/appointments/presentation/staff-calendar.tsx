@@ -246,7 +246,7 @@ export function StaffCalendar({ data, onOpen, onNew }: Props) {
       <div className="staff-calendar-main">
         <PageHeading
           title={employee ? "Sua agenda" : "Calendário"}
-          description={`${data.settings.businessName} · ${data.settings.workspaceMode === "solo" ? "Sua agenda privada" : employee ? "Seus atendimentos" : "Agenda da equipe"}`}
+          description={data.settings.workspaceMode === "solo" ? undefined : `${data.settings.businessName} · ${employee ? "Seus atendimentos" : "Agenda da equipe"}`}
           action={
             onNew && (
               <button className="button primary" onClick={onNew}>
