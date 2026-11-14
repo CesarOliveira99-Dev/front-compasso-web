@@ -452,7 +452,6 @@ export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} =
           </div>
           <span className="store-indicator" />
         </div>
-        {admin && <WorkspaceSwitcher props={props} beforeOpen={()=>setMobile(false)}/>}
         <nav aria-label="Navegação principal">
           {navigation.map((group) => (
             <div className="nav-group" key={group.label}>
@@ -571,6 +570,7 @@ export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} =
             <CircleHelp size={18} strokeWidth={1.7} />
             <span>Preciso de uma mão</span>
           </button>
+          {admin && <WorkspaceSwitcher props={props} beforeOpen={()=>setMobile(false)}/>}
           <div className="sidebar-profile">
 
             <Avatar name={data.user.name} />
@@ -792,3 +792,4 @@ function SearchDialog({ data, go }: { data: Bootstrap; go: (page: string) => voi
     </div>
   );
 }
+
