@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { SupportLinks } from '@/modules/shared/presentation/support-links';
 import './globals.css';
 import './compasso.css';
 import './customer-experience.css';
@@ -11,7 +12,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>{children}<SupportLinks /></body>
     </html>
   );
 }
+
