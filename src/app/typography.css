@@ -267,3 +267,7 @@ h4 {
  .solo-main .staff-calendar-main > .page-heading > .button { width:auto; min-height:44px; }
  .solo-main .staff-calendar-toolbar { gap:12px; margin-bottom:12px; }
 }
+
+/* Registration tabs follow their content instead of stretching across the page. */
+.solo-registration-tabs { display:inline-flex; width:fit-content; max-width:100%; align-self:flex-start; justify-self:start; gap:4px; }
+.solo-registration-tabs button { flex:0 1 auto; }
