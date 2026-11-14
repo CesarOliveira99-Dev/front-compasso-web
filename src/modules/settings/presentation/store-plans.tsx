@@ -83,12 +83,12 @@ export function StorePlans({ status, props, busy, refresh }: { status: PlanStatu
     })}
     {subscription?.planId === 'equipe' && <ExtraEmployeeControls status={status} props={props} />}
     {!status.billingEnabled && <p>A contratação será habilitada após a validação dos pagamentos. Nenhuma mensalidade será cobrada agora.</p>}
-    {entitlement.mode === 'trial' && <p>Você pode contratar durante o teste por escolha sua. O Mercado Pago poderá cobrar imediatamente; sem contratação, o teste termina sem cobrança.</p>}
+    {entitlement.mode === 'trial' && <p>Contrate e cancele quando quiser.</p>}
     {status.setupPending && <p role="status">Uma contratação aguarda conferência. Atualize a situação antes de tentar novamente.</p>}
     {(subscription || status.setupPending) && <div className="plan-manage"><button className="button secondary" type="button" disabled={busy} onClick={refresh}>Atualizar situação</button>
       {subscription?.status === 'pending' && !subscription.paidThrough && <button className="button secondary" type="button" disabled={busy} onClick={cancelPending}>Cancelar tentativa pendente</button>}
-      <a href="https://www.mercadopago.com.br/subscriptions" target="_blank" rel="noreferrer">Gerenciar ou cancelar no Mercado Pago</a>
-      <p>Para trocar de plano, cancele a assinatura atual e aguarde o fim do período pago. Seus dados serão mantidos.</p></div>}
+      {(subscription?.status === 'authorized' || subscription?.status === 'paused') && <a className="button secondary" href="https://www.mercadopago.com.br/subscriptions" target="_blank" rel="noreferrer">Cancelar renovação</a>}
+      </div>}
   </section>;
 }
 
@@ -117,3 +117,4 @@ export function ExtraEmployeeControls({ status, props }: { status: PlanStatus; p
     </div>}
   </section>;
 }
+
