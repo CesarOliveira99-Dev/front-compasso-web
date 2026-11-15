@@ -30,7 +30,7 @@ interface SoloStatus {
     priceCents: number;
     periodMonths: number;
   }[];
-  entitlement: { mode: string; expiresAt: number | null };
+  entitlement: { mode: string; expiresAt: number | null; graceEndsAt?: number };
   subscription: { planId: string; status: string; paidThrough?: number } | null;
 }
 export function SoloBilling(props: SectionProps) {
@@ -175,6 +175,7 @@ export function SoloBilling(props: SectionProps) {
               cobrada agora.
             </p>
           )}
+          {data.entitlement.graceEndsAt && <p role="status">Identificamos uma pendência em seu pagamento. Regularize seu plano até: {new Date(data.entitlement.graceEndsAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}.</p>}
           {data.entitlement.mode === "trial" && (
             <p>Contrate e cancele quando quiser.</p>
           )}
