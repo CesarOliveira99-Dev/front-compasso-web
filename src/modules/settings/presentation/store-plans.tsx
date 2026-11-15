@@ -8,7 +8,7 @@ interface Plan { id: string; name: string; priceCents: number; employees: number
 export interface PlanStatus {
   billingEnabled: boolean; plans: Plan[]; employeesUsed: number; setupPending: boolean;
   extrasPending?: boolean;
-  entitlement: { mode: 'trial' | 'active' | 'expired' | 'pilot'; plan: Plan | null; expiresAt: number | null };
+  entitlement: { mode: 'trial' | 'active' | 'expired' | 'pilot'; plan: Plan | null; expiresAt: number | null; graceEndsAt?: number };
   subscription: { status: string; planId: string; priceCents?: number; extraEmployees?: number; paidThrough?: number } | null;
   emailUsage: { daily: { used: number; limit: number | null }; monthly: { used: number; limit: number | null } };
 }
@@ -83,6 +83,7 @@ export function StorePlans({ status, props, busy, refresh }: { status: PlanStatu
     })}
     {subscription?.planId === 'equipe' && <ExtraEmployeeControls status={status} props={props} />}
     {!status.billingEnabled && <p>A contratação será habilitada após a validação dos pagamentos. Nenhuma mensalidade será cobrada agora.</p>}
+    {entitlement.graceEndsAt && <p role="status">Identificamos uma pendência em seu pagamento. Regularize seu plano até: {date(entitlement.graceEndsAt)}.</p>}
     {entitlement.mode === 'trial' && <p>Contrate e cancele quando quiser.</p>}
     {status.setupPending && <p role="status">Uma contratação aguarda conferência. Atualize a situação antes de tentar novamente.</p>}
     {(subscription || status.setupPending) && <div className="plan-manage"><button className="button secondary" type="button" disabled={busy} onClick={refresh}>Atualizar situação</button>
