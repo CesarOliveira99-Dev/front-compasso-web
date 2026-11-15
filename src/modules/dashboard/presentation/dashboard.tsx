@@ -1,6 +1,8 @@
 'use client';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
 import { openBooking } from '@/modules/appointments/presentation/booking-dialog';
-import { day, money, time } from '@/modules/shared/domain/format';
+import { money } from '@/modules/shared/domain/format';
 import {
   ActionLink,
   Avatar,
@@ -25,6 +27,7 @@ import {
   Wallet,
 } from 'lucide-react';
 export function DashboardPage(props: SectionProps) {
+  const { time, day } = useTimeFormats();
   const { data, navigate, openDialog } = props;
   const dashboard = data.dashboard;
   const admin = data.user.role === 'admin';
@@ -127,6 +130,7 @@ export function DashboardPage(props: SectionProps) {
   }
   const dateLabel = new Date(`${dashboard.date}T12:00:00-03:00`).toLocaleDateString('pt-BR', {
     weekday: 'long',
+    timeZone: data.settings.timezone,
     day: 'numeric',
     month: 'long',
   });
@@ -453,3 +457,4 @@ export function DashboardPage(props: SectionProps) {
 function LeafIcon() {
   return <Flower2 size={13} />;
 }
+

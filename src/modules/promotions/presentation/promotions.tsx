@@ -1,5 +1,7 @@
 'use client';
-import { day, inputToIso, localInput } from '@/modules/shared/domain/format';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
+
 import type { Discount } from '@/modules/shared/domain/models';
 import {
   AddButton,
@@ -16,6 +18,7 @@ import {
 import { CalendarDays, Gift, Percent, Ticket, Users } from 'lucide-react';
 import { useState } from 'react';
 export function PromotionsPage(props: SectionProps) {
+  const { localInput, inputToIso, day } = useTimeFormats();
   const [kind, setKind] = useState('coupons');
   const resource = useResource<Discount[]>(`discounts/${kind}`, props.revision);
   function create() {
@@ -215,3 +218,4 @@ export function PromotionsPage(props: SectionProps) {
     </>
   );
 }
+

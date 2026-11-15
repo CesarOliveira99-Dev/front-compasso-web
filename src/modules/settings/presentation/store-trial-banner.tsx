@@ -1,14 +1,16 @@
 'use client';
+import { useTimezone } from '@/modules/shared/presentation/timezone';
 import { useResource } from '@/modules/shared/presentation/ui';
 import type { PlanStatus } from './store-plans';
 export function StoreTrialBanner({ revision, manage }: { revision: number; manage: () => void }) {
+  const timezone = useTimezone();
   const { value } = useResource<PlanStatus>('payments/status', revision);
   if (!value || (!['trial', 'expired'].includes(value.entitlement.mode) && !value.entitlement.graceEndsAt)) return null;
-  if (value.entitlement.graceEndsAt) return <aside className="plan-access store-trial-banner" role="status"><p>Identificamos uma pendência em seu pagamento. Regularize seu plano até: {new Date(value.entitlement.graceEndsAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}.</p><button type="button" className="button secondary" onClick={manage}>Regularizar plano</button></aside>;
+  if (value.entitlement.graceEndsAt) return <aside className="plan-access store-trial-banner" role="status"><p>Identificamos uma pendência em seu pagamento. Regularize seu plano até: {new Date(value.entitlement.graceEndsAt).toLocaleDateString('pt-BR', { timeZone: timezone })}.</p><button type="button" className="button secondary" onClick={manage}>Regularizar plano</button></aside>;
   const end = value.entitlement.expiresAt;
   return <aside className={`plan-access ${value.entitlement.mode} store-trial-banner`}>
     <div><strong>{value.entitlement.mode === 'trial' && end
-      ? `Teste grátis até ${new Date(end).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`
+      ? `Teste grátis até ${new Date(end).toLocaleDateString('pt-BR', { timeZone: timezone })}`
       : 'Seu período de uso terminou'}</strong>
       <p>{value.entitlement.mode === 'trial' ? '14 dias para conhecer o Compasso. Sem contratação, não há cobrança ao terminar.' : 'Seus dados estão disponíveis. Escolha um plano para receber novos agendamentos e pedidos.'}</p></div>
     <button type="button" className="button secondary" onClick={manage}>Ver planos</button>

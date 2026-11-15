@@ -1,4 +1,6 @@
 'use client';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
 import { WhatsAppLink } from '@/modules/shared/presentation/whatsapp-link';
 import {
   RatingInput,
@@ -6,7 +8,7 @@ import {
   RecommendationPanel,
   type StoreReviewData,
 } from './reputation';
-import { day } from '@/modules/shared/domain/format';
+
 import type { Customer, Feedback } from '@/modules/shared/domain/models';
 import { api } from '@/modules/shared/infrastructure/api';
 import {
@@ -23,6 +25,7 @@ import {
 } from '@/modules/shared/presentation/ui';
 import { MessageCircle, MessageSquare } from 'lucide-react';
 export function FeedbackPage(props: SectionProps) {
+  const { day } = useTimeFormats();
   const resource = useResource<Feedback[]>('feedback', props.revision);
   const admin = props.data.user.role === 'admin';
   const storeResource = useResource<StoreReviewData>('feedback/store', props.revision);
@@ -208,3 +211,4 @@ export function FeedbackPage(props: SectionProps) {
     </>
   );
 }
+

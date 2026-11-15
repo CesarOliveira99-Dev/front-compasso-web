@@ -1,6 +1,8 @@
-"use client";
+'use client';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
 import { useState } from "react";
-import { money, day } from "@/modules/shared/domain/format";
+import { money } from "@/modules/shared/domain/format";
 import { ResourceState, useResource } from "@/modules/shared/presentation/ui";
 import type { AgendaAnalysis } from "./tools-types";
 import { AgendaPie, AttendanceTrend } from "./agenda-charts";
@@ -11,6 +13,7 @@ const periods = [
   { days: 365, label: "Anual" },
 ];
 export function AgendaAnalytics({ revision }: { revision: number }) {
+  const { day } = useTimeFormats();
   const [days, setDays] = useState(30);
   const [exporting, setExporting] = useState(false),
     [exportError, setExportError] = useState("");
@@ -144,3 +147,4 @@ export function AgendaAnalytics({ revision }: { revision: number }) {
     </section>
   );
 }
+

@@ -1,9 +1,12 @@
+'use client';
+
+import { formatsForZone } from '@/modules/shared/domain/format';
 import { ClientSnapshot, ReminderComposer, ReturnRuleForm } from '@/modules/workspace/presentation/client-care';
 import { useResource } from "@/modules/shared/presentation/ui";
 import type { AgendaPreferences } from "@/modules/workspace/presentation/tools-types";
 import { useState } from "react";
 import type { Appointment } from "@/modules/shared/domain/models";
-import { day, money, time } from "@/modules/shared/domain/format";
+import { money } from "@/modules/shared/domain/format";
 import {
   Badge,
   Field,
@@ -18,6 +21,7 @@ export function openStaffAppointment(
   props: SectionProps,
   appointment: Appointment,
 ) {
+  const { day, time } = formatsForZone(props.data.settings.timezone);
   props.openDialog({
     title: appointment.customerName,
     description: `${appointment.itemName} · ${day(appointment.startsAt)} · ${time(appointment.startsAt)}–${time(appointment.endsAt)}`,
@@ -259,3 +263,4 @@ function StaffAppointmentDetails({
     </div>
   );
 }
+

@@ -1,5 +1,7 @@
 'use client';
-import { day } from '@/modules/shared/domain/format';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
+
 import type { Loyalty, Order } from '@/modules/shared/domain/models';
 import { api } from '@/modules/shared/infrastructure/api';
 import {
@@ -15,6 +17,7 @@ import {
 } from '@/modules/shared/presentation/ui';
 import { CalendarHeart, RefreshCw } from 'lucide-react';
 export function LoyaltyPage(props: SectionProps) {
+  const { day } = useTimeFormats();
   const resource = useResource<Loyalty[]>('loyalty', props.revision);
   const admin = props.data.user.role === 'admin';
   async function plan() {
@@ -127,3 +130,4 @@ export function LoyaltyPage(props: SectionProps) {
     </>
   );
 }
+

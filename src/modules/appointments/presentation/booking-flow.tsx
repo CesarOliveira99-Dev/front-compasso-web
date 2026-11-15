@@ -1,6 +1,8 @@
-"use client";
+'use client';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
 import { useEffect, useRef, useState } from "react";
-import { day, localInput, money, time } from "@/modules/shared/domain/format";
+import { money } from "@/modules/shared/domain/format";
 import type {
   Appointment,
   Customer,
@@ -26,6 +28,7 @@ type FlowProps = SectionProps & {
 };
 const steps = ["Serviço", "Profissional", "Dia", "Horário", "Confirmar"];
 export function BookingFlow(props: FlowProps) {
+  const { localInput, day, time } = useTimeFormats();
   const { appointment, professionals, data } = props;
   const admin = data.user.role === "admin";
   const [step, setStep] = useState(
@@ -380,9 +383,10 @@ export function BookingFlow(props: FlowProps) {
               {professional?.name} · {day(date)} · {durationMinutes} min
             </p>
             <p className="form-note">
+              Fuso: {settings.timezone}.{' '}
               {settings.workspaceMode === "solo"
                 ? "Agenda aberta 24 horas. O intervalo escolhido precisa estar livre."
-                : "Horário de Brasília. O atendimento inteiro precisa caber na agenda."}
+                : "Horário do espaço. O atendimento inteiro precisa caber na agenda."}
             </p>
             {!currentAvailability && !availabilityError && (
               <p role="status">Consultando horários…</p>
@@ -589,3 +593,4 @@ export function BookingFlow(props: FlowProps) {
     </div>
   );
 }
+

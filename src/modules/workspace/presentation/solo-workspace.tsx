@@ -1,4 +1,5 @@
 "use client";
+import { TimezoneField } from '@/modules/shared/presentation/timezone';
 import { ReminderModelsEditor } from "./reminder-models";
 import { ClientCarePage, FollowUpSummary } from './client-care';
 import { useEffect, useRef, useState } from "react";
@@ -88,6 +89,7 @@ export function SoloBilling(props: SectionProps) {
                 Período disponível até{" "}
                 {new Date(data.entitlement.expiresAt).toLocaleDateString(
                   "pt-BR",
+                  { timeZone: props.data.settings.timezone },
                 )}
                 .
               </p>
@@ -175,7 +177,7 @@ export function SoloBilling(props: SectionProps) {
               cobrada agora.
             </p>
           )}
-          {data.entitlement.graceEndsAt && <p role="status">Identificamos uma pendência em seu pagamento. Regularize seu plano até: {new Date(data.entitlement.graceEndsAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}.</p>}
+          {data.entitlement.graceEndsAt && <p role="status">Identificamos uma pendência em seu pagamento. Regularize seu plano até: {new Date(data.entitlement.graceEndsAt).toLocaleDateString('pt-BR', { timeZone: props.data.settings.timezone })}.</p>}
           {data.entitlement.mode === "trial" && (
             <p>Contrate e cancele quando quiser.</p>
           )}
@@ -347,8 +349,9 @@ function SoloAgendaName(props: SectionProps) {
               {
                 ...props.data.settings,
                 businessName: String(form.get("agendaName")),
+                timezone: String(form.get('timezone')),
               },
-              "Nome da agenda salvo.",
+              "Configurações da agenda salvas.",
             );
           } catch (error) {
             props.notify((error as Error).message, true);
@@ -368,7 +371,8 @@ function SoloAgendaName(props: SectionProps) {
           Aberta todos os dias, 24 horas. Você define o início e a duração de
           cada compromisso.
         </p>
-        <button className="button primary">Salvar nome</button>
+        <TimezoneField value={props.data.settings.timezone} />
+        <button className="button primary">Salvar configurações</button>
       </form>
     </section>
   );
@@ -601,7 +605,7 @@ export function SoloWorkspace(
           <div className="solo-greeting">
             <Greeting
               name={props.data.user.name}
-              timeZone="America/Sao_Paulo"
+              timeZone={props.data.settings.timezone}
             />
             <small>Sua agenda privada, no seu compasso.</small>
           </div>

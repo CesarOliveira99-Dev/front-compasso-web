@@ -1,4 +1,6 @@
 'use client';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
 import { dayHours, clockLabel } from '@/modules/shared/presentation/weekly-hours';
 import {
   CalendarDays,
@@ -16,7 +18,7 @@ import {
   RatingSummary,
   RecommendationBadge,
 } from '@/modules/feedback/presentation/reputation';
-import { day, initials } from '@/modules/shared/domain/format';
+import { initials } from '@/modules/shared/domain/format';
 import type { PublicStoreData } from './public-store.models';
 import { hourLabel, weekDays } from './public-store.models';
 export function VenueDetails({ data }: { data: PublicStoreData }) {
@@ -26,7 +28,7 @@ export function VenueDetails({ data }: { data: PublicStoreData }) {
     ? `${address.street}, ${address.number}${address.complement ? `, ${address.complement}` : ''}, ${address.district}, ${address.city} - ${address.state}, ${address.postalCode}`
     : '';
   const today = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(
-    new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', weekday: 'short' }).format(
+    new Intl.DateTimeFormat('en-US', { timeZone: store.timezone || "America/Sao_Paulo", weekday: 'short' }).format(
       new Date(),
     ),
   );
@@ -90,7 +92,7 @@ export function VenueDetails({ data }: { data: PublicStoreData }) {
           ))}
         </dl>
         <p className="venue-footnote">
-          Horário de Brasília. Consulte a disponibilidade ao agendar.
+          Horários em {store.timezone}. Consulte a disponibilidade ao agendar.
         </p>
       </section>
       <section className="venue-card venue-how">
@@ -167,6 +169,7 @@ export function VenueTeam({ data }: { data: PublicStoreData }) {
   );
 }
 export function VenueReviews({ data }: { data: PublicStoreData }) {
+  const { day } = useTimeFormats();
   const { reputation } = data;
   return (
     <section className="venue-card venue-section" id="avaliacoes">
@@ -222,3 +225,4 @@ export function VenueReviews({ data }: { data: PublicStoreData }) {
     </section>
   );
 }
+

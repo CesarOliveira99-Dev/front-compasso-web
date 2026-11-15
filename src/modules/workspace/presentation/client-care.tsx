@@ -1,10 +1,12 @@
-"use client";
+'use client';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
 import { ReminderModelsEditor } from "./reminder-models";
 import type { ReminderModels } from "./care-types";
 import { useEffect, useState } from "react";
 import type { Appointment, Professional } from "@/modules/shared/domain/models";
 import { api } from "@/modules/shared/infrastructure/api";
-import { day, time, money, inputToIso } from "@/modules/shared/domain/format";
+import { money } from "@/modules/shared/domain/format";
 import {
   Field,
   PageHeading,
@@ -42,6 +44,7 @@ export function ClientSnapshot({
   customerId: string;
   revision: number;
 }) {
+  const { day } = useTimeFormats();
   const resource = useResource<{
       summary: CareSummary;
       preferences: string;
@@ -295,6 +298,7 @@ export function ReturnRuleForm({
   itemId?: string;
   professionalId?: string;
 }) {
+  const { day } = useTimeFormats();
   const resource = useResource<ReturnEntry[]>(
       "workspace/care/returns",
       props.revision,
@@ -478,6 +482,7 @@ export function ClientCarePage(props: SectionProps & { initialTab?: string }) {
   );
 }
 function ReturnsPanel(props: SectionProps) {
+  const { day, time } = useTimeFormats();
   const resource = useResource<ReturnEntry[]>(
       "workspace/care/returns",
       props.revision,
@@ -580,6 +585,7 @@ function ReturnsPanel(props: SectionProps) {
   );
 }
 export function BlocksPanel(props: SectionProps) {
+  const { inputToIso, day, time } = useTimeFormats();
   const resource = useResource<AgendaBlock[]>(
     "workspace/care/blocks",
     props.revision,
@@ -602,7 +608,7 @@ export function BlocksPanel(props: SectionProps) {
             <input name="endsAt" type="datetime-local" required />
           </Field>
           <small>
-            Horários de Brasília. Até 7 dias por bloqueio. Reservas existentes
+            Horários do espaço. Até 7 dias por bloqueio. Reservas existentes
             são preservadas.
           </small>
         </div>
@@ -674,6 +680,7 @@ export function BlocksPanel(props: SectionProps) {
   );
 }
 function WaitPanel(props: SectionProps) {
+  const { day, time } = useTimeFormats();
   const [bookingKeys] = useState(() => new Map<string, string>());
   function bookingKey(id: string, startsAt: string, revision: number) {
     const slot = `${id}:${startsAt}:${revision}`;
@@ -735,7 +742,7 @@ function WaitPanel(props: SectionProps) {
               <input name="before" type="time" defaultValue="20:00" required />
             </Field>
           </div>
-          <small>Horários de Brasília. O intervalo pode ter até 90 dias.</small>
+          <small>Horários do espaço. O intervalo pode ter até 90 dias.</small>
         </div>
       ),
       submitLabel: "Entrar na lista",
@@ -936,3 +943,4 @@ function WaitPanel(props: SectionProps) {
     </section>
   );
 }
+

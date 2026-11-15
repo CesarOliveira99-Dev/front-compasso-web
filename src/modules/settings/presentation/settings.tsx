@@ -1,4 +1,5 @@
 'use client';
+import { TimezoneField } from '@/modules/shared/presentation/timezone';
 import { ReminderModelsEditor } from '@/modules/workspace/presentation/reminder-models';
 import { IdentityInput } from '@/modules/identity/presentation/identity-input';
 import { WeeklyHours, hoursFromForm } from '@/modules/shared/presentation/weekly-hours';
@@ -68,7 +69,7 @@ export function SettingsPage(props: SectionProps) {
                 setupComplete: true,
                 name: text(form, 'name'),
                 businessName: text(form, 'businessName'),
-                timezone: 'America/Sao_Paulo',
+                timezone: text(form, 'timezone'),
                 completionMode: text(form, 'completionMode'),
                 payOnAppointment: form.has('payOnAppointment'),
                 payOnDelivery: form.has('payOnDelivery'),
@@ -86,6 +87,7 @@ export function SettingsPage(props: SectionProps) {
         }}
       >
         <div className="settings-main">
+          <section className="panel settings-panel"><h2>Horários do espaço</h2><TimezoneField value={settings.timezone} /></section>
           <section className="panel settings-panel">
             <div className="settings-section-heading">
               <span className="stat-icon sage">
@@ -232,7 +234,7 @@ export function SettingsPage(props: SectionProps) {
           <div className="info-note">
             <Globe size={19} />
             <p>
-              Todos os horários seguem Brasília. O calendário exibe de segunda a domingo; os
+              Os horários seguem o fuso configurado neste espaço. O calendário exibe de segunda a domingo; os
               indicadores semanais contabilizam de domingo a sábado.
             </p>
           </div>

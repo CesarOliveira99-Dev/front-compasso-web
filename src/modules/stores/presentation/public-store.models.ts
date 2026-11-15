@@ -13,6 +13,7 @@ export interface PublicStoreData {
     | 'openingHour'
     | 'closingHour'
     | 'workDays'
+    | 'timezone'
   >;
   catalog: Pick<
     CatalogItem,
@@ -41,3 +42,4 @@ export const weekDays = [
   'Sábado',
 ];
 export const hourLabel = (hour: number) => `${String(hour).padStart(2, '0')}:00`;
+

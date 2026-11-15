@@ -1,12 +1,15 @@
 'use client';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
 import { useState } from 'react';
 import { ArrowUpRight, CalendarDays, Clock3, Plus } from 'lucide-react';
 import { openBooking } from '@/modules/appointments/presentation/booking-dialog';
-import { day, time } from '@/modules/shared/domain/format';
+
 import { Badge, Empty, PageHeading, type SectionProps } from '@/modules/shared/presentation/ui';
 import type { Appointment } from '@/modules/shared/domain/models';
 
 export function PulseOverview(props: SectionProps) {
+  const { day, time } = useTimeFormats();
   const today = props.data.dashboard.date;
   const [date, setDate] = useState(today);
   const dates = Array.from({ length: 7 }, (_, index) => {
@@ -172,3 +175,4 @@ export function PulseOverview(props: SectionProps) {
     </section>
   );
 }
+

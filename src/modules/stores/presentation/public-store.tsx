@@ -1,4 +1,5 @@
 'use client';
+import { TimezoneProvider } from "@/modules/shared/presentation/timezone";
 import { Brand } from '@/modules/shared/presentation/brand';
 import './public-store.css';
 import { useEffect, useState } from 'react';
@@ -86,7 +87,7 @@ export function PublicStore() {
     }
   }
   if (!data)
-    return (
+    return <TimezoneProvider timezone="America/Sao_Paulo">{(
       <main className="venue-shell">
         <a className="brand" href="/descobrir">
           <Brand />
@@ -102,7 +103,7 @@ export function PublicStore() {
           </a>
         </div>
       </main>
-    );
+    )}</TimezoneProvider>;
   const { store, catalog, reputation } = data;
   const categories = ['Todos', ...new Set(catalog.map((item) => item.category))];
   const normalize = (value: string) =>
@@ -166,7 +167,7 @@ export function PublicStore() {
       </article>
     );
   }
-  return (
+  return <TimezoneProvider timezone={data?.store.timezone || "America/Sao_Paulo"}>{(
     <div className="venue-page">
       <header className="venue-topbar">
         <div className="venue-shell">
@@ -411,5 +412,6 @@ export function PublicStore() {
         </a>
       </div>
     </div>
-  );
+  )}</TimezoneProvider>;
 }
+

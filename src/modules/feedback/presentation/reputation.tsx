@@ -1,8 +1,10 @@
 'use client';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
 import {RecommendationPurchase} from '@/modules/settings/presentation/recommendation-purchase';
 import { useState } from 'react';
 import { BadgeCheck, ShieldCheck } from 'lucide-react';
-import { day } from '@/modules/shared/domain/format';
+
 import { ResourceState, useResource } from '@/modules/shared/presentation/ui';
 export interface StoreReviewData {
   summary: { count: number; average: number; distribution: Record<number, number> };
@@ -182,6 +184,7 @@ function StoreReviewPage({
   revision: number;
   setPage: (update: (value: number) => number) => void;
 }) {
+  const { day } = useTimeFormats();
   const resource = useResource<StoreReviewData>(`feedback/store?page=${page}`, revision);
   const result = resource.value;
   return (
@@ -257,3 +260,4 @@ function StoreReviewPage({
     </section>
   );
 }
+

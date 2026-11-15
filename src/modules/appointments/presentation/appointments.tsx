@@ -1,5 +1,7 @@
 'use client';
-import { day, money, time } from '@/modules/shared/domain/format';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
+import { money } from '@/modules/shared/domain/format';
 import {
   AddButton,
   Avatar,
@@ -12,6 +14,7 @@ import { Clock3, MoreHorizontal, Search } from 'lucide-react';
 import { useState } from 'react';
 import { openBooking } from './booking-dialog';
 export function AppointmentsPage(props: SectionProps) {
+  const { day, time } = useTimeFormats();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [date, setDate] = useState('');
@@ -24,7 +27,7 @@ export function AppointmentsPage(props: SectionProps) {
         (!professionalId || (a.professionalId || 'principal') === professionalId) &&
         `${a.customerName} ${a.itemName}`.toLowerCase().includes(search.toLowerCase()) &&
         (!date ||
-          new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Sao_Paulo' }).format(
+          new Intl.DateTimeFormat('sv-SE', { timeZone: props.data.settings.timezone }).format(
             new Date(a.startsAt),
           ) === date),
     )
@@ -244,8 +247,9 @@ export function AppointmentsPage(props: SectionProps) {
       </section>
       <p className="page-footnote">
         <Clock3 size={14} />
-        Horário de Brasília • Os horários são reservados na confirmação do agendamento.
+        Horário do espaço • Os horários são reservados na confirmação do agendamento.
       </p>
     </>
   );
 }
+

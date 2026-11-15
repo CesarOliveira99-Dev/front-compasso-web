@@ -1,8 +1,10 @@
-"use client";
+'use client';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
 import { ClientSnapshot, ReturnRuleForm } from './client-care';
 import { useEffect, useState } from "react";
 import { api } from "@/modules/shared/infrastructure/api";
-import { day, money, time } from "@/modules/shared/domain/format";
+import { money } from "@/modules/shared/domain/format";
 import {
   Badge,
   Field,
@@ -19,6 +21,7 @@ export function CustomerDossierPanel({
   customerId: string;
   props: SectionProps;
 }) {
+  const { day, time } = useTimeFormats();
   const [revision, setRevision] = useState(0),
     resource = useResource<CustomerDossier>(
       `workspace/customers/${customerId}`,
@@ -282,3 +285,4 @@ export function CustomerDossierPanel({
     </div>
   );
 }
+

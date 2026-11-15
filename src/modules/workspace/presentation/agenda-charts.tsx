@@ -1,7 +1,9 @@
-"use client";
+'use client';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
 import { useState } from "react";
 import type { AgendaChartSlice, AgendaAnalysis } from "./tools-types";
-import { day } from "@/modules/shared/domain/format";
+
 export function AgendaPie({
   title,
   description,
@@ -86,6 +88,7 @@ export function AgendaPie({
   );
 }
 export function AttendanceTrend({ data }: { data: AgendaAnalysis }) {
+  const { day } = useTimeFormats();
   const maximum = Math.max(
     1,
     ...data.trend.flatMap((row) => [row.clients, row.completed]),
@@ -186,3 +189,4 @@ export function AttendanceTrend({ data }: { data: AgendaAnalysis }) {
     </section>
   );
 }
+

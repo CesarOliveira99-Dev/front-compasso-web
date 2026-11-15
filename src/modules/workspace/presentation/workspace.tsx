@@ -1,4 +1,8 @@
 'use client';
+import { TimezoneProvider } from "@/modules/shared/presentation/timezone";
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+import { formatsForZone } from '@/modules/shared/domain/format';
+
 import { ClientCarePage } from './client-care';
 import { setApiWorkspaceScope } from '@/modules/shared/infrastructure/api';
 import { WorkspaceSwitcher } from './workspace-switcher';
@@ -75,7 +79,6 @@ const SettingsPage = dynamic(
   () => import('@/modules/settings/presentation/settings').then((module) => module.SettingsPage),
   { loading: LoadingSection },
 );
-import { day, time } from '@/modules/shared/domain/format';
 import type { Bootstrap, CartLine, User } from '@/modules/shared/domain/models';
 import { api } from '@/modules/shared/infrastructure/api';
 import {
@@ -316,16 +319,16 @@ export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} =
       .catch((error) => notify(error.message, true));
   }, [data]);
   if (loading)
-    return (
+    return <TimezoneProvider timezone={data?.settings.timezone || "America/Sao_Paulo"}>{(
       <div className="app-loading">
         <Brand />
         <LoaderCircle size={20} className="spin" />
         <p>Organizando seu espaço…</p>
       </div>
-    );
-  if (personalUser) return <CustomerLobby user={personalUser} />;
+    )}</TimezoneProvider>;
+  if (personalUser) return <TimezoneProvider timezone={data?.settings.timezone || "America/Sao_Paulo"}>{<CustomerLobby user={personalUser} />}</TimezoneProvider>;
   if (!data)
-    return (
+    return <TimezoneProvider timezone="America/Sao_Paulo">{(
       <>
         {fatal && (
           <div className="connection-error" role="alert">
@@ -345,16 +348,17 @@ export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} =
           }}
         />
       </>
-    );
+    )}</TimezoneProvider>;
   const admin = data.user.role === 'admin';
+  const { day, time } = formatsForZone(data.settings.timezone);
   const navigation = admin ? adminNavigation : customerNavigation;
   const currentLabel =
     navigation.flatMap((g) => g.items).find((i) => i.id === page)?.name ||
     (page === 'settings' ? 'Configurações' : page === 'cart' ? 'Sua sacola' : 'Visão geral');
   const unread = data.notifications.filter((n) => !n.read).length;
   const props: SectionProps = { data, revision, mutate, notify, openDialog, navigate };
-  if (data.settings.workspaceMode === 'solo') return <><SoloWorkspace {...props} logout={logout} />{dialog && <Dialog key={dialog.key} dialog={dialog} close={()=>setDialog(undefined)}/>} {toast&&<div className={`toast ${toast.error?'error':''}`} role="status">{toast.message}</div>}</>;
-  if (data.user.role === 'employee') return <><EmployeeWorkspace {...props} logout={logout} />{toast&&<div className={`toast ${toast.error?'error':''}`} role="status">{toast.message}</div>}</>;
+  if (data.settings.workspaceMode === 'solo') return <TimezoneProvider timezone={data?.settings.timezone || "America/Sao_Paulo"}>{<><SoloWorkspace {...props} logout={logout} />{dialog && <Dialog key={dialog.key} dialog={dialog} close={()=>setDialog(undefined)}/>} {toast&&<div className={`toast ${toast.error?'error':''}`} role="status">{toast.message}</div>}</>}</TimezoneProvider>;
+  if (data.user.role === 'employee') return <TimezoneProvider timezone={data?.settings.timezone || "America/Sao_Paulo"}>{<><EmployeeWorkspace {...props} logout={logout} />{toast&&<div className={`toast ${toast.error?'error':''}`} role="status">{toast.message}</div>}</>}</TimezoneProvider>;
   let content;
   switch (page) {
     case 'tools': content = <WorkspaceTools {...props} />; break;
@@ -421,7 +425,7 @@ export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} =
     default:
       content = admin ? <CalendarPage {...props} /> : <CustomerHome {...props} />;
   }
-  return (
+  return <TimezoneProvider timezone={data?.settings.timezone || "America/Sao_Paulo"}>{(
     <div className={`app-shell ${admin ? 'admin-shell' : 'customer-shell'}`}>
       {mobile && (
         <button
@@ -752,9 +756,10 @@ export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} =
         </div>
       )}
     </div>
-  );
+  )}</TimezoneProvider>;
 }
 function SearchDialog({ data, go }: { data: Bootstrap; go: (page: string) => void }) {
+  const { day, time } = useTimeFormats();
   const [query, setQuery] = useState('');
   const needle = query.toLocaleLowerCase();
   return (

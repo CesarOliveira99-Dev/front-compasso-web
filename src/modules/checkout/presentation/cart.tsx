@@ -1,8 +1,10 @@
 'use client';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
 import { useEffect, useState } from 'react';
 import { Check, LoaderCircle, MapPin, ShoppingBag, Trash2 } from 'lucide-react';
 import type { CartLine, Customer, Order } from '@/modules/shared/domain/models';
-import { day, money, time } from '@/modules/shared/domain/format';
+import { money } from '@/modules/shared/domain/format';
 import { api } from '@/modules/shared/infrastructure/api';
 import {
   Empty,
@@ -19,6 +21,7 @@ interface Quote {
 export function CartPage(
   props: SectionProps & { cart: CartLine[]; setCart: (cart: CartLine[]) => void },
 ) {
+  const { day, time } = useTimeFormats();
   const resource = useResource<Customer>('customers/profile', props.revision);
   const [coupon, setCoupon] = useState('');
   const [addressId, setAddressId] = useState('');
@@ -278,3 +281,4 @@ export function CartPage(
     </>
   );
 }
+

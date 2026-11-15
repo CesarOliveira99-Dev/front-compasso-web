@@ -1,5 +1,7 @@
 'use client';
-import { day, money, time } from '@/modules/shared/domain/format';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
+import { money } from '@/modules/shared/domain/format';
 import type { Order } from '@/modules/shared/domain/models';
 import {
   Badge,
@@ -15,6 +17,7 @@ import dynamic from 'next/dynamic';
 import { OrderDetails } from './order-details';
 const PaymentDialog = dynamic(() => import('./payment-dialog'), { ssr: false });
 export function OrdersPage(props: SectionProps) {
+  const { day, time } = useTimeFormats();
   const [paymentRevision, setPaymentRevision] = useState(0);
   const resource = useResource<Order[]>('orders', props.revision + paymentRevision);
   const admin = props.data.user.role === 'admin';
@@ -191,3 +194,4 @@ export function OrdersPage(props: SectionProps) {
     </>
   );
 }
+

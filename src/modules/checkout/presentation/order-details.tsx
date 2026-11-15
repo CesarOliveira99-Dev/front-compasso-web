@@ -1,7 +1,11 @@
+'use client';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
 import { Badge } from '@/modules/shared/presentation/ui';
-import { day, money, time } from '@/modules/shared/domain/format';
+import { money } from '@/modules/shared/domain/format';
 import type { Order } from '@/modules/shared/domain/models';
 export function OrderDetails({ order }: { order: Order }) {
+  const { day, time } = useTimeFormats();
   const method = { online: 'Crédito ou Pix', pix_manual: 'Pix direto à loja', on_day: 'Pagar no dia / na entrega' }[order.paymentMethod];
   return <div className="order-details">
     <dl><div><dt>Realizado em</dt><dd>{day(order.createdAt)} às {time(order.createdAt)}</dd></div>
@@ -21,3 +25,4 @@ export function OrderDetails({ order }: { order: Order }) {
     {order.items.some(item => item.kind === 'service') && <p>Para acompanhar, reagendar ou cancelar um atendimento, acesse Meus agendamentos. O pagamento e a realização do serviço são acompanhados separadamente.</p>}
   </div>;
 }
+

@@ -1,5 +1,7 @@
-"use client";
-import { day, money } from "@/modules/shared/domain/format";
+'use client';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
+import { money } from "@/modules/shared/domain/format";
 import type {
   Expense,
   Wallet as WalletData,
@@ -17,6 +19,7 @@ import {
 import { ArrowDownLeft, Clock3, Plus, TrendingUp, Wallet } from "lucide-react";
 import { useState } from "react";
 export function WalletPage(props: SectionProps) {
+  const { day } = useTimeFormats();
   const [period, setPeriod] = useState("30"),
     [query, setQuery] = useState("days=30");
   const [from, setFrom] = useState(""),
@@ -473,3 +476,4 @@ export function WalletPage(props: SectionProps) {
     </>
   );
 }
+

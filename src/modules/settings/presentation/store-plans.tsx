@@ -1,4 +1,5 @@
 'use client';
+import { useTimezone } from '@/modules/shared/presentation/timezone';
 import { money } from '@/modules/shared/domain/format';
 import { api } from '@/modules/shared/infrastructure/api';
 import { useId, useState } from 'react';
@@ -13,8 +14,9 @@ export interface PlanStatus {
   emailUsage: { daily: { used: number; limit: number | null }; monthly: { used: number; limit: number | null } };
 }
 const number = (value: number) => value.toLocaleString('pt-BR');
-const date = (value: number) => new Date(value).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 export function StorePlans({ status, props, busy, refresh }: { status: PlanStatus; props: SectionProps; busy: boolean; refresh: () => void }) {
+  const timezone = useTimezone();
+  const date = (value: number) => new Date(value).toLocaleDateString('pt-BR', { timeZone: timezone });
   const { entitlement, subscription } = status;
   const group = useId();
   const [selectedPlan, setSelectedPlan] = useState(subscription?.planId || entitlement.plan?.id || 'essencial');
@@ -58,7 +60,7 @@ export function StorePlans({ status, props, busy, refresh }: { status: PlanStatu
           {warning && <small>{quota.used >= quota.limit! ? 'Franquia atingida. Novos e-mails aguardam a renovação do limite.' : 'Você já utilizou pelo menos 80% desta franquia.'}</small>}
         </div>; })}
     </div>
-    <p className="form-note">Confirmações e lembretes compartilham a franquia mensal e o limite diário. A contagem inclui envios em verificação e reinicia no horário de Brasília. Senhas e segurança ficam fora da franquia da loja. Sem cobrança automática de excedentes.</p>
+    <p className="form-note">Confirmações e lembretes compartilham a franquia mensal e o limite diário. A contagem inclui envios em verificação e reinicia no fuso do espaço. Senhas e segurança ficam fora da franquia da loja. Sem cobrança automática de excedentes.</p>
     <p className="form-note">Selecione um card para comparar. A seleção não contrata nem altera sua assinatura.</p>
     <div className="store-plan-grid">{status.plans.map(plan => {
       const current = subscription?.planId === plan.id && !['cancelled', 'canceled'].includes(subscription.status);
