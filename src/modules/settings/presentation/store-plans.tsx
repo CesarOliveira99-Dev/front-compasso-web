@@ -43,6 +43,7 @@ export function StorePlans({ status, props, busy, refresh }: { status: PlanStatu
     <div className={`plan-access ${entitlement.mode}`} role="status">
       <strong>{entitlement.mode === 'trial' ? '14 dias para experimentar' : entitlement.mode === 'active' ? `Plano ${entitlement.plan?.name} ativo` : entitlement.mode === 'pilot' ? 'Sua loja continua no piloto' : 'Seu período de uso terminou'}</strong>
       <p>{entitlement.mode === 'trial' && entitlement.expiresAt ? `Teste grátis até ${date(entitlement.expiresAt)}, com os recursos do Equipe. Sem cartão obrigatório. Sem contratação, o teste termina sem gerar cobrança.`
+        : entitlement.graceEndsAt ? `Acesso temporário até ${date(entitlement.graceEndsAt)}.`
         : entitlement.mode === 'active' && entitlement.expiresAt ? `Período pago até ${date(entitlement.expiresAt)}.`
         : entitlement.mode === 'pilot' ? 'Nenhuma assinatura ou cobrança automática foi criada para sua loja.'
         : 'Seus dados continuam disponíveis. Contrate um plano para receber novos agendamentos e pedidos.'}</p>
