@@ -1,4 +1,5 @@
 'use client';
+import { MonthPicker } from '@/modules/shared/presentation/month-picker';
 import { useTimeFormats } from '@/modules/shared/presentation/timezone';
 
 import { money, statusLabel } from '@/modules/shared/domain/format';
@@ -63,13 +64,10 @@ export function ReportsPage(props: SectionProps) {
         description="Um extrato dos encontros, resultados e cuidados do mês."
         action={
           <div className="toolbar-controls">
-            <input
-              type="month"
-              aria-label="Mês do relatório"
+            <MonthPicker
+              label="Mês do relatório"
               value={month}
-              onChange={(e) => {
-                if (e.target.value) setMonth(e.target.value);
-              }}
+              onChange={setMonth}
             />
             <button className="button primary" disabled={!report} onClick={download}>
               <Download size={16} />

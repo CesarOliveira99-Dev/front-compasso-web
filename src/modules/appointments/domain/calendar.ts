@@ -62,10 +62,11 @@ export function calendarLabel(
     year: "numeric",
   },
 ): string {
-  return dateFromKey(key).toLocaleDateString("pt-BR", {
+  const label = dateFromKey(key).toLocaleDateString("pt-BR", {
     ...options,
     timeZone: "UTC",
   });
+  return label.charAt(0).toLocaleUpperCase("pt-BR") + label.slice(1);
 }
 export function weekLabel(key: string): string {
   const start = weekStart(key);
@@ -154,3 +155,4 @@ export function appointmentDaySegment(
       : 1440;
   return { start, end };
 }
+

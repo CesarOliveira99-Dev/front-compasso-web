@@ -1,4 +1,5 @@
 "use client";
+import { MonthPicker } from "@/modules/shared/presentation/month-picker";
 import { useEffect, useMemo, useState } from "react";
 import {
   CalendarClock,
@@ -299,13 +300,12 @@ export function StaffCalendar({ data, onOpen, onNew, onManageBlocks }: Props) {
         <div className="staff-calendar-pickers">
           <label>
             Mês e ano
-            <input
-              type="month"
-              aria-label="Escolher mês e ano"
+            <MonthPicker
+              label="Escolher mês e ano"
               value={month}
               min="1900-01"
               max="2099-12"
-              onChange={(e) => openMonth(e.target.value)}
+              onChange={openMonth}
             />
           </label>
           <label>
@@ -593,3 +593,4 @@ export function StaffCalendar({ data, onOpen, onNew, onManageBlocks }: Props) {
     </section>
   );
 }
+

@@ -387,7 +387,7 @@ export function WalletPage(props: SectionProps) {
             </div>
             <div>
               <strong>{money(wallet.projectedCents)}</strong>
-              <small>em serviços futuros, pagos ou pendentes</small>
+              <small>Em serviços futuros, pagos ou pendentes</small>
             </div>
           </div>
           <section className="panel">

@@ -139,11 +139,11 @@ export function CustomersPage(props: SectionProps) {
             <div className="customer-metrics">
               <div>
                 <strong>{customer.visits}</strong>
-                <span>atendimentos concluídos</span>
+                <span>Atendimentos concluídos</span>
               </div>
               <div>
                 <strong>{money(customer.totalCents)}</strong>
-                <span>em pedidos pagos</span>
+                <span>Em pedidos pagos</span>
               </div>
             </div>
             <button className="button secondary full" onClick={() => message(customer)}>
@@ -162,3 +162,4 @@ export function CustomersPage(props: SectionProps) {
     </>
   );
 }
+

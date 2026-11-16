@@ -107,10 +107,11 @@ export function GoogleButton({
     <div className={separator && ready ? 'login-google' : undefined}>
       {separator && ready && (
         <div className="login-auth-divider" aria-hidden="true">
-          <span>ou</span>
+          <span>Ou</span>
         </div>
       )}
       <div ref={element} aria-label={link ? 'Vincular conta Google' : 'Entrar com Google'} />
     </div>
   );
 }
+
