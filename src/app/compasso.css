@@ -361,7 +361,7 @@ textarea::placeholder {
 }
 .workspace {
   margin-left: 240px;
-  width: calc(100% - 190px);
+  width: calc(100% - 240px);
 }
 .topbar {
   background: var(--background);
@@ -939,9 +939,9 @@ textarea::placeholder {
   color: #d85e57;
 }
 .staff-calendar-pickers {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-  flex-wrap: wrap;
   align-items: flex-end;
   padding: 16px 18px;
   border: 1px solid #e8e2de;
@@ -955,10 +955,14 @@ textarea::placeholder {
   font-weight: 550;
   color: #5f6979;
   min-width: 0;
-  flex: 1 1 185px;
+  width: 100%;
 }
 .staff-calendar-pickers input,
 .staff-calendar-pickers select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 10px;
   font-size: 12px;
   min-height: 39px;
@@ -1671,6 +1675,7 @@ textarea::placeholder {
     font-size: 13px;
   }
   .staff-calendar-pickers {
+    grid-template-columns: minmax(0, 1fr);
     padding: 13px;
     gap: 13px;
   }
