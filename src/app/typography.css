@@ -309,23 +309,59 @@ h4 {
     width: auto;
     min-height: 44px;
   }
+  .staff-calendar-main {
+    min-width: 0;
+    width: 100%;
+  }
+  .staff-calendar-main > .page-heading > .row-actions {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    width: 100%;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .staff-calendar-main > .page-heading > .row-actions > .button {
+    min-width: 0;
+    width: 100%;
+    min-height: 44px;
+    padding-inline: 10px;
+    white-space: normal;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .staff-calendar-pickers {
+    width: 100%;
+    min-width: 0;
+  }
+  .staff-calendar-pickers :is(input, select) {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-inline-size: 0;
+  }
+  .staff-calendar-pickers input::-webkit-date-and-time-value {
+    min-width: 0;
+    text-align: left;
+  }
   .solo-main .staff-calendar-toolbar {
     gap: 12px;
     margin-bottom: 12px;
   }
 }
 
-/* Registration tabs follow their content instead of stretching across the page. */
+/* Option bars share the available width equally, regardless of option count. */
 .solo-registration-tabs {
-  display: inline-flex;
-  width: fit-content;
+  display: flex;
+  width: 100%;
   max-width: 100%;
-  align-self: flex-start;
-  justify-self: start;
+  align-self: stretch;
+  justify-self: stretch;
   gap: 4px;
 }
 .solo-registration-tabs button {
-  flex: 0 1 auto;
+  flex: 1 1 0;
 }
 /* Shared sizing for option bars across store, Solo, staff and public pages. */
 .tabs,
@@ -337,14 +373,14 @@ h4 {
 .venue-section-tabs,
 .store-gallery-tabs,
 .storefront-tabs {
-  display: inline-flex;
-  width: fit-content;
+  display: flex;
+  width: 100%;
   min-width: 0;
   max-width: 100%;
-  flex: 0 1 auto;
-  align-self: flex-start;
-  justify-self: start;
-  align-items: center;
+  flex: 1 1 100%;
+  align-self: stretch;
+  justify-self: stretch;
+  align-items: stretch;
   flex-wrap: nowrap;
   overflow-x: auto;
   overscroll-behavior-x: contain;
@@ -358,11 +394,15 @@ h4 {
 .store-gallery-tabs > button,
 .storefront-tabs > button,
 .venue-section-tabs > a {
-  flex: 0 0 auto;
-  white-space: nowrap;
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
+  white-space: normal;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 .finance-ledger-tabs {
-  width: fit-content;
+  width: 100%;
   max-width: calc(100% - 44px);
 }
 @media (max-width: 800px) {
