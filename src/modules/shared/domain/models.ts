@@ -1,5 +1,31 @@
-export type Role = 'admin' | 'customer';
+export interface BusinessAddress {
+  postalCode: string;
+  street: string;
+  number: string;
+  district: string;
+  city: string;
+  state: string;
+  complement: string;
+}
+export interface MediaAsset {
+  category?: 'workspace' | 'portfolio';
+  url: string;
+  type: 'image' | 'video';
+  alt: string;
+}
+export interface StoreSummary {
+  workspaceMode?: "store" | "solo";
+  slug: string;
+  businessName: string;
+  city?: string;
+  state?: string;
+}
+export type Role = 'admin' | 'customer' | 'employee';
 export interface User {
+  storeSelected?: boolean;
+  identityId?: string;
+  professionalId?: string;
+  emailVerified?: boolean;
   id: string;
   tenantId: string;
   name: string;
@@ -22,6 +48,8 @@ export interface Customer extends User {
   totalCents: number;
 }
 export interface CatalogItem {
+  popularityCount?: number;
+  media?: MediaAsset[];
   id: string;
   name: string;
   description: string;
@@ -35,6 +63,10 @@ export interface CatalogItem {
   active: boolean;
 }
 export interface Appointment {
+  attendanceOutcome?: "no_show";
+  categoryId?: string; categoryName?: string; categoryColor?: string;
+  professionalId?: string;
+  professionalName?: string;
   id: string;
   customerId: string;
   customerName: string;
@@ -64,6 +96,8 @@ export interface Order {
   discountCents: number;
   status: string;
   paymentStatus: string;
+  paymentMethod: 'on_day' | 'online' | 'pix_manual';
+  pixKey?: string;
   seen: boolean;
   createdAt: string;
   address?: Address;
@@ -76,6 +110,15 @@ export interface Notification {
   createdAt: string;
 }
 export interface Settings {
+  workspaceMode?: 'store' | 'solo';
+  ownerId?: string;
+  ratingCount?: number;
+  averageRating?: number;
+  address?: BusinessAddress;
+  phone?: string;
+  description?: string;
+  media?: MediaAsset[];
+  setupComplete?: boolean;
   name: string;
   businessName: string;
   slug: string;
@@ -85,10 +128,12 @@ export interface Settings {
   payOnDelivery: boolean;
   bankAccount: string;
   pixKey: string;
+  weeklyHours?: { day: number; openingHour: number; closingHour: number }[];
   openingHour: number;
   closingHour: number;
   workDays: number[];
   onlinePaymentsEnabled: boolean;
+  manualPixEnabled: boolean;
   whatsappEnabled: boolean;
 }
 export interface Dashboard {
@@ -126,6 +171,7 @@ export interface Discount {
   active: boolean;
 }
 export interface Feedback {
+  published?: boolean;
   id: string;
   customerId: string;
   customerName: string;
@@ -165,12 +211,28 @@ export interface WalletEntry {
 }
 export interface Wallet {
   days: number;
+  cashReceivedCents: number;
+  expenseCents: number;
+  balanceCents: number;
+  undatedReceivedCents: number;
+  periodStart: string;
+  periodEnd: string;
+  cashEntries: WalletEntry[];
+  expenses: Expense[];
   earnedCents: number;
   receivedCents: number;
   unpaidCents: number;
   projectedCents: number;
   entries: WalletEntry[];
   projection: WalletEntry[];
+}
+export interface Expense {
+  id: string;
+  description: string;
+  category: 'supplies' | 'rent' | 'utilities' | 'other';
+  amountCents: number;
+  paidOn: string;
+  createdAt: string;
 }
 export interface Report {
   month: string;
@@ -189,8 +251,21 @@ export interface Bootstrap {
   notifications: Notification[];
 }
 export interface CartLine {
+  professionalId?: string;
   itemId: string;
   quantity: number;
   startsAt: string;
   notes: string;
+}
+export interface Professional {
+  breaks?: { start: string; end: string; date?: string }[];
+  daysOff?: string[];
+  id: string;
+  name: string;
+  active: boolean;
+  serviceIds: string[];
+  weeklyHours?: { day: number; openingHour: number; closingHour: number }[];
+  openingHour: number;
+  closingHour: number;
+  workDays: number[];
 }

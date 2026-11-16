@@ -1,16 +1,17 @@
+import { DEFAULT_TIMEZONE, inputInZone, zonedInputToIso } from './timezone';
 export const money = (cents: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100);
-export const time = (date: string) =>
+export const time = (date: string, timezone = DEFAULT_TIMEZONE) =>
   new Date(date).toLocaleTimeString('pt-BR', {
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'America/Sao_Paulo',
+    timeZone: timezone,
   });
-export const day = (date: string) =>
-  new Date(date.length === 10 ? `${date}T12:00:00-03:00` : date).toLocaleDateString('pt-BR', {
+export const day = (date: string, timezone = DEFAULT_TIMEZONE) =>
+  new Date(date.length === 10 ? `${date}T12:00:00Z` : date).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'short',
-    timeZone: 'America/Sao_Paulo',
+    timeZone: date.length === 10 ? 'UTC' : timezone,
   });
 export const initials = (name: string) =>
   name
@@ -25,25 +26,22 @@ export const statusLabel: Record<string, string> = {
   confirmed: 'Confirmado',
   completed: 'Finalizado',
   cancelled: 'Cancelado',
+  no_show: 'Não compareceu',
   paid: 'Pago',
   approved: 'Aprovada',
   declined: 'Recusada',
   active: 'Ativo',
   reminded: 'Lembrete enviado',
 };
-export function localInput(iso?: string): string {
-  const date = iso ? new Date(iso) : new Date();
-  const parts = new Intl.DateTimeFormat('sv-SE', {
-    timeZone: 'America/Sao_Paulo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).format(date);
-  return parts.replace(' ', 'T');
+export function localInput(iso?: string, timezone = DEFAULT_TIMEZONE): string {
+  return inputInZone(iso || new Date().toISOString(), timezone);
 }
-export function inputToIso(value: string): string {
-  return new Date(`${value}:00-03:00`).toISOString();
+export function inputToIso(value: string, timezone = DEFAULT_TIMEZONE): string {
+  return zonedInputToIso(value, timezone);
 }
+
+export function formatsForZone(timezone = DEFAULT_TIMEZONE) {
+  return { time: (value: string) => time(value, timezone), day: (value: string) => day(value, timezone),
+    localInput: (value?: string) => localInput(value, timezone), inputToIso: (value: string) => inputToIso(value, timezone) };
+}
+

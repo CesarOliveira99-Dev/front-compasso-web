@@ -1,0 +1,491 @@
+/* Pulso: a white workspace, quiet structure, and high-contrast actions. */
+:root {
+  color-scheme: only light;
+  --background: #fff;
+  --surface: #fff;
+  --ink: #111;
+  --text: #343434;
+  --muted: #6b6b6b;
+  --green: #111;
+  --green-dark: #303030;
+  --sage: #f3f3f3;
+  --sand: #f7f7f7;
+  --line: #e6e6e6;
+  --radius: 12px;
+  --shadow: 0 3px 12px #00000008;
+  --font-heading: 'DM Sans', sans-serif;
+}
+body {
+  background: #fff;
+}
+h1 {
+  font-weight: 650;
+  letter-spacing: -1.2px;
+}
+h2,
+h3 {
+  font-weight: 600;
+}
+.panel,
+.stat-card {
+  box-shadow: none;
+  border-color: var(--line);
+  border-radius: 12px;
+}
+.button {
+  border-radius: 9px;
+  font-weight: 550;
+}
+.button.primary {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+  box-shadow: none;
+}
+.button.primary:hover {
+  background: #333;
+}
+.button.secondary {
+  background: #fff;
+  color: #222;
+  border: 1px solid var(--line);
+}
+.brand,
+.brand-period {
+  color: #111;
+}
+.brand-mark {
+  background: #111;
+  color: #fff;
+  border-radius: 9px;
+  transform: none;
+}
+.brand-mark svg {
+  transform: none;
+}
+.brand-mark::after {
+  content: 'c';
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -2px;
+  padding-right: 3px;
+}
+.brand-mark > svg {
+  display: none;
+}
+.sidebar,
+.sidebar-bottom {
+  background: #fff;
+}
+.sidebar-note {
+  display: none;
+}
+.topbar {
+  background: #fff;
+  height: 72px;
+}
+.topbar-search {
+  color: #666;
+}
+.main-content {
+  padding: 28px 32px;
+}
+.page-heading .eyebrow {
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.page-heading h1 {
+  font-size: 30px;
+}
+.pulse-section-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 18px 32px 0;
+}
+.pulse-section-nav button {
+  color: #666;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  background: #f7f7f7;
+}
+.pulse-section-nav button[aria-current] {
+  color: #fff;
+  background: #111;
+}
+.pulse-overview {
+  display: grid;
+  gap: 22px;
+}
+.pulse-overview .page-heading {
+  margin-bottom: 0;
+}
+.pulse-agenda-toolbar,
+.pulse-agenda-toolbar > div {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.pulse-agenda-toolbar input {
+  width: auto;
+  max-width: 100%;
+}
+.pulse-date-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+.pulse-date-strip button {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 10px;
+  display: grid;
+  gap: 7px;
+  padding: 12px 4px;
+  color: #666;
+}
+.pulse-date-strip strong {
+  font-size: 23px;
+  color: #111;
+}
+.pulse-date-strip button[aria-pressed='true'] {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+.pulse-date-strip button[aria-pressed='true'] strong {
+  color: #fff;
+}
+.pulse-agenda-summary {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  color: #666;
+  font-size: 12px;
+}
+.pulse-agenda-summary strong {
+  color: #111;
+  font-size: 17px;
+  margin-right: 4px;
+}
+.pulse-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+.pulse-lane {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.pulse-lane-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0 10px;
+  border-bottom: 1px solid var(--line);
+}
+.pulse-lane-heading h2 {
+  font-size: 13px;
+}
+.pulse-lane-heading > span {
+  background: #f3f3f3;
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 11px;
+}
+.pulse-appointment {
+  display: grid;
+  gap: 18px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  background: #fff;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.pulse-appointment:hover {
+  border-color: #888;
+  background: #fafafa;
+}
+.pulse-lane:first-child .pulse-appointment {
+  background: #f4f4f4;
+}
+.pulse-card-time {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pulse-card-time strong {
+  font-size: 26px;
+  letter-spacing: -1px;
+  color: #111;
+}
+.pulse-appointment h3 {
+  font-size: 15px;
+}
+.pulse-appointment p {
+  color: #666;
+  font-size: 12px;
+  margin-top: 5px;
+}
+.pulse-card-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: #666;
+}
+.pulse-card-footer > span:first-child {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}
+.pulse-appointment .badge {
+  justify-self: start;
+}
+.pulse-lane .empty-state {
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 25px 15px;
+}
+.pulse-lane .empty-icon {
+  display: none;
+}
+.pulse-lane .empty-state h3 {
+  font-size: 13px;
+}
+.pulse-lane .empty-state p {
+  font-size: 12px;
+}
+.pulse-overview > .button {
+  justify-self: start;
+}
+.pulse-customer-home {
+  display: grid;
+  gap: 28px;
+}
+.pulse-customer-heading {
+  max-width: 680px;
+  display: grid;
+  gap: 12px;
+}
+.pulse-customer-heading h1 {
+  font-size: 36px;
+  line-height: 1.15;
+  max-width: 490px;
+}
+.pulse-customer-heading p {
+  color: #666;
+}
+.pulse-last-visit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  background: #fafafa;
+}
+.pulse-last-visit h2 {
+  font-size: 21px;
+  margin: 8px 0;
+}
+.pulse-last-visit .booking-navigation {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+.pulse-store-sign {
+  min-height: 145px;
+  background: #f4f4f4;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 18px;
+  color: #333;
+}
+.pulse-store-sign span {
+  font-size: 20px;
+  font-weight: 550;
+  letter-spacing: -0.5px;
+}
+.pulse-store-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #666;
+}
+.discovery-card .button {
+  justify-self: start;
+}
+.discovery-page > .field {
+  max-width: 480px;
+}
+.employee-space {
+  max-width: 1200px;
+}
+.employee-space > header {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.employee-space .tabs {
+  justify-self: start;
+}
+.employee-appointment {
+  margin: 0;
+}
+.login-story {
+  background: #fafafa;
+  border-right: 1px solid var(--line);
+}
+.login-story-content h1 em {
+  font-style: normal;
+  color: #111;
+}
+.login-preview {
+  background: #fff;
+  box-shadow: none;
+}
+.login-help-links {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+body .venue-page {
+  --venue-ink: #111;
+  --venue-green: #111;
+  --venue-muted: #666;
+  background: #fff;
+}
+body .venue-gallery-empty,
+body .venue-popular-item {
+  background: #f7f7f7;
+}
+body .venue-cover-art > svg,
+body .venue-cover-art::after {
+  display: none;
+}
+body .venue-cover-art > strong {
+  color: #111;
+}
+@media (min-width: 761px) {
+  .sidebar {
+    width: 76px;
+    padding: 24px 10px 0;
+  }
+  .sidebar > .brand {
+    justify-content: center;
+    padding: 0 0 22px;
+  }
+  .sidebar .brand-wordmark,
+  .sidebar .business-switch,
+  .sidebar .nav-label,
+  .sidebar .nav-item > span,
+  .sidebar-profile > div {
+    display: none;
+  }
+  .sidebar .nav-group {
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .sidebar .nav-item {
+    justify-content: center;
+    padding: 0;
+    height: 42px;
+    color: #666;
+  }
+  .sidebar .nav-item svg {
+    color: currentColor;
+  }
+  .sidebar .nav-item.active {
+    background: #ededed;
+    color: #111;
+  }
+  .sidebar-profile {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-bottom: 15px;
+    gap: 12px;
+  }
+  .workspace {
+    margin-left: 76px;
+    width: calc(100% - 76px);
+  }
+}
+@media (max-width: 1000px) {
+  .pulse-board {
+    gap: 12px;
+  }
+  .pulse-appointment {
+    padding: 15px;
+  }
+  .pulse-last-visit {
+    display: grid;
+  }
+}
+@media (max-width: 760px) {
+  .main-content {
+    padding: 22px 18px;
+  }
+  .pulse-section-nav {
+    padding: 15px 18px 0;
+    gap: 6px;
+  }
+  .pulse-section-nav button {
+    font-size: 11px;
+    padding: 9px 10px;
+  }
+  .pulse-board {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 25px;
+  }
+  .pulse-date-strip {
+    gap: 5px;
+  }
+  .pulse-date-strip button {
+    padding: 10px 2px;
+    font-size: 11px;
+  }
+  .pulse-date-strip strong {
+    font-size: 20px;
+  }
+  .pulse-customer-heading h1 {
+    font-size: 30px;
+  }
+  .pulse-last-visit {
+    padding: 20px;
+  }
+  .pulse-agenda-toolbar {
+    align-items: flex-start;
+    gap: 15px;
+  }
+  .pulse-agenda-summary {
+    gap: 14px;
+  }
+  .discovery-page > .field {
+    max-width: none;
+  }
+  .employee-space {
+    padding: 22px 18px;
+  }
+  .topbar {
+    padding: 0 18px;
+  }
+  .page-heading h1 {
+    font-size: 27px;
+  }
+}

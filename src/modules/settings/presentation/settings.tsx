@@ -1,4 +1,9 @@
 'use client';
+import { TimezoneField } from '@/modules/shared/presentation/timezone';
+import { ReminderModelsEditor } from '@/modules/workspace/presentation/reminder-models';
+import { IdentityInput } from '@/modules/identity/presentation/identity-input';
+import { WeeklyHours, hoursFromForm } from '@/modules/shared/presentation/weekly-hours';
+import { EmailVerification } from '@/modules/identity/presentation/email-verification';
 import {
   Field,
   PageHeading,
@@ -18,6 +23,14 @@ import {
   Smartphone,
 } from 'lucide-react';
 import { useState } from 'react';
+import {
+  BusinessAddressFields,
+  addressFromForm,
+} from '@/modules/shared/presentation/business-address-fields';
+import { MediaEditor, mediaFromForm } from '@/modules/shared/presentation/media-editor';
+import { RecommendationPanel } from '@/modules/feedback/presentation/reputation';
+import { PaymentsSettings } from './payments-settings';
+import { ProfessionalsSettings } from './professionals-settings';
 export function SettingsPage(props: SectionProps) {
   const [busy, setBusy] = useState(false);
   const settings = props.data.settings;
@@ -28,6 +41,16 @@ export function SettingsPage(props: SectionProps) {
         title="Configurações"
         description="Pequenos ajustes para uma rotina que funciona para você."
       />
+      <div className="settings-plans-first"><PaymentsSettings {...props} view="plans" /></div>
+      {settings.setupComplete === false && (
+        <section className="panel setup-welcome">
+          <h2>Vamos preparar sua loja?</h2>
+          <p>
+            Confira endereço, fotos e horários e salve as configurações. Depois, cadastre os
+            serviços e profissionais pelo menu.
+          </p>
+        </section>
+      )}
       <form
         className="settings-layout"
         onSubmit={async (event) => {
@@ -39,17 +62,20 @@ export function SettingsPage(props: SectionProps) {
               'settings',
               'PATCH',
               {
+                address: addressFromForm(form),
+                media: mediaFromForm(form),
+                phone: text(form, 'phone'),
+                description: text(form, 'description'),
+                setupComplete: true,
                 name: text(form, 'name'),
                 businessName: text(form, 'businessName'),
-                timezone: 'America/Sao_Paulo',
+                timezone: text(form, 'timezone'),
                 completionMode: text(form, 'completionMode'),
                 payOnAppointment: form.has('payOnAppointment'),
                 payOnDelivery: form.has('payOnDelivery'),
                 bankAccount: text(form, 'bankAccount'),
                 pixKey: text(form, 'pixKey'),
-                openingHour: number(form, 'openingHour'),
-                closingHour: number(form, 'closingHour'),
-                workDays: form.getAll('workDays').map(Number),
+                ...hoursFromForm(form),
               },
               'Seu espaço foi atualizado.',
             );
@@ -61,6 +87,7 @@ export function SettingsPage(props: SectionProps) {
         }}
       >
         <div className="settings-main">
+          <section className="panel settings-panel"><h2>Horários do espaço</h2><TimezoneField value={settings.timezone} /></section>
           <section className="panel settings-panel">
             <div className="settings-section-heading">
               <span className="stat-icon sage">
@@ -73,28 +100,44 @@ export function SettingsPage(props: SectionProps) {
             </div>
             <div className="form-row">
               <Field label="Seu nome">
-                <input
+                <IdentityInput kind="name"
                   name="name"
                   required
                   defaultValue={settings.name}
-                  minLength={2}
-                  maxLength={100}
                 />
               </Field>
               <Field label="Nome do negócio">
-                <input
+                <IdentityInput kind="businessName"
                   name="businessName"
                   required
                   defaultValue={settings.businessName}
-                  minLength={2}
-                  maxLength={100}
                 />
               </Field>
             </div>
-            <Field label="Código da loja" hint="Compartilhe esse código com seus clientes.">
-              <input readOnly value={settings.slug} />
+            <Field label="Telefone do estabelecimento">
+              <IdentityInput kind="phone"
+                name="phone"
+                type="tel"
+                required
+                defaultValue={settings.phone || props.data.user.phone}
+              />
             </Field>
+            <Field label="Sobre o estabelecimento">
+              <textarea
+                name="description"
+                rows={3}
+                maxLength={2000}
+                defaultValue={settings.description || ''}
+              />
+            </Field>
+            <BusinessAddressFields initial={settings.address} />
+            <p className="form-note">
+              Separe as imagens do ambiente em Espaço de trabalho e os resultados dos serviços em
+              Portfólio. A primeira imagem de cada grupo será o destaque.
+            </p>
+            <MediaEditor initial={settings.media} categorize />
           </section>
+          <ProfessionalsSettings {...props} />
           <section className="panel settings-panel">
             <div className="settings-section-heading">
               <span className="stat-icon sand">
@@ -105,43 +148,7 @@ export function SettingsPage(props: SectionProps) {
                 <p>Seu tempo tem seu próprio ritmo.</p>
               </div>
             </div>
-            <div className="form-row">
-              <Field label="Abertura (hora)">
-                <input
-                  type="number"
-                  name="openingHour"
-                  defaultValue={settings.openingHour}
-                  min={0}
-                  max={23}
-                  required
-                />
-              </Field>
-              <Field label="Fechamento (hora)">
-                <input
-                  type="number"
-                  name="closingHour"
-                  defaultValue={settings.closingHour}
-                  min={1}
-                  max={24}
-                  required
-                />
-              </Field>
-            </div>
-            <Field label="Dias de atendimento">
-              <div className="weekday-options">
-                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((name, index) => (
-                  <label key={name}>
-                    <input
-                      type="checkbox"
-                      name="workDays"
-                      value={index}
-                      defaultChecked={settings.workDays.includes(index)}
-                    />
-                    <span>{name}</span>
-                  </label>
-                ))}
-              </div>
-            </Field>
+            <WeeklyHours initial={settings} />
             <Field label="Finalizar atendimentos">
               <select name="completionMode" defaultValue={settings.completionMode}>
                 <option value="manual">Manualmente — eu decido quando finalizar</option>
@@ -211,36 +218,33 @@ export function SettingsPage(props: SectionProps) {
           </div>
         </div>
         <aside className="settings-aside">
-          <section className="panel integration-card">
-            <span className="stat-icon sage">
-              <CreditCard size={23} />
-            </span>
-            <h3>Pagamentos online</h3>
-            <span className="integration-status">Etapa futura</span>
-            <p>
-              O botão de pagar pela plataforma ficará oculto até configurar e validar o gateway,
-              além dos dados bancários e Pix.
-            </p>
-          </section>
+          <RecommendationPanel revision={props.revision} />
+          <EmailVerification verified={props.data.user.emailVerified} />
           <section className="panel integration-card">
             <span className="stat-icon sage">
               <Smartphone size={23} />
             </span>
-            <h3>WhatsApp Business</h3>
-            <span className="integration-status">Etapa futura</span>
+            <h3>Contato pelo WhatsApp</h3>
+            <span className="integration-status">Conversa manual</span>
             <p>
-              Os envios automáticos serão habilitados após a validação da Meta. Por enquanto, você
-              pode abrir conversas e enviar mensagens manualmente.
+              Abra a conversa pelo telefone do cliente na ficha ou no atendimento.
+              Você confere e envia a mensagem no WhatsApp, sem integração ou envio automático.
             </p>
           </section>
           <div className="info-note">
             <Globe size={19} />
             <p>
-              Todos os horários seguem Brasília. Sua semana começa no domingo e termina no sábado.
+              Os horários seguem o fuso configurado neste espaço. O calendário exibe de segunda a domingo; os
+              indicadores semanais contabilizam de domingo a sábado.
             </p>
           </div>
         </aside>
       </form>
+      <div className="settings-followup">
+        <ReminderModelsEditor {...props} />
+        <div className="settings-payments"><PaymentsSettings {...props} /></div>
+      </div>
     </>
   );
 }
+

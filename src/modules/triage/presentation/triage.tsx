@@ -1,5 +1,7 @@
 'use client';
-import { day } from '@/modules/shared/domain/format';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
+
 import type { Triage } from '@/modules/shared/domain/models';
 import {
   Avatar,
@@ -14,6 +16,7 @@ import {
 } from '@/modules/shared/presentation/ui';
 import { Check, X } from 'lucide-react';
 export function TriagePage(props: SectionProps) {
+  const { day } = useTimeFormats();
   const resource = useResource<Triage[]>('triage', props.revision);
   const pending = resource.value?.filter((t) => t.status === 'pending') || [];
   const history = resource.value?.filter((t) => t.status !== 'pending') || [];
@@ -116,3 +119,4 @@ export function TriagePage(props: SectionProps) {
     </>
   );
 }
+

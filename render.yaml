@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: compasso-web
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: BACKEND_URL
+        sync: false
+
+      - key: BFF_PROXY_SECRET
+        sync: false

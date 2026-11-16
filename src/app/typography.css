@@ -1,0 +1,745 @@
+/* Compasso editorial identity: a restrained retro serif for titles, clear sans for work. */
+:root {
+  --font-heading:
+    Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  --font-body:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --space-panel: 24px;
+  --space-section: 24px;
+}
+body {
+  font-size: 15px;
+  line-height: 1.6;
+}
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.brand-name,
+.brand-lockup {
+  font-family: var(--font-body);
+}
+.page-heading {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: var(--space-section);
+}
+.page-heading h1,
+.main-content .page-heading h1,
+.solo-main .page-heading h1,
+.employee-content .page-heading h1 {
+  font-family: var(--font-heading);
+  font-size: clamp(30px, 2.5vw, 40px);
+  font-weight: 400;
+  line-height: 1.16;
+  letter-spacing: -0.035em;
+}
+.page-heading p,
+.main-content .page-heading p,
+.solo-main .page-heading p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted);
+  margin-top: 9px;
+  max-width: 72ch;
+}
+.page-heading .eyebrow {
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  line-height: 1.6;
+}
+.panel-heading {
+  padding: var(--space-panel);
+  gap: 16px;
+  align-items: center;
+}
+.panel-heading h2,
+.solo-main .panel-heading h2,
+.main-content .panel-heading h2,
+.settings-panel > h2 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+.panel-heading p,
+.main-content .panel-heading p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-top: 7px;
+}
+.settings-panel {
+  padding: var(--space-panel);
+  gap: 20px;
+}
+.settings-panel > .panel-heading,
+.solo-main .settings-panel > .panel-heading {
+  padding: 0;
+  margin: 0;
+  gap: 16px;
+}
+.settings-panel > p {
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 76ch;
+}
+.settings-panel > h1,
+.solo-billing > h1 {
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: 400;
+}
+.agenda-chart-card h3,
+.solo-main .agenda-chart-card h3 {
+  font-family: var(--font-heading);
+  font-size: 21px;
+  line-height: 1.3;
+  font-weight: 400;
+}
+.dialog-header h2 {
+  font-family: var(--font-heading);
+  font-size: 27px;
+  line-height: 1.25;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+.dialog-header p {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.form-grid .field > span,
+.settings-panel .field > span {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 550;
+}
+.form-note,
+.settings-panel small {
+  line-height: 1.6;
+}
+.order-line strong,
+.main-content .order-line strong,
+.solo-main .order-line strong {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.order-line small,
+.main-content .order-line small,
+.solo-main .order-line small {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.plan-price,
+.money-stat,
+.agenda-metrics strong,
+.wallet-main-card > div > strong,
+.stat-card > strong {
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.solo-greeting .customer-greeting {
+  font-family: var(--font-heading);
+  font-size: 27px;
+  line-height: 1.25;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+.solo-private-note > .text-button {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.solo-greeting small {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.solo-sidebar h2 {
+  font-family: var(--font-heading);
+  font-size: 23px;
+  font-weight: 400;
+}
+.solo-sidebar nav button,
+.solo-menu-nav button {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.solo-main {
+  width: 100%;
+  max-width: none;
+  justify-self: stretch;
+}
+@media (max-width: 800px) {
+  :root {
+    --space-panel: 18px;
+    --space-section: 20px;
+  }
+  .page-heading h1,
+  .main-content .page-heading h1,
+  .solo-main .page-heading h1,
+  .employee-content .page-heading h1 {
+    font-size: 30px;
+    line-height: 1.18;
+    letter-spacing: -0.03em;
+  }
+  .page-heading p,
+  .main-content .page-heading p,
+  .solo-main .page-heading p {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .panel-heading h2,
+  .solo-main .panel-heading h2,
+  .main-content .panel-heading h2,
+  .settings-panel > h2 {
+    font-size: 21px;
+    line-height: 1.3;
+  }
+  .solo-greeting .customer-greeting {
+    font-size: 23px;
+  }
+  .solo-main .settings-panel > .panel-heading {
+    padding: 0;
+    gap: 12px;
+  }
+  .settings-panel > h1,
+  .solo-billing > h1 {
+    font-size: 30px;
+  }
+  .solo-main .settings-panel {
+    gap: 18px;
+  }
+  .form-row {
+    min-width: 0;
+  }
+}
+
+/* Grid children must allow their own table scroller to shrink. */
+.solo-main > *,
+.main-content > *,
+.employee-content > * {
+  min-width: 0;
+}
+.table-scroll {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.finance-ledger-tabs {
+  display: flex;
+  width: calc(100% - 44px);
+  max-width: calc(100% - 44px);
+}
+
+/* A greeting is part of the page, without a separate card. */
+.solo-main .solo-private-note {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.solo-main .solo-private-note > .text-button {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.solo-main .staff-calendar {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.solo-topbar-logout {
+  margin-left: auto;
+  min-height: 44px;
+  padding: 8px;
+}
+
+.solo-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+}
+.solo-menu-footer {
+  margin-top: auto;
+  display: grid;
+  gap: 12px;
+  padding-top: 20px;
+}
+.solo-menu-footer .button {
+  width: 100%;
+}
+.solo-menu-footer small {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.solo-drawer-panel {
+  min-height: 100dvh;
+}
+
+.solo-main .staff-calendar-main > .page-heading {
+  margin-bottom: 18px;
+  gap: 12px;
+}
+@media (max-width: 800px) {
+  .solo-main .staff-calendar-main > .page-heading {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .solo-main .staff-calendar-main > .page-heading > .button {
+    width: auto;
+    min-height: 44px;
+  }
+  .solo-main .staff-calendar-toolbar {
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+}
+
+/* Option groups share the available row instead of leaving unused columns. */
+.solo-registration-tabs {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  align-self: stretch;
+  justify-self: stretch;
+  gap: 4px;
+}
+.solo-registration-tabs button {
+  flex: 1 1 96px;
+}
+/* Shared sizing for option bars across store, Solo, staff and public pages. */
+.tabs,
+.toolbar .tabs,
+.appointments-toolbar .tabs,
+.agenda-periods,
+.calendar-view-switch,
+.venue-category-tabs,
+.venue-section-tabs,
+.store-gallery-tabs,
+.storefront-tabs {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 100%;
+  align-self: stretch;
+  justify-self: stretch;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.tabs > button,
+.appointments-toolbar .tabs > button,
+.agenda-periods > button,
+.calendar-view-switch > button,
+.venue-category-tabs > button,
+.store-gallery-tabs > button,
+.storefront-tabs > button,
+.venue-section-tabs > a {
+  flex: 1 1 96px;
+  min-width: 0;
+  justify-content: center;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.finance-ledger-tabs {
+  width: 100%;
+  max-width: 100%;
+}
+@media (max-width: 800px) {
+  .tabs {
+    padding: 4px;
+  }
+  .tabs > button,
+  .agenda-periods > button,
+  .calendar-view-switch > button,
+  .venue-category-tabs > button,
+  .store-gallery-tabs > button,
+  .venue-section-tabs > a {
+    min-height: 44px;
+  }
+  .calendar-view-switch > button {
+    padding-inline: 14px;
+  }
+}
+@media (max-width: 380px) {
+  .admin-shell .topbar {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+  .admin-shell .breadcrumb {
+    gap: 8px;
+    min-width: 0;
+  }
+  .admin-shell .admin-mobile-brand .brand-lockup {
+    font-size: 18px;
+  }
+  .admin-shell .topbar-actions {
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .admin-shell .topbar-actions > .button {
+    padding: 8px;
+    gap: 4px;
+    font-size: 12px;
+  }
+}
+.toolbar > .search-field {
+  min-width: 0;
+  max-width: 100%;
+}
+.toolbar .search-field input {
+  min-width: 0;
+  flex: 1;
+  max-width: 100%;
+}
+.customer-header.authenticated > .customer-navigation {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
+  justify-self: start;
+  align-items: center;
+}
+.customer-header.authenticated .customer-navigation > button {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+/* Client follow-up, using the same panels and controls as the agenda. */
+.care-page-body {
+  margin-top: 20px;
+  min-width: 0;
+}
+.care-action-summary {
+  padding: 18px 24px;
+  margin-bottom: 20px;
+  display: grid;
+  gap: 12px;
+}
+.care-action-summary h2 {
+  font-size: 22px;
+}
+.care-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+.care-stat-grid > div {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  min-width: 0;
+}
+.care-stat-grid small,
+.care-stat-grid strong {
+  display: block;
+}
+.care-stat-grid strong {
+  font-family: var(--font-body);
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+.care-stat-grid > button {
+  white-space: normal;
+  text-align: left;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+.care-client-summary,
+.care-reminder,
+.care-return-form {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.care-client-summary h3,
+.care-reminder h3 {
+  font-size: 22px;
+}
+.care-client-summary p,
+.care-return-form p {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.care-return-form > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.care-return-form[open] > summary {
+  margin-bottom: 12px;
+}
+.care-client-trend {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 140px;
+}
+.care-client-trend > div {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.care-client-trend i {
+  width: 65%;
+  background: var(--accent);
+  border-radius: 4px 4px 0 0;
+}
+.care-client-trend small {
+  font-size: 11px;
+}
+.care-tokens,
+.care-slot-list,
+.care-wait-entry {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.care-tokens > .button {
+  padding: 7px 10px;
+  font-size: 12px;
+  min-height: 36px;
+}
+.care-message-preview {
+  padding: 14px;
+  background: var(--background);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.care-preserve-lines {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.care-list-row {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-block: 16px;
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+.care-list-row > div {
+  min-width: 0;
+}
+.care-list-row strong {
+  overflow-wrap: anywhere;
+}
+.care-list-row p {
+  margin: 6px 0;
+}
+.care-wait-entry {
+  flex-direction: column;
+  border: 1px solid var(--line);
+  padding: 16px;
+  border-radius: 10px;
+}
+.care-slot-list {
+  flex-direction: column;
+}
+.care-slot-list > div {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-block: 12px;
+}
+.staff-calendar-event.agenda-block-event {
+  background: repeating-linear-gradient(
+    135deg,
+    #e8e3dc,
+    #e8e3dc 6px,
+    #f3f0eb 6px,
+    #f3f0eb 12px
+  );
+  border-color: #85796a;
+  color: #493f35;
+}
+@media (max-width: 800px) {
+  .care-action-summary {
+    padding: 16px;
+  }
+  .care-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .care-action-summary .care-stat-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .care-stat-grid strong {
+    font-size: 20px;
+  }
+  .care-client-summary,
+  .care-reminder,
+  .care-return-form {
+    padding: 12px;
+  }
+  .care-list-row .row-actions,
+  .care-list-row .button {
+    max-width: 100%;
+    white-space: normal;
+  }
+  .care-page-body .panel-heading {
+    flex-wrap: wrap;
+  }
+  .care-wait-entry .row-actions {
+    flex-wrap: wrap;
+  }
+}
+
+.care-service-production {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+.care-service-production > div > div {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.care-service-production meter {
+  width: 100%;
+  height: 16px;
+  accent-color: var(--accent);
+}
+.care-service-production strong {
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+@media (max-width: 800px) {
+  .care-page-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    gap: 4px;
+  }
+  .care-page-tabs > button {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    padding: 10px 5px;
+    white-space: normal;
+    text-align: center;
+    font-size: 12px;
+  }
+}
+.care-template-excerpt {
+  max-width: 70ch;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 800px) {
+  .care-page-tabs {
+    align-items: stretch;
+  }
+  .care-page-tabs > button {
+    min-height: 48px;
+    height: 100%;
+  }
+}
+/* Keep settings sections on the same column, including independent editors. */
+.settings-followup {
+  width: calc(100% - 304px);
+  min-width: 0;
+  display: grid;
+  gap: 24px;
+  margin-top: 24px;
+}
+.settings-followup .settings-payments { margin-top: 0; }
+.settings-followup .panel-heading { padding: 0; margin: 0; min-height: 0; gap: 16px; flex-wrap: wrap; }
+.settings-followup .care-list-row { gap: 20px; flex-wrap: wrap; }
+.settings-followup .row-actions { gap: 10px; flex-wrap: wrap; }
+.settings-payments .integration-card { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding: 25px; }
+.settings-payments .integration-card :is(h3,p) { margin: 0; }
+.settings-payments .integration-card p { max-width: 65ch; line-height: 1.7; }
+.settings-save { gap: 16px; flex-wrap: wrap; }
+.plan-manage { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 20px; }
+.sidebar-bottom .workspace-switcher { margin: 8px 0 14px; width: 100%; }
+@media (min-width: 1051px) and (max-width: 1250px) {
+  .settings-followup { width: calc(100% - 259px); }
+}
+@media (max-width: 1050px) {
+  .settings-followup { width: 100%; }
+}
+.account-dropdown { position: relative; }
+.account-dropdown > summary { cursor: pointer; list-style: none; }
+.account-dropdown > summary::-webkit-details-marker { display: none; }
+.account-dropdown[open] > summary > svg { transform: rotate(180deg); }
+.account-dropdown-options { position: absolute; right: 0; top: calc(100% + 10px); z-index: 60; display: grid; gap: 4px; min-width: 200px; padding: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface, #fff); box-shadow: 0 12px 32px #1522381a; }
+.account-dropdown-options button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px; border: 0; border-radius: 8px; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.account-dropdown-options button:hover, .account-dropdown-options button:focus-visible { background: var(--accent-soft); }
+
+/* Preserve intrinsic scrolling only inside the calendar/table, never on the whole page. */
+:is(.staff-calendar, .staff-calendar-main, .staff-calendar-toolbar, .staff-calendar-pickers, .field, .form-row) { min-width: 0; }
+:is(.field, .staff-calendar-pickers label) > :is(input:not([type=checkbox]):not([type=radio]), select, textarea) {
+  width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box;
+}
+input:is([type=date], [type=month], [type=datetime-local], [type=time]) {
+  min-width: 0; max-width: 100%; box-sizing: border-box;
+}
+input::-webkit-date-and-time-value { min-width: 0; text-align: left; }
+.month-picker { position: relative; display: block; width: 100%; min-width: 0; max-width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink, #253047); box-sizing: border-box; }
+.month-picker > span { display: block; min-width: 0; overflow-wrap: anywhere; }
+.month-picker > input[type=month] { position: absolute; inset: 0; width: 100%; height: 100%; min-width: 0; max-width: 100%; margin: 0; padding: 0; opacity: 0; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.month-picker:focus-within { outline: 2px solid var(--accent, #2323aa); outline-offset: 2px; }
+:is(h1,h2,h3,h4,h5,h6,p,dt,dd,th,td,figcaption,option)::first-letter { text-transform: uppercase; }
+.calendar-view-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
+.calendar-view-switch > button { min-width: 0; padding-inline: 8px; }
+:is(.solo-price-grid, .store-plan-grid, .plan-usage) { display: flex; flex-wrap: wrap; width: 100%; }
+:is(.solo-price-grid, .store-plan-grid) > * { flex: 1 1 260px; min-width: 0; max-width: 100%; }
+.plan-usage > * { flex: 1 1 180px; min-width: 0; }
+.store-plan > .button { width: 100%; margin-top: auto; }
+:is(.catalog-grid, .discovery-page > .catalog-grid, .stats-grid, .wallet-grid) {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+}
+.care-stat-grid { display: flex; flex-wrap: wrap; }
+.care-stat-grid > * { flex: 1 1 140px; }
+.agenda-pies { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+@media (max-width: 800px) {
+  .page-heading { flex-wrap: wrap; }
+  .page-heading > :first-child { min-width: 0; }
+  .page-heading > :is(.row-actions, .button) { width: 100%; }
+  .page-heading > .row-actions { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; }
+  .page-heading > .row-actions > .button { width: 100%; min-width: 0; white-space: normal; justify-content: center; }
+  :is(.panel-heading, .toolbar) > .row-actions { width: 100%; flex-wrap: wrap; }
+  :is(.panel-heading, .toolbar) > .row-actions > .button { flex: 1 1 0; min-width: 0; white-space: normal; }
+  .staff-calendar-toolbar { width: 100%; align-items: stretch; }
+  .staff-calendar-period { width: 100%; min-width: 0; grid-template-columns: 36px minmax(0, 1fr) 36px auto; }
+  .staff-calendar-period > strong { min-width: 0; line-height: 1.4; }
+  .solo-main .staff-calendar-pickers { width: 100%; grid-template-columns: minmax(0, 1fr); }
+  .staff-calendar-pickers :is(input, select) { min-height: 44px; font-size: 16px; }
+  .month-picker { min-height: 44px; font-size: 16px; }
+  .care-list-row > .row-actions { width: 100%; display: flex; flex-wrap: wrap; }
+  .care-list-row > .row-actions > .button { flex: 1 1 140px; min-width: 0; }
+  .plan-manage > :is(.button, a) { flex: 1 1 140px; min-width: 0; text-align: center; justify-content: center; }
+}
+
