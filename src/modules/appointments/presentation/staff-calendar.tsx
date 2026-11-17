@@ -232,7 +232,7 @@ export function StaffCalendar({ data, onOpen, onNew, onManageBlocks }: Props) {
                 className={`${key.startsWith(month) ? "" : "outside"} ${count ? "has-appointments" : ""}`}
                 aria-pressed={key === selectedDate}
                 aria-current={key === today ? "date" : undefined}
-                aria-label={`${calendarLabel(key)}; ${count} ${count === 1 ? "atendimento" : "atendimentos"}. Abrir dia`}
+                aria-label={`${calendarLabel(key)}; ${count} ${count === 1 ? "Atendimento" : "Atendimentos"}. Abrir dia`}
                 onClick={() => selectDate(key, "Dia")}
               >
                 {dateFromKey(key).getUTCDate()}
@@ -331,33 +331,6 @@ export function StaffCalendar({ data, onOpen, onNew, onManageBlocks }: Props) {
         </div>
         </div>
         <div className="staff-calendar-meta">
-          <div className="calendar-legend">
-            {professionals.map(([id, name], i) => (
-              <span key={id}>
-                <b
-                  className={
-                    [
-                      "pastel-mint",
-                      "pastel-blue",
-                      "pastel-lavender",
-                      "pastel-cream",
-                    ][i % 4]
-                  }
-                />
-                {name}
-              </span>
-            ))}
-            {data.settings.workspaceMode !== "solo" && (
-              <span>
-                <b className="pastel-pink" />
-                Em triagem
-              </span>
-            )}
-            <span>
-              <b className="pastel-neutral" />
-              Concluído
-            </span>
-          </div>
           {!employee && data.settings.workspaceMode !== "solo" && (
             <select
               aria-label="Filtrar agenda por profissional"
@@ -591,7 +564,7 @@ export function StaffCalendar({ data, onOpen, onNew, onManageBlocks }: Props) {
         <div className="staff-calendar-summary" aria-live="polite">
           <span>
             <strong>{periodAppointments.length}</strong>{" "}
-            {periodAppointments.length === 1 ? "atendimento" : "atendimentos"}{" "}
+            {periodAppointments.length === 1 ? "Atendimento" : "Atendimentos"}{" "}
             {view === "Mês"
               ? "no mês"
               : view === "Semana"
@@ -602,7 +575,7 @@ export function StaffCalendar({ data, onOpen, onNew, onManageBlocks }: Props) {
             <strong>
               {periodAppointments.filter((a) => a.status === "pending").length}
             </strong>{" "}
-            em triagem
+            Em triagem
           </span>
         </div>
       </div>
