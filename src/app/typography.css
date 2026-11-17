@@ -721,6 +721,33 @@ h4 {
 .account-dropdown-options button:hover, .account-dropdown-options button:focus-visible { background: var(--accent-soft); }
 
 /* Preserve intrinsic scrolling only inside the calendar/table, never on the whole page. */
+@media (max-width: 800px) {
+  .staff-calendar-controls {
+    gap: 8px;
+    padding: 8px 0;
+    max-height: none;
+    overflow: visible;
+  }
+  .solo-main .staff-calendar-controls .staff-calendar-toolbar,
+  .staff-calendar-controls .staff-calendar-toolbar { gap: 8px; margin-bottom: 0; }
+  .staff-calendar-controls .calendar-view-switch { padding: 3px; }
+  .staff-calendar-controls .calendar-view-switch button { min-height: 36px; padding: 6px 4px; }
+  .staff-calendar-controls .staff-calendar-pickers,
+  .solo-main .staff-calendar-controls .staff-calendar-pickers {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px;
+  }
+  .staff-calendar-controls .staff-calendar-pickers label { gap: 4px; font-size: 11px; }
+  .staff-calendar-controls .staff-calendar-pickers :is(input, select),
+  .staff-calendar-controls .month-picker { min-height: 40px; padding: 7px; font-size: 14px; }
+  .staff-calendar-pan,
+  .solo-main .staff-calendar-pan {
+    max-height: max(240px, calc(100dvh - 280px));
+    overscroll-behavior: auto;
+    touch-action: pan-x pan-y;
+  }
+}
 :is(.staff-calendar, .staff-calendar-main, .staff-calendar-toolbar, .staff-calendar-pickers, .field, .form-row) { min-width: 0; }
 :is(.field, .staff-calendar-pickers label) > :is(input:not([type=checkbox]):not([type=radio]), select, textarea) {
   width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box;
