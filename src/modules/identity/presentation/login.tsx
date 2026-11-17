@@ -135,22 +135,22 @@ export function Login({ onLogin,signupMode }: { onLogin: () => Promise<void>;sig
         <small className="story-footer">FEITO PARA NEGÓCIOS QUE CUIDAM DE PESSOAS.</small>
       </section>
       <section className="login-form-section">
-        <div className={`login-form ${loginStores.length > 0 ? 'has-space-selection' : ''}`}>
+        <div className={`login-form ${loginStores.length > 0 ? 'has-space-selection' : ''}`} style={loginStores.length > 0 ? { maxWidth: 470 } : undefined}>
           {loginStores.length > 0 ? (
-            <div className="login-space-selection">
-              <span className="eyebrow">LOGIN CONFIRMADO</span>
-              <h2>Selecione o espaço</h2>
-              <p>Escolha o espaço que deseja abrir.</p>
-              <div className="workspace-choices">
+            <div className="login-space-selection" style={{ display: 'grid', gap: 0 }}>
+              <span className="eyebrow" style={{ marginBottom: 16, fontSize: 10, letterSpacing: '0.14em' }}>LOGIN CONFIRMADO</span>
+              <h2 style={{ margin: 0, fontSize: 'clamp(28px, 3vw, 34px)', lineHeight: 1.2 }}>Selecione o espaço</h2>
+              <p style={{ margin: '14px 0 0', lineHeight: 1.6 }}>Escolha o espaço que deseja abrir.</p>
+              <div className="workspace-choices" style={{ display: 'grid', gap: 18, marginTop: 32 }}>
                 {loginStores.map((store) => (
                   <button className="workspace-choice" type="button" key={store.slug} disabled={busy} onClick={() => void selectStore(store.slug)}>
                     <span><strong>{store.workspaceMode === 'solo' ? 'Minha agenda Solo' : 'Minha empresa'}</strong><small>{store.businessName}{store.city ? ` · ${store.city}/${store.state}` : ''}</small></span>
-                    <span className="login-space-action">Acessar <ArrowRight size={16} /></span>
+                    <span className="login-space-action" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0, whiteSpace: 'nowrap' }}>Acessar <ArrowRight size={16} /></span>
                   </button>
                 ))}
               </div>
               {error && <p className="error-message" role="alert">{error}</p>}
-              <button type="button" className="text-button" onClick={() => { pendingCredentials.current = null; setLoginStores([]); setError(''); }}>Voltar ao login</button>
+              <button type="button" className="text-button" style={{ justifySelf: 'start', marginTop: 28, minHeight: 40 }} onClick={() => { pendingCredentials.current = null; setLoginStores([]); setError(''); }}>Voltar ao login</button>
             </div>
           ) : onboarding ? (
             <GoogleOnboarding
