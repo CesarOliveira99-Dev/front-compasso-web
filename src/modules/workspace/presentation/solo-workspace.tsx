@@ -3,7 +3,7 @@ import { TimezoneField } from '@/modules/shared/presentation/timezone';
 import { ReminderModelsEditor } from "./reminder-models";
 import { ClientCarePage, FollowUpSummary } from './client-care';
 import { useEffect, useRef, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { CircleUserRound, LogOut, Menu, Settings, X } from "lucide-react";
 import { Greeting } from "@/modules/shared/presentation/greeting";
 import { api } from "@/modules/shared/infrastructure/api";
 import { money } from "@/modules/shared/domain/format";
@@ -378,12 +378,12 @@ function SoloAgendaName(props: SectionProps) {
   );
 }
 
-function SoloRegistrations(props: SectionProps) {
-  const [section, setSection] = useState("services");
+function SoloRegistrations(props: SectionProps & { initialSection?: string }) {
+  const [section, setSection] = useState(props.initialSection || "services");
   return (
     <>
       <PageHeading
-        title="Cadastros"
+        title={props.initialSection === "preferences" ? "Configurações" : "Cadastros"}
         description="Organize seus serviços, categorias e a aparência da sua agenda."
       />
       <div
@@ -609,12 +609,38 @@ export function SoloWorkspace(
             />
             <small>Sua agenda privada, no seu compasso.</small>
           </div>
-          <button className="text-button" onClick={() => navigate("billing")}>
-            Plano {subscribedPlan?.name || "Solo"}
-          </button>
+          <div className="solo-account-actions">
+            <button className="text-button" onClick={() => navigate("billing")}>
+              Plano {subscribedPlan?.name || "Solo"}
+            </button>
+            <details
+              className="account-dropdown solo-account-menu"
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.currentTarget.open = false;
+                  event.currentTarget.querySelector("summary")?.focus();
+                }
+              }}
+            >
+              <summary className="icon-button" aria-label="Abrir opções da conta" title="Conta e configurações">
+                <CircleUserRound size={21} />
+              </summary>
+              <div className="account-dropdown-options">
+                <button type="button" onClick={(event) => {
+                  event.currentTarget.closest("details")?.removeAttribute("open");
+                  navigate("settings");
+                }}><Settings size={17} />Configurações</button>
+                <button type="button" onClick={props.logout}><LogOut size={17} />Sair</button>
+              </div>
+            </details>
+          </div>
         </div>
         {page === "calendar" && <CalendarPage {...local} />}{" "}
         {page === "registrations" && <SoloRegistrations {...local} />}{" "}
+        {page === "settings" && <SoloRegistrations {...local} initialSection="preferences" />}{" "}
         {page === "clients" && <WorkspaceClients {...local} />}
         {page === "analytics" && (
           <>

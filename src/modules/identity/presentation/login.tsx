@@ -135,7 +135,7 @@ export function Login({ onLogin,signupMode }: { onLogin: () => Promise<void>;sig
         <small className="story-footer">FEITO PARA NEGÓCIOS QUE CUIDAM DE PESSOAS.</small>
       </section>
       <section className="login-form-section">
-        <div className="login-form">
+        <div className={`login-form ${loginStores.length > 0 ? 'has-space-selection' : ''}`}>
           {loginStores.length > 0 ? (
             <div className="login-space-selection">
               <span className="eyebrow">LOGIN CONFIRMADO</span>
@@ -145,7 +145,7 @@ export function Login({ onLogin,signupMode }: { onLogin: () => Promise<void>;sig
                 {loginStores.map((store) => (
                   <button className="workspace-choice" type="button" key={store.slug} disabled={busy} onClick={() => void selectStore(store.slug)}>
                     <span><strong>{store.workspaceMode === 'solo' ? 'Minha agenda Solo' : 'Minha empresa'}</strong><small>{store.businessName}{store.city ? ` · ${store.city}/${store.state}` : ''}</small></span>
-                    <span>Acessar →</span>
+                    <span className="login-space-action">Acessar <ArrowRight size={16} /></span>
                   </button>
                 ))}
               </div>
