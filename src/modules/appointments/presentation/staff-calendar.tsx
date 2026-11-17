@@ -43,7 +43,7 @@ export function StaffCalendar({ data, onOpen, onNew, onManageBlocks }: Props) {
   const [today, setToday] = useState(() => dateInZone(new Date(), timezone));
   const [selectedDate, setSelectedDate] = useState(today);
   const [month, setMonth] = useState(today.slice(0, 7));
-  const [view, setView] = useState<CalendarView>("Semana");
+  const [view, setView] = useState<CalendarView>("Dia");
   const [professional, setProfessional] = useState("");
   const employee = data.user.role === "employee";
   useEffect(() => {

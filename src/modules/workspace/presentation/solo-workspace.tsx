@@ -470,6 +470,34 @@ function SoloMenu({
   );
 }
 
+function SoloAccountMenu({ navigate, logout }: { navigate: (page: string) => void; logout: () => Promise<void> }) {
+  return (
+            <details
+              className="account-dropdown solo-account-menu"
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.currentTarget.open = false;
+                  event.currentTarget.querySelector("summary")?.focus();
+                }
+              }}
+            >
+              <summary className="icon-button" aria-label="Abrir opções da conta" title="Conta e configurações">
+                <CircleUserRound size={21} />
+              </summary>
+              <div className="account-dropdown-options">
+                <button type="button" onClick={(event) => {
+                  event.currentTarget.closest("details")?.removeAttribute("open");
+                  navigate("settings");
+                }}><Settings size={17} />Configurações</button>
+                <button type="button" onClick={logout}><LogOut size={17} />Sair</button>
+              </div>
+            </details>
+  );
+}
+
 export function SoloWorkspace(
   props: SectionProps & { logout: () => Promise<void> },
 ) {
@@ -542,6 +570,7 @@ export function SoloWorkspace(
           <Menu size={24} />
         </button>
         <Brand />
+        <SoloAccountMenu navigate={navigate} logout={props.logout} />
       </header>
       <dialog
         ref={drawer}
@@ -613,29 +642,7 @@ export function SoloWorkspace(
             <button className="text-button" onClick={() => navigate("billing")}>
               Plano {subscribedPlan?.name || "Solo"}
             </button>
-            <details
-              className="account-dropdown solo-account-menu"
-              onBlur={(event) => {
-                if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Escape") {
-                  event.currentTarget.open = false;
-                  event.currentTarget.querySelector("summary")?.focus();
-                }
-              }}
-            >
-              <summary className="icon-button" aria-label="Abrir opções da conta" title="Conta e configurações">
-                <CircleUserRound size={21} />
-              </summary>
-              <div className="account-dropdown-options">
-                <button type="button" onClick={(event) => {
-                  event.currentTarget.closest("details")?.removeAttribute("open");
-                  navigate("settings");
-                }}><Settings size={17} />Configurações</button>
-                <button type="button" onClick={props.logout}><LogOut size={17} />Sair</button>
-              </div>
-            </details>
+<SoloAccountMenu navigate={navigate} logout={props.logout} />
           </div>
         </div>
         {page === "calendar" && <CalendarPage {...local} />}{" "}

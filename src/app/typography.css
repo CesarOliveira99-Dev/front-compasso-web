@@ -260,6 +260,10 @@ h4 {
   text-underline-offset: 4px;
 }
 .solo-account-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+@media (max-width: 800px) {
+  .solo-account-actions > .solo-account-menu { display: none; }
+  .solo-mobile-topbar > .solo-account-menu { margin-left: auto; flex-shrink: 0; }
+}
 .solo-account-menu > summary { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); }
 .solo-account-menu > summary:hover, .solo-account-menu > summary:focus-visible { background: var(--accent-soft); }
 .login-form.has-space-selection { max-width: 470px; }
