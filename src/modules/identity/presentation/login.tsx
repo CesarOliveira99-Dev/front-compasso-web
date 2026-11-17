@@ -30,7 +30,24 @@ export function Login({ onLogin,signupMode }: { onLogin: () => Promise<void>;sig
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [onboarding, setOnboarding] = useState<GoogleOnboardingData | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
+  const pendingCredentials = useRef<{ email: string; password: string } | null>(null);
+  async function selectStore(slug: string) {
+    if (!pendingCredentials.current) return;
+    setBusy(true);
+    setError('');
+    try {
+      await api('auth/login', 'POST', {
+        ...pendingCredentials.current,
+        slug,
+      });
+      pendingCredentials.current = null;
+      await onLogin();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Não foi possível abrir este espaço.');
+    } finally {
+      setBusy(false);
+    }
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -53,6 +70,7 @@ export function Login({ onLogin,signupMode }: { onLogin: () => Promise<void>;sig
         },
       );
       if (result.status === 'store_selection_required') {
+        pendingCredentials.current = { email: String(form.get('email')), password: String(form.get('password')) };
         setLoginStores(result.stores || []);
         return;
       }
@@ -118,7 +136,23 @@ export function Login({ onLogin,signupMode }: { onLogin: () => Promise<void>;sig
       </section>
       <section className="login-form-section">
         <div className="login-form">
-          {onboarding ? (
+          {loginStores.length > 0 ? (
+            <div className="login-space-selection">
+              <span className="eyebrow">LOGIN CONFIRMADO</span>
+              <h2>Selecione o espaço</h2>
+              <p>Escolha o espaço que deseja abrir.</p>
+              <div className="workspace-choices">
+                {loginStores.map((store) => (
+                  <button className="workspace-choice" type="button" key={store.slug} disabled={busy} onClick={() => void selectStore(store.slug)}>
+                    <span><strong>{store.workspaceMode === 'solo' ? 'Minha agenda Solo' : 'Minha empresa'}</strong><small>{store.businessName}{store.city ? ` · ${store.city}/${store.state}` : ''}</small></span>
+                    <span>Acessar →</span>
+                  </button>
+                ))}
+              </div>
+              {error && <p className="error-message" role="alert">{error}</p>}
+              <button type="button" className="text-button" onClick={() => { pendingCredentials.current = null; setLoginStores([]); setError(''); }}>Voltar ao login</button>
+            </div>
+          ) : onboarding ? (
             <GoogleOnboarding
               data={onboarding}
               initialMode={role === "admin" ? workspaceMode as "solo"|"store" : "customer"}
@@ -138,7 +172,7 @@ export function Login({ onLogin,signupMode }: { onLogin: () => Promise<void>;sig
                   : 'Entre para acompanhar o que vem pela frente.'}
               </p>
               {!register && <div className="login-workspace-choices"><button type="button" className="button secondary" onClick={()=>{setRegister(true);setRole('admin');setWorkspaceMode('solo');}}>Quero minha agenda individual</button><small>Compasso Solo: agenda privada, só sua. R$15/mês ou R$110/ano.</small></div>}
-              <form ref={formRef} onSubmit={submit}>
+              <form onSubmit={submit}>
                 {register && (
                   <>
                     <Field label="Tipo de conta">
@@ -171,21 +205,6 @@ export function Login({ onLogin,signupMode }: { onLogin: () => Promise<void>;sig
                   register={register}
                 />
                 {register && <PasswordField confirm register />}
-                {!register && loginStores.length > 0 && (
-                  <Field label="Estabelecimento">
-                    <select name="slug" required defaultValue="">
-                      <option value="" disabled>
-                        Selecione a loja pelo nome
-                      </option>
-                      {loginStores.map((store) => (
-                        <option key={store.slug} value={store.slug}>
-                          {store.workspaceMode === 'solo' ? 'Minha agenda Solo' : 'Empresa'} · {store.businessName}
-                          {store.city ? ` — ${store.city}/${store.state}` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                )}
                 {register && role === 'customer' && (
                   <p className="form-note">Sua conta vale para todos os estabelecimentos. Escolha onde agendar depois.</p>
                 )}

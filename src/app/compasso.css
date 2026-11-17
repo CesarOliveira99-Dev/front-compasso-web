@@ -885,6 +885,26 @@ textarea::placeholder {
 .staff-calendar > .page-heading {
   margin: 0;
 }
+.staff-calendar-controls {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  gap: 12px;
+  padding: 10px 0;
+  background: var(--background);
+  box-shadow: 0 8px 16px -16px #18233880;
+}
+@media (max-width: 800px) {
+  .admin-shell .staff-calendar-controls {
+    top: 64px;
+  }
+  .staff-calendar-controls {
+    max-height: 48dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
 .staff-calendar-toolbar {
   display: flex;
   justify-content: space-between;
@@ -1017,7 +1037,8 @@ textarea::placeholder {
 .staff-calendar-pan {
   min-width: 0;
   max-width: 100%;
-  overflow-x: auto;
+  max-height: 65dvh;
+  overflow: auto;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
@@ -1047,7 +1068,10 @@ textarea::placeholder {
   gap: 4px;
   justify-items: center;
   align-content: center;
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: var(--background);
   padding: 14px 3px 22px;
   border-bottom: 1px solid #e5dfdb;
   font-size: 12px;
@@ -1083,6 +1107,14 @@ textarea::placeholder {
 }
 .staff-week-corner {
   border-bottom: 1px solid #e5dfdb;
+  top: 0;
+  z-index: 5;
+}
+.staff-month-head {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: var(--background);
 }
 .staff-time-axis {
   font-size: 11px;
@@ -1106,8 +1138,27 @@ textarea::placeholder {
   );
   background-repeat: repeat-y;
 }
+.staff-week-day.selected,
+.staff-week-column.selected {
+  background-color: #f7eee8;
+}
+.staff-week-empty-slot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.staff-week-empty-slot:hover,
+.staff-week-empty-slot:focus-visible {
+  background: rgba(185, 78, 26, 0.08);
+  outline: 2px solid var(--coral);
+  outline-offset: -2px;
+}
 .staff-calendar-event {
   position: absolute;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;

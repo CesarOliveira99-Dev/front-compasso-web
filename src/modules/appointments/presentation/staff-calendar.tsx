@@ -35,7 +35,7 @@ import {
 interface Props {
   data: Bootstrap;
   onOpen: (appointment: Appointment) => void;
-  onNew?: () => void;
+  onNew?: (date?: string, time?: string) => void;
   onManageBlocks?: () => void;
 }
 export function StaffCalendar({ data, onOpen, onNew, onManageBlocks }: Props) {
@@ -249,8 +249,9 @@ export function StaffCalendar({ data, onOpen, onNew, onManageBlocks }: Props) {
         <PageHeading
           title={employee ? "Sua agenda" : "Calendário"}
           description={data.settings.workspaceMode === "solo" ? undefined : `${data.settings.businessName} · ${employee ? "Seus atendimentos" : "Agenda da equipe"}`}
-          action={<div className="row-actions">{onManageBlocks && <button className="button secondary" onClick={onManageBlocks}>Bloquear horário</button>}{onNew && <button className="button primary" onClick={onNew}><Plus size={17}/> Agendamento</button>}</div>}
+          action={<div className="row-actions">{onManageBlocks && <button className="button secondary" onClick={onManageBlocks}>Bloquear horário</button>}{onNew && <button className="button primary" onClick={() => onNew()}><Plus size={17}/> Agendamento</button>}</div>}
         />
+        <div className="staff-calendar-controls">
         <div className="staff-calendar-toolbar">
           <div className="staff-calendar-period">
             <button
@@ -327,6 +328,7 @@ export function StaffCalendar({ data, onOpen, onNew, onManageBlocks }: Props) {
               ))}
             </select>
           </label>
+        </div>
         </div>
         <div className="staff-calendar-meta">
           <div className="calendar-legend">
@@ -477,13 +479,27 @@ export function StaffCalendar({ data, onOpen, onNew, onManageBlocks }: Props) {
               </div>
               {days.map((key) => (
                 <div
-                  className="staff-week-column"
+                  className={`staff-week-column ${selectedDate === key ? "selected" : ""}`}
                   key={key}
                   style={{
                     height: (closing - opening) * rowHeight,
                     backgroundSize: `100% ${rowHeight}px`,
                   }}
                 >
+                  {onNew && <button
+                    type="button"
+                    className="staff-week-empty-slot"
+                    aria-label={`Agendar em ${calendarLabel(key)}`}
+                    title="Agendar neste horário"
+                    onClick={(event) => {
+                      const bounds = event.currentTarget.getBoundingClientRect();
+                      const minutes = Math.min((closing - opening) * 60 - 1, Math.max(0, Math.floor((event.clientY - bounds.top) / rowHeight * 2) * 30));
+                      const hour = opening + Math.floor(minutes / 60);
+                      const minute = minutes % 60;
+                      setSelectedDate(key);
+                      onNew(key, `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
+                    }}
+                  />}
                   {appointmentLanes(byDate.get(key) || []).map(
                     ({ appointment: a, lane, lanes }) => {
                       const segment = appointmentDaySegment(a, key, timezone);

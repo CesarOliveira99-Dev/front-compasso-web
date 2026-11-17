@@ -23,6 +23,8 @@ type FlowProps = SectionProps & {
   customers: Customer[];
   initialItemId?: string;
   appointment?: Appointment;
+  initialDate?: string;
+  initialTime?: string;
   close: () => void;
   setDialogBusy: (busy: boolean) => void;
 };
@@ -40,7 +42,7 @@ export function BookingFlow(props: FlowProps) {
   const [professionalId, setProfessionalId] = useState(
     appointment ? appointment.professionalId || "principal" : "",
   );
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(props.initialDate || "");
   const [startsAt, setStartsAt] = useState("");
   const [customerId, setCustomerId] = useState(appointment?.customerId || "");
   const [durationInput, setDurationInput] = useState<string>();
@@ -259,7 +261,7 @@ export function BookingFlow(props: FlowProps) {
                       setItemId(service.id);
                       setDurationInput(undefined);
                       setProfessionalId("");
-                      setDate("");
+                      setDate(props.initialDate || "");
                       setStartsAt("");
                       setStep(1);
                     }}
@@ -286,7 +288,7 @@ export function BookingFlow(props: FlowProps) {
                   key={profile.id}
                   onClick={() => {
                     setProfessionalId(profile.id);
-                    setDate("");
+                    setDate(props.initialDate || "");
                     setStartsAt("");
                     setStep(2);
                   }}
@@ -379,6 +381,7 @@ export function BookingFlow(props: FlowProps) {
         {step === 3 && (
           <>
             <h3>Escolha seu horário</h3>
+            {props.initialTime && <p className="form-note">Horário escolhido na agenda: {props.initialTime}. Se estiver disponível, selecione-o abaixo; você também pode escolher outro.</p>}
             <p>
               {professional?.name} · {day(date)} · {durationMinutes} min
             </p>

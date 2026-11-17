@@ -6,6 +6,8 @@ export async function openBooking(
   props: SectionProps,
   initialItemId?: string,
   appointment?: Appointment,
+  initialDate?: string,
+  initialTime?: string,
 ) {
   if (initialItemId && !props.data.catalog.some((item) => item.id === initialItemId && item.kind === 'service' && item.active)) {
     props.notify('Este serviço não está mais disponível para agendar.', true);
@@ -28,6 +30,8 @@ export async function openBooking(
         customers={customers}
         initialItemId={initialItemId}
         appointment={appointment}
+        initialDate={initialDate}
+        initialTime={initialTime}
         close={close}
         setDialogBusy={setBusy}
       />
