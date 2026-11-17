@@ -1,4 +1,5 @@
 'use client';
+import { PageTutorial } from './page-tutorial';
 import { ClientCarePage } from './client-care';
 import { WorkspaceTools } from './workspace-tools';
 import { WorkspaceAppearance } from './agenda-preferences';
@@ -85,7 +86,7 @@ export function EmployeeWorkspace(props: SectionProps & { logout: () => Promise<
             </button>
           </div>
         </header>
-        <main className="employee-content"><WorkspaceAppearance revision={props.revision} />
+        <main className="employee-content"><WorkspaceAppearance revision={props.revision} /><PageTutorial page={tab} data={props.data} />
           {tab.startsWith('care') && <ClientCarePage key={tab} initialTab={tab==='care-wait'?'wait':'returns'} {...props} openDialog={setDialog} navigate={next=>setTab(next.startsWith('care')?next:'tools')} />}
           {tab === 'tools' && <WorkspaceTools {...props} openDialog={setDialog} navigate={()=>setTab('tools')} />}
           {message && <p role="status">{message}</p>}

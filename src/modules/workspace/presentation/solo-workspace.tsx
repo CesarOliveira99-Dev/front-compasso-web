@@ -1,4 +1,5 @@
 "use client";
+import { PageTutorial } from './page-tutorial';
 import { TimezoneField } from '@/modules/shared/presentation/timezone';
 import { ReminderModelsEditor } from "./reminder-models";
 import { ClientCarePage, FollowUpSummary } from './client-care';
@@ -645,6 +646,7 @@ export function SoloWorkspace(
 <SoloAccountMenu navigate={navigate} logout={props.logout} />
           </div>
         </div>
+        <PageTutorial page={page} data={props.data} />
         {page === "calendar" && <CalendarPage {...local} />}{" "}
         {page === "registrations" && <SoloRegistrations {...local} />}{" "}
         {page === "settings" && <SoloRegistrations {...local} initialSection="preferences" />}{" "}

@@ -1,4 +1,5 @@
 'use client';
+import { PageTutorial } from './page-tutorial';
 import { TimezoneProvider } from "@/modules/shared/presentation/timezone";
 import { useTimeFormats } from '@/modules/shared/presentation/timezone';
 import { formatsForZone } from '@/modules/shared/domain/format';
@@ -739,6 +740,7 @@ export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} =
               {fatal}
             </div>
           )}
+          <PageTutorial page={page} data={data} />
           {content}
         </main>
       </div>
