@@ -1,5 +1,6 @@
 'use client';
 import { IdentityInput } from './identity-input';
+import { ReferralCodeField } from './referral-code-field';
 import { useState, type FormEvent } from 'react';
 import { api } from '@/modules/shared/infrastructure/api';
 import { Field } from '@/modules/shared/presentation/ui';
@@ -130,6 +131,7 @@ export function GoogleOnboarding({
             <IdentityInput kind="phone" name="phone" required type="tel" inputMode="tel" autoComplete="tel" placeholder="(18) 99999-9999" />
           </Field>
         )}
+        {!memberships.length && !existing && role === 'admin' && <ReferralCodeField />}
         {existing && !selection?.linked && (
           <>
             <p>

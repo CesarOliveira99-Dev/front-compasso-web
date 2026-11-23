@@ -11,11 +11,11 @@ const allowed =
 async function handle(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
   const path = (await context.params).path.join('/');
   const paymentsAllowed =
-    /^(payments\/(status|recommendation|connect|subscribe|subscription\/(?:refresh|extras|cancel-pending)|orders\/[\w-]+(?:\/bricks(?:\/(?:pay|status))?)?))$/;
+    /^(payments\/(status|referrals|recommendation|connect|subscribe|subscription\/(?:refresh|extras|cancel-pending)|orders\/[\w-]+(?:\/bricks(?:\/(?:pay|status))?)?))$/;
   const professionalsAllowed = /^professionals(?:\/[\w-]+)?$/;
   const googleAllowed = /^auth\/google(?:\/(?:config|challenge|link|complete))?$/;
   if (
-    !/^auth\/(?:tutorial|store\/[\w-]+|switch-store|workspaces(?:\/(?:switch))?|last-visit(?:\/review)?|discovery|team(?:\/(?:invite|[\w-]+))?|invite\/(?:preview|register|accept)|password\/request|email\/request|account\/complete)$/.test(path) &&
+    !/^auth\/(?:tutorial|referral-config|store\/[\w-]+|switch-store|workspaces(?:\/(?:switch))?|last-visit(?:\/review)?|discovery|team(?:\/(?:invite|[\w-]+))?|invite\/(?:preview|register|accept)|password\/request|email\/request|account\/complete)$/.test(path) &&
     !allowed.test(path) &&
     !/^insights\/expenses\/[a-f0-9-]{36}$/.test(path) &&
     !paymentsAllowed.test(path) &&

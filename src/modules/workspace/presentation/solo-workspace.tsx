@@ -1,5 +1,6 @@
 "use client";
 import { PageTutorial } from './page-tutorial';
+import { ReferralsPanel } from '@/modules/settings/presentation/referrals-panel';
 import { TimezoneField } from '@/modules/shared/presentation/timezone';
 import { ReminderModelsEditor } from "./reminder-models";
 import { ClientCarePage, FollowUpSummary } from './client-care';
@@ -24,6 +25,7 @@ import { AgendaAnalytics } from "./agenda-analytics";
 import { AgendaPreferencesEditor } from "./agenda-preferences";
 import { WorkspaceAppearance } from "./agenda-preferences";
 interface SoloStatus {
+  referralsEnabled?: boolean;
   billingEnabled: boolean;
   setupPending: boolean;
   plans: {
@@ -67,6 +69,7 @@ export function SoloBilling(props: SectionProps) {
   }
   return (
     <section className="panel settings-panel solo-billing">
+      {data?.referralsEnabled && <ReferralsPanel revision={props.revision + revision} />}
       <h1>Compasso Solo</h1>
       <p>
         Sua agenda profissional privada, com clientes internos, fichas, cores,

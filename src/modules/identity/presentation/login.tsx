@@ -1,5 +1,6 @@
 'use client';
 import { IdentityInput } from './identity-input';
+import { ReferralCodeField } from './referral-code-field';
 import { Brand } from '@/modules/shared/presentation/brand';
 import { api } from '@/modules/shared/infrastructure/api';
 import { Field } from '@/modules/shared/presentation/ui';
@@ -205,6 +206,7 @@ export function Login({ onLogin,signupMode }: { onLogin: () => Promise<void>;sig
                   register={register}
                 />
                 {register && <PasswordField confirm register />}
+                {register && role === 'admin' && <ReferralCodeField />}
                 {register && role === 'customer' && (
                   <p className="form-note">Sua conta vale para todos os estabelecimentos. Escolha onde agendar depois.</p>
                 )}

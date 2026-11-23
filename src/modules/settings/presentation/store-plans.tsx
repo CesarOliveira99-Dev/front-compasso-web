@@ -1,5 +1,6 @@
 'use client';
 import { useTimezone } from '@/modules/shared/presentation/timezone';
+import { ReferralsPanel } from './referrals-panel';
 import { money } from '@/modules/shared/domain/format';
 import { api } from '@/modules/shared/infrastructure/api';
 import { useId, useState } from 'react';
@@ -7,6 +8,7 @@ import type { SectionProps } from '@/modules/shared/presentation/ui';
 
 interface Plan { id: string; name: string; priceCents: number; employees: number; monthlyEmails: number; dailyEmails: number; extraEmployeePriceCents?: number }
 export interface PlanStatus {
+  referralsEnabled?: boolean;
   billingEnabled: boolean; plans: Plan[]; employeesUsed: number; setupPending: boolean;
   extrasPending?: boolean;
   entitlement: { mode: 'trial' | 'active' | 'expired' | 'pilot'; plan: Plan | null; expiresAt: number | null; graceEndsAt?: number };
@@ -41,6 +43,7 @@ export function StorePlans({ status, props, busy, refresh }: { status: PlanStatu
     });
   }
   return <section className="panel integration-card store-plans">
+    {status.referralsEnabled && <ReferralsPanel revision={props.revision} />}
     <div><span className="eyebrow">PARA QUEM CUIDA DA LOJA</span><h3>Seu plano Compasso</h3></div>
     <div className={`plan-access ${entitlement.mode}`} role="status">
       <strong>{entitlement.mode === 'trial' ? '14 dias para experimentar' : entitlement.mode === 'active' ? `Plano ${entitlement.plan?.name} ativo` : entitlement.mode === 'pilot' ? 'Sua loja continua no piloto' : 'Seu período de uso terminou'}</strong>
