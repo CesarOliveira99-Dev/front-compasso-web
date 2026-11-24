@@ -1,4 +1,5 @@
 'use client';
+import { pageMemoryKey, recalledPage, rememberPage } from "./page-memory";
 import { PageTutorial } from './page-tutorial';
 import { TimezoneProvider } from "@/modules/shared/presentation/timezone";
 import { useTimeFormats } from '@/modules/shared/presentation/timezone';
@@ -193,17 +194,18 @@ export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} =
       }
       if ('status' in value) return;
       setPersonalUser(undefined);
-      if (loadedUser.current !== value.user.id) {
-        setPage(
+      if (loadedUser.current !== pageMemoryKey(value.user, 'workspace')) {
+        const initialPage =
           value.user.role === 'admin' && value.settings.setupComplete === false
             ? 'settings'
             : value.user.role === 'customer'
               ? new URLSearchParams(location.search).has('agendar')
                 ? 'catalog'
                 : 'home'
-              : 'home',
-        );
-        loadedUser.current = value.user.id;
+              : 'home';
+        const allowed = (value.user.role === 'admin' ? adminNavigation : customerNavigation).flatMap(group => group.items.map(item => item.id));
+        setPage(initialPage === 'settings' || new URLSearchParams(location.search).has('agendar') ? initialPage : recalledPage(pageMemoryKey(value.user, 'workspace'), [...allowed, 'settings', 'cart', ...(value.user.role === 'admin' ? ['care-wait'] : [])], initialPage));
+        loadedUser.current = pageMemoryKey(value.user, 'workspace');
       }
       setApiWorkspaceScope(value.user.tenantId);
       setData(value);
@@ -252,6 +254,9 @@ export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} =
       setNotifications(false);
     }
   }, [data?.user.id]);
+  useEffect(() => {
+    if (data && loadedUser.current === pageMemoryKey(data.user, 'workspace')) rememberPage(pageMemoryKey(data.user, 'workspace'), page);
+  }, [data?.user.id, data?.user.tenantId, page]);
   function setCart(value: CartLine[]) {
     setCartState(value);
     if (data) localStorage.setItem(`compasso:cart:${data.user.id}`, JSON.stringify(value));

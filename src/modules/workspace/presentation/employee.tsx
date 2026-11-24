@@ -1,4 +1,5 @@
 'use client';
+import { pageMemoryKey, usePageMemory } from "./page-memory";
 import { PageTutorial } from './page-tutorial';
 import { ClientCarePage } from './client-care';
 import { WorkspaceTools } from './workspace-tools';
@@ -20,7 +21,8 @@ import { WeeklyHours, hoursFromForm } from '@/modules/shared/presentation/weekly
 import { ScheduleExceptions } from '@/modules/settings/presentation/schedule-exceptions';
 import { CalendarPage } from '@/modules/appointments/presentation/calendar-page';
 export function EmployeeWorkspace(props: SectionProps & { logout: () => Promise<void> }) {
-  const [tab, setTab] = useState('agenda'),
+  const [tab, setTab] = usePageMemory(pageMemoryKey(props.data.user, 'employee'), ['tools', 'care', 'agenda', 'horarios', 'avisos'], 'agenda');
+  const
     [dialog, setDialog] = useState<DialogState>(),
     [message, setMessage] = useState('');
   const resource = useResource<Professional[]>('professionals', props.revision),

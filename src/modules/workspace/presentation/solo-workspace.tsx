@@ -1,4 +1,5 @@
 "use client";
+import { pageMemoryKey, usePageMemory } from "./page-memory";
 import { PageTutorial } from './page-tutorial';
 import { ReferralsPanel } from '@/modules/settings/presentation/referrals-panel';
 import { TimezoneField } from '@/modules/shared/presentation/timezone';
@@ -56,17 +57,6 @@ export function SoloBilling(props: SectionProps) {
       setBusy(false);
     }
   }
-  async function cancelPending() {
-    setBusy(true);
-    try {
-      await api("payments/subscription/cancel-pending", "POST", {});
-      setRevision((n) => n + 1);
-    } catch (e) {
-      props.notify((e as Error).message, true);
-    } finally {
-      setBusy(false);
-    }
-  }
   return (
     <section className="panel settings-panel solo-billing">
       {data?.referralsEnabled && <ReferralsPanel revision={props.revision + revision} />}
@@ -107,10 +97,10 @@ export function SoloBilling(props: SectionProps) {
             {data.plans.map((plan) => {
               const current =
                 data.subscription?.planId === plan.id &&
-                !["cancelled", "canceled"].includes(data.subscription.status);
+                !["pending", "cancelled", "canceled"].includes(data.subscription.status);
               const existing =
                 data.subscription &&
-                !["cancelled", "canceled"].includes(data.subscription.status);
+                !["pending", "cancelled", "canceled"].includes(data.subscription.status);
               return (
                 <article className="store-plan" key={plan.id}>
                   <h2>{plan.name}</h2>
@@ -128,11 +118,7 @@ export function SoloBilling(props: SectionProps) {
                     disabled={
                       busy ||
                       !data.billingEnabled ||
-                      data.setupPending ||
-                      !!(
-                        existing &&
-                        (!current || data.subscription?.status !== "pending")
-                      )
+                      !!existing
                     }
                     onClick={() =>
                       props.openDialog({
@@ -165,11 +151,7 @@ export function SoloBilling(props: SectionProps) {
                       })
                     }
                   >
-                    {current
-                      ? data.subscription?.status === "pending"
-                        ? "Concluir contratação"
-                        : "Assinatura atual"
-                      : "Escolher este Solo"}
+                    {current ? "Assinatura atual" : "Escolher este Solo"}
                   </button>
                 </article>
               );
@@ -185,13 +167,7 @@ export function SoloBilling(props: SectionProps) {
           {data.entitlement.mode === "trial" && (
             <p>Contrate e cancele quando quiser.</p>
           )}
-          {data.setupPending && (
-            <p>
-              Uma contratação aguarda conferência. Atualize a situação antes de
-              tentar novamente.
-            </p>
-          )}
-          {(data.subscription || data.setupPending) && (
+          {data.subscription && data.subscription.status !== "pending" && (
             <div className="plan-manage">
               <button
                 className="button secondary"
@@ -200,16 +176,6 @@ export function SoloBilling(props: SectionProps) {
               >
                 Atualizar situação
               </button>
-              {data.subscription?.status === "pending" && !data.subscription.paidThrough && (
-                <button className="button secondary" disabled={busy} onClick={() => props.openDialog({
-                  title: "Cancelar tentativa pendente",
-                  submitLabel: "Cancelar tentativa no Mercado Pago",
-                  content: <p>A tentativa ainda não tem período pago. Vamos confirmar o estado no Mercado Pago e cancelar somente se continuar pendente.</p>,
-                  onSubmit: cancelPending,
-                })}>
-                  Cancelar tentativa pendente
-                </button>
-              )}
               {(data.subscription?.status === 'authorized' || data.subscription?.status === 'paused') && <a
                 href="https://www.mercadopago.com.br/subscriptions"
                 target="_blank"
@@ -383,7 +349,7 @@ function SoloAgendaName(props: SectionProps) {
 }
 
 function SoloRegistrations(props: SectionProps & { initialSection?: string }) {
-  const [section, setSection] = useState(props.initialSection || "services");
+  const [section, setSection] = usePageMemory(pageMemoryKey(props.data.user, props.initialSection === "preferences" ? "solo-preferences" : "solo-registrations"), ["services", "reminders", "preferences"], props.initialSection || "services");
   return (
     <>
       <PageHeading
@@ -505,7 +471,7 @@ function SoloAccountMenu({ navigate, logout }: { navigate: (page: string) => voi
 export function SoloWorkspace(
   props: SectionProps & { logout: () => Promise<void> },
 ) {
-  const [page, setPage] = useState("calendar");
+  const [page, setPage] = usePageMemory(pageMemoryKey(props.data.user, "solo"), [...soloNavigation.map(([id]) => id), "settings"], "calendar");
   const [menuOpen, setMenuOpen] = useState(false);
   const billing = useResource<SoloStatus>("payments/status", props.revision);
   const subscribedPlan = billing.value?.plans.find(
