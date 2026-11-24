@@ -1,4 +1,6 @@
 'use client';
+import { IdentityInput } from '@/modules/identity/presentation/identity-input';
+import {EmailVerification} from '@/modules/identity/presentation/email-verification';
 import type { Customer } from '@/modules/shared/domain/models';
 import {
   Avatar,
@@ -11,6 +13,7 @@ import {
   type SectionProps,
 } from '@/modules/shared/presentation/ui';
 import { MapPin, Plus, Save } from 'lucide-react';
+import { GoogleButton } from '@/modules/identity/presentation/google-button';
 export function ProfilePage(props: SectionProps) {
   const resource = useResource<Customer>('customers/profile', props.revision);
   const customer = resource.value;
@@ -71,12 +74,28 @@ export function ProfilePage(props: SectionProps) {
   }
   return (
     <>
+      <EmailVerification verified={props.data.user.emailVerified}/>
       <PageHeading
         eyebrow="SEU ESPAÇO PESSOAL"
         title="Meus dados"
         description="Mantenha suas informações em dia para a gente cuidar bem de você."
       />
       <ResourceState {...resource} />
+      <section className="panel settings-panel">
+        <h3>Acesso com Google</h3>
+        <p>
+          Vincule uma conta Google com o mesmo e-mail do seu cadastro para entrar sem digitar a
+          senha.
+        </p>
+        <GoogleButton
+          link
+          getInput={() => ({ mode: 'link', slug: props.data.settings.slug })}
+          onSuccess={async () => {
+            props.notify('Conta Google vinculada.');
+          }}
+          onError={(message) => props.notify(message, true)}
+        />
+      </section>
       {customer && (
         <div className="profile-layout">
           <section className="panel settings-panel">
@@ -84,7 +103,6 @@ export function ProfilePage(props: SectionProps) {
               <Avatar name={customer.name} size="large" />
               <div>
                 <h2>{customer.name}</h2>
-                <p>{customer.email}</p>
               </div>
             </div>
             <form
@@ -105,20 +123,16 @@ export function ProfilePage(props: SectionProps) {
               }}
             >
               <Field label="Nome">
-                <input
+                <IdentityInput kind="name"
                   name="name"
                   defaultValue={customer.name}
-                  minLength={2}
-                  maxLength={100}
                   required
                 />
               </Field>
               <Field label="Telefone">
-                <input
+                <IdentityInput kind="phone"
                   name="phone"
                   defaultValue={customer.phone}
-                  minLength={10}
-                  maxLength={20}
                   required
                 />
               </Field>

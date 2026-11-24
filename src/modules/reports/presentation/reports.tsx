@@ -1,5 +1,8 @@
 'use client';
-import { day, money, statusLabel, time } from '@/modules/shared/domain/format';
+import { MonthPicker } from '@/modules/shared/presentation/month-picker';
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+
+import { money, statusLabel } from '@/modules/shared/domain/format';
 import type { Report } from '@/modules/shared/domain/models';
 import {
   Badge,
@@ -12,6 +15,7 @@ import {
 import { CalendarDays, Check, Clock3, Download } from 'lucide-react';
 import { useState } from 'react';
 export function ReportsPage(props: SectionProps) {
+  const { day, time } = useTimeFormats();
   const [month, setMonth] = useState(props.data.dashboard.date.slice(0, 7));
   const resource = useResource<Report>(`insights/report?month=${month}`, props.revision);
   const report = resource.value;
@@ -26,8 +30,8 @@ export function ReportsPage(props: SectionProps) {
       [
         'Cliente',
         'Serviço',
-        'Início (Brasília)',
-        'Fim (Brasília)',
+        'Início (fuso do espaço)',
+        'Fim (fuso do espaço)',
         'Status',
         'Pagamento',
         'Valor (R$)',
@@ -35,8 +39,8 @@ export function ReportsPage(props: SectionProps) {
       ...report.appointments.map((a) => [
         a.customerName,
         a.itemName,
-        new Date(a.startsAt).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-        new Date(a.endsAt).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+        new Date(a.startsAt).toLocaleString('pt-BR', { timeZone: props.data.settings.timezone }),
+        new Date(a.endsAt).toLocaleString('pt-BR', { timeZone: props.data.settings.timezone }),
         statusLabel[a.status],
         statusLabel[a.paymentStatus],
         (a.priceCents / 100).toFixed(2).replace('.', ','),
@@ -60,13 +64,10 @@ export function ReportsPage(props: SectionProps) {
         description="Um extrato dos encontros, resultados e cuidados do mês."
         action={
           <div className="toolbar-controls">
-            <input
-              type="month"
-              aria-label="Mês do relatório"
+            <MonthPicker
+              label="Mês do relatório"
               value={month}
-              onChange={(e) => {
-                if (e.target.value) setMonth(e.target.value);
-              }}
+              onChange={setMonth}
             />
             <button className="button primary" disabled={!report} onClick={download}>
               <Download size={16} />
@@ -147,3 +148,4 @@ export function ReportsPage(props: SectionProps) {
     </>
   );
 }
+

@@ -1,4 +1,5 @@
 'use client';
+import { WhatsAppLink } from '@/modules/shared/presentation/whatsapp-link';
 import { money } from '@/modules/shared/domain/format';
 import type { Customer } from '@/modules/shared/domain/models';
 import {
@@ -11,7 +12,7 @@ import {
   useResource,
   type SectionProps,
 } from '@/modules/shared/presentation/ui';
-import { ArrowUpRight, MessageCircle, Search, Send, UserPlus } from 'lucide-react';
+import { MessageCircle, Search, Send, UserPlus } from 'lucide-react';
 import { useState } from 'react';
 export function CustomersPage(props: SectionProps) {
   const resource = useResource<Customer[]>('customers', props.revision);
@@ -48,16 +49,7 @@ export function CustomersPage(props: SectionProps) {
           <p className="form-note">
             A mensagem será entregue nas notificações do cliente dentro do Compasso.
           </p>
-          <a
-            className="button secondary"
-            href={`https://wa.me/${customer.phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <MessageCircle size={17} />
-            Abrir conversa no WhatsApp
-            <ArrowUpRight size={15} />
-          </a>
+          <WhatsAppLink phone={customer.phone} label="Abrir conversa no WhatsApp" />
         </div>
       ),
       submitLabel: 'Enviar na plataforma',
@@ -89,8 +81,8 @@ export function CustomersPage(props: SectionProps) {
                       Peça ao cliente para criar uma conta na página de entrada do Compasso,
                       selecionando “Sou cliente”.
                     </p>
-                    <Field label="Código da sua loja">
-                      <input readOnly value={props.data.settings.slug} />
+                    <Field label="Nome do estabelecimento">
+                      <input readOnly value={props.data.settings.businessName} />
                     </Field>
                     <button
                       type="button"
@@ -98,10 +90,10 @@ export function CustomersPage(props: SectionProps) {
                       onClick={() =>
                         navigator.clipboard
                           .writeText(
-                            `${window.location.origin} — código da loja: ${props.data.settings.slug}`,
+                            `${window.location.origin} — encontre ${props.data.settings.businessName} pelo nome`,
                           )
                           .then(() => props.notify('Convite copiado.'))
-                          .catch(() => props.notify('Copie o código da loja acima.'))
+                          .catch(() => props.notify('Copie o nome do estabelecimento acima.'))
                       }
                     >
                       Copiar convite
@@ -147,11 +139,11 @@ export function CustomersPage(props: SectionProps) {
             <div className="customer-metrics">
               <div>
                 <strong>{customer.visits}</strong>
-                <span>atendimentos concluídos</span>
+                <span>Atendimentos concluídos</span>
               </div>
               <div>
                 <strong>{money(customer.totalCents)}</strong>
-                <span>em pedidos pagos</span>
+                <span>Em pedidos pagos</span>
               </div>
             </div>
             <button className="button secondary full" onClick={() => message(customer)}>
@@ -170,3 +162,4 @@ export function CustomersPage(props: SectionProps) {
     </>
   );
 }
+

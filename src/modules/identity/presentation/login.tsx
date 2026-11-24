@@ -1,4 +1,7 @@
 'use client';
+import { IdentityInput } from './identity-input';
+import { ReferralCodeField } from './referral-code-field';
+import { Brand } from '@/modules/shared/presentation/brand';
 import { api } from '@/modules/shared/infrastructure/api';
 import { Field } from '@/modules/shared/presentation/ui';
 import {
@@ -10,38 +13,71 @@ import {
   LoaderCircle,
   Sparkles,
 } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
-export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
-  const [register, setRegister] = useState(false);
-  const [role, setRole] = useState('customer');
+import { useRef, useState, type FormEvent } from 'react';
+import { GoogleButton } from './google-button';
+import type { StoreSummary } from '@/modules/shared/domain/models';
+import {
+  BusinessAddressFields,
+  addressFromForm,
+} from '@/modules/shared/presentation/business-address-fields';
+import { PasswordField } from './password-field';
+import { GoogleOnboarding, type GoogleOnboardingData } from './google-onboarding';
+export function Login({ onLogin,signupMode }: { onLogin: () => Promise<void>;signupMode?:"solo"|"store"|"customer" }) {
+  const [loginStores, setLoginStores] = useState<StoreSummary[]>([]);
+  const [registrationKey] = useState(() => crypto.randomUUID());
+  const [register, setRegister] = useState(!!signupMode);
+  const [role, setRole] = useState(signupMode && signupMode !== 'customer' ? 'admin' : 'customer');
+  const [workspaceMode, setWorkspaceMode] = useState(signupMode === 'solo' ? 'solo' : 'store');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    setBusy(true);
-    setError('');
-    try {
-      await api(register ? 'auth/register' : 'auth/login', 'POST', Object.fromEntries(form));
-      await onLogin();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Não foi possível entrar.');
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function demo(kind: 'admin' | 'cliente') {
+  const [onboarding, setOnboarding] = useState<GoogleOnboardingData | null>(null);
+  const pendingCredentials = useRef<{ email: string; password: string } | null>(null);
+  async function selectStore(slug: string) {
+    if (!pendingCredentials.current) return;
     setBusy(true);
     setError('');
     try {
       await api('auth/login', 'POST', {
-        email: `${kind}@compasso.local`,
-        password: 'Compasso@2026',
-        slug: 'studio',
+        ...pendingCredentials.current,
+        slug,
       });
+      pendingCredentials.current = null;
       await onLogin();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Demonstração indisponível.');
+      setError(e instanceof Error ? e.message : 'Não foi possível abrir este espaço.');
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    if (register && form.get('password') !== form.get('confirmPassword')) {
+      setError('As senhas não coincidem. Digite a mesma senha nos dois campos.');
+      (event.currentTarget.elements.namedItem('confirmPassword') as HTMLInputElement)?.focus();
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      const result = await api<{ status?: string; stores?: StoreSummary[] }>(
+        register ? 'auth/register' : 'auth/login',
+        'POST',
+        {
+          ...Object.fromEntries(form),
+          role, workspaceMode,
+          ...(register ? { idempotencyKey: registrationKey } : {}),
+          ...(register && role === 'admin' && workspaceMode !== 'solo' ? { address: addressFromForm(form) } : {}),
+        },
+      );
+      if (result.status === 'store_selection_required') {
+        pendingCredentials.current = { email: String(form.get('email')), password: String(form.get('password')) };
+        setLoginStores(result.stores || []);
+        return;
+      }
+      await onLogin();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Não foi possível entrar.');
     } finally {
       setBusy(false);
     }
@@ -50,10 +86,7 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
     <main className="login-page">
       <section className="login-story">
         <a className="brand" href="/">
-          <span className="brand-mark">
-            <Leaf size={23} />
-          </span>
-          compasso<span className="brand-period">.</span>
+          <Brand />
         </a>
         <div className="login-story-content">
           <span className="pill light">
@@ -103,124 +136,126 @@ export function Login({ onLogin }: { onLogin: () => Promise<void> }) {
         <small className="story-footer">FEITO PARA NEGÓCIOS QUE CUIDAM DE PESSOAS.</small>
       </section>
       <section className="login-form-section">
-        <div className="login-form">
-          <span className="eyebrow">BEM-VINDO AO SEU ESPAÇO</span>
-          <h2>{register ? 'Vamos começar?' : 'Bom ter você aqui.'}</h2>
-          <p>
-            {register
-              ? 'Crie sua conta e encontre seu ritmo.'
-              : 'Entre para acompanhar o que vem pela frente.'}
-          </p>
-          <form onSubmit={submit}>
-            {register && (
-              <>
-                <Field label="Tipo de conta">
-                  <select name="role" value={role} onChange={(e) => setRole(e.target.value)}>
-                    <option value="customer">Sou cliente</option>
-                    <option value="admin">Quero administrar meu negócio</option>
-                  </select>
-                </Field>
-                <Field label="Seu nome">
-                  <input
-                    name="name"
-                    required
-                    minLength={2}
-                    placeholder="Como podemos chamar você?"
-                    autoComplete="name"
-                  />
-                </Field>
-                <Field label="Telefone">
-                  <input
-                    name="phone"
-                    required
-                    minLength={10}
-                    placeholder="(11) 99999-9999"
-                    autoComplete="tel"
-                  />
-                </Field>
-                {role === 'admin' && (
-                  <Field label="Nome do negócio">
-                    <input name="businessName" required placeholder="O nome do seu espaço" />
-                  </Field>
-                )}
-              </>
-            )}
-            <Field label="E-mail">
-              <input
-                name="email"
-                type="email"
-                required
-                placeholder="voce@exemplo.com"
-                autoComplete="email"
-              />
-            </Field>
-            <Field label="Senha">
-              <input
-                name="password"
-                type="password"
-                required
-                minLength={8}
-                maxLength={128}
-                placeholder="Sua senha de acesso"
-                autoComplete={register ? 'new-password' : 'current-password'}
-              />
-            </Field>
-            <Field
-              label={register && role === 'admin' ? 'Código da sua nova loja' : 'Código da loja'}
-              hint="Na demonstração, use studio."
-            >
-              <input
-                name="slug"
-                defaultValue="studio"
-                pattern="[a-z0-9-]+"
-                required
-                placeholder="studio"
-              />
-            </Field>
-            {error && (
-              <p className="error-message" role="alert">
-                {error}
-              </p>
-            )}
-            <button className="button primary full" disabled={busy}>
-              {busy ? (
-                <LoaderCircle size={18} className="spin" />
-              ) : (
-                <>
-                  {register ? 'Criar minha conta' : 'Entrar no meu espaço'}
-                  <ArrowRight size={18} />
-                </>
-              )}
-            </button>
-          </form>
-          <p className="login-switch">
-            {register ? 'Já tem uma conta?' : 'Primeira vez por aqui?'}{' '}
-            <button
-              onClick={() => {
-                setRegister(!register);
+        <div className={`login-form ${loginStores.length > 0 ? 'has-space-selection' : ''}`} style={loginStores.length > 0 ? { maxWidth: 470 } : undefined}>
+          {loginStores.length > 0 ? (
+            <div className="login-space-selection" style={{ display: 'grid', gap: 0 }}>
+              <span className="eyebrow" style={{ marginBottom: 16, fontSize: 10, letterSpacing: '0.14em' }}>LOGIN CONFIRMADO</span>
+              <h2 style={{ margin: 0, fontSize: 'clamp(28px, 3vw, 34px)', lineHeight: 1.2 }}>Selecione o espaço</h2>
+              <p style={{ margin: '14px 0 0', lineHeight: 1.6 }}>Escolha o espaço que deseja abrir.</p>
+              <div className="workspace-choices" style={{ display: 'grid', gap: 18, marginTop: 32 }}>
+                {loginStores.map((store) => (
+                  <button className="workspace-choice" type="button" key={store.slug} disabled={busy} onClick={() => void selectStore(store.slug)}>
+                    <span><strong>{store.workspaceMode === 'solo' ? 'Minha agenda Solo' : 'Minha empresa'}</strong><small>{store.businessName}{store.city ? ` · ${store.city}/${store.state}` : ''}</small></span>
+                    <span className="login-space-action" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0, whiteSpace: 'nowrap' }}>Acessar <ArrowRight size={16} /></span>
+                  </button>
+                ))}
+              </div>
+              {error && <p className="error-message" role="alert">{error}</p>}
+              <button type="button" className="text-button" style={{ justifySelf: 'start', marginTop: 28, minHeight: 40 }} onClick={() => { pendingCredentials.current = null; setLoginStores([]); setError(''); }}>Voltar ao login</button>
+            </div>
+          ) : onboarding ? (
+            <GoogleOnboarding
+              data={onboarding}
+              initialMode={role === "admin" ? workspaceMode as "solo"|"store" : "customer"}
+              onLogin={onLogin}
+              onBack={() => {
+                setOnboarding(null);
                 setError('');
               }}
-            >
-              {register ? 'Entre aqui' : 'Crie sua conta'}
-            </button>
-          </p>
-          {process.env.NODE_ENV !== 'production' && (
-            <div className="demo-box">
-              <span>
-                <Sparkles size={15} /> EXPLORE A DEMONSTRAÇÃO
-              </span>
-              <div>
-                <button onClick={() => demo('admin')} disabled={busy}>
-                  Visão do administrador
-                  <ArrowRight size={15} />
+            />
+          ) : (
+            <>
+              <span className="eyebrow">BEM-VINDO AO SEU ESPAÇO</span>
+              <h2>{register ? 'Vamos começar?' : 'Bom ter você aqui.'}</h2>
+              <p>
+                {register
+                  ? 'Crie sua conta e encontre seu ritmo.'
+                  : 'Entre para acompanhar o que vem pela frente.'}
+              </p>
+              {!register && <div className="login-workspace-choices"><button type="button" className="button secondary" onClick={()=>{setRegister(true);setRole('admin');setWorkspaceMode('solo');}}>Quero minha agenda individual</button><small>Compasso Solo: agenda privada, só sua. R$15/mês ou R$110/ano.</small></div>}
+              <form onSubmit={submit}>
+                {register && (
+                  <>
+                    <Field label="Tipo de conta">
+                      <select name="role" value={workspaceMode === 'solo' && role === 'admin' ? 'solo' : role} onChange={(e) => {setRole(e.target.value === 'solo' ? 'admin' : e.target.value);setWorkspaceMode(e.target.value === 'solo' ? 'solo' : 'store');}}>
+                        <option value="customer">Sou cliente</option>
+                        <option value="admin">Quero administrar meu negócio</option><option value="solo">Quero minha agenda individual</option>
+                      </select>
+                    </Field>
+                    <Field label="Seu nome">
+                      <IdentityInput kind="name" name="name" required autoComplete="name" placeholder="Como podemos chamar você?" />
+                    </Field>
+                    <Field label="Telefone">
+                      <IdentityInput kind="phone" name="phone" required type="tel" inputMode="tel" autoComplete="tel" placeholder="(18) 99999-9999" />
+                    </Field>
+                    {role === 'admin' && workspaceMode !== 'solo' && (
+                      <>
+                        <Field label="Nome do negócio">
+                          <IdentityInput kind="businessName" name="businessName" required placeholder="O nome do seu espaço" />
+                        </Field>
+                        {workspaceMode !== 'solo' && <BusinessAddressFields />}
+                      </>
+                    )}
+                  </>
+                )}
+                <Field label="E-mail">
+                  <IdentityInput kind="email" name="email" type="email" required autoComplete="email" placeholder="voce@exemplo.com" />
+                </Field>
+                <PasswordField
+                  key={register ? 'new-password' : 'login-password'}
+                  register={register}
+                />
+                {register && <PasswordField confirm register />}
+                {register && role === 'admin' && <ReferralCodeField />}
+                {register && role === 'customer' && (
+                  <p className="form-note">Sua conta vale para todos os estabelecimentos. Escolha onde agendar depois.</p>
+                )}
+        {register && role === 'admin' && <p className="form-note">{workspaceMode === 'solo' ? 'Sua agenda' : 'Sua loja'} começa com 14 dias grátis, sem cartão obrigatório e sem cobrança automática ao final. Clientes não pagam assinatura.</p>}
+                {error && (
+                  <p className="error-message" role="alert">
+                    {error}
+                  </p>
+                )}
+                <button className="button primary full" disabled={busy}>
+                  {busy ? (
+                    <LoaderCircle size={18} className="spin" />
+                  ) : (
+                    <>
+                      {register ? 'Criar minha conta' : 'Entrar no meu espaço'}
+                      <ArrowRight size={18} />
+                    </>
+                  )}
                 </button>
-                <button onClick={() => demo('cliente')} disabled={busy}>
-                  Visão do cliente
-                  <ArrowRight size={15} />
+              </form>
+              <GoogleButton
+                separator
+                key={register ? 'register' : 'login'}
+                getInput={() => ({ mode: 'login' })}
+                onSuccess={async (result) => {
+                  setError('');
+                  if ('status' in result && result.status === 'onboarding_required')
+                    setOnboarding(result);
+                  else await onLogin();
+                }}
+                onError={setError}
+              />
+              <nav className="login-help-links" aria-label="Ajuda e estabelecimentos">
+                <a href="/conta">Esqueci minha senha</a>
+                <a href="/descobrir">Descobrir estabelecimentos</a>
+              </nav>
+              <p className="login-switch">
+                {register ? 'Já tem uma conta?' : 'Primeira vez por aqui?'}{' '}
+                <button
+                  onClick={() => {
+                    setRegister(!register);
+                    setLoginStores([]);
+                    setError('');
+                  }}
+                >
+                  {register ? 'Entre aqui' : 'Crie sua conta'}
                 </button>
-              </div>
-              <small>Dados fictícios • nenhum pagamento ou envio externo</small>
-            </div>
+              </p>
+            </>
           )}
           <div className="login-bottom">
             <CircleHelp size={15} />

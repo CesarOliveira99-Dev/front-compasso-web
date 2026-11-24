@@ -1,5 +1,22 @@
 'use client';
+import { pageMemoryKey, recalledPage, rememberPage } from "./page-memory";
+import { PageTutorial } from './page-tutorial';
+import { TimezoneProvider } from "@/modules/shared/presentation/timezone";
+import { useTimeFormats } from '@/modules/shared/presentation/timezone';
+import { formatsForZone } from '@/modules/shared/domain/format';
+
+import { ClientCarePage } from './client-care';
+import { setApiWorkspaceScope } from '@/modules/shared/infrastructure/api';
+import { WorkspaceSwitcher } from './workspace-switcher';
+import { SoloWorkspace } from './solo-workspace';
+import { WorkspaceTools } from './workspace-tools';
+import { WorkspaceAppearance } from './agenda-preferences';
 import dynamic from 'next/dynamic';
+import { EmployeeWorkspace } from './employee';
+import { TeamPage } from '@/modules/settings/presentation/team';
+import { StoreTrialBanner } from '@/modules/settings/presentation/store-trial-banner';
+import { Discovery } from '@/modules/stores/presentation/discovery';
+import { CustomerLobby } from './customer-lobby';
 function LoadingSection() {
   return <div className="loading-inline">Preparando seu espaço…</div>;
 }
@@ -30,7 +47,11 @@ const ProfilePage = dynamic(
   () => import('@/modules/customers/presentation/profile').then((module) => module.ProfilePage),
   { loading: LoadingSection },
 );
-import { DashboardPage } from '@/modules/dashboard/presentation/dashboard';
+import { CalendarPage } from '@/modules/appointments/presentation/calendar-page';
+import { Brand } from '@/modules/shared/presentation/brand';
+import { CustomerHeader } from './customer-header';
+import { CustomerHome } from '@/modules/dashboard/presentation/customer-home';
+import { openBooking } from '@/modules/appointments/presentation/booking-dialog';
 const FeedbackPage = dynamic(
   () => import('@/modules/feedback/presentation/feedback').then((module) => module.FeedbackPage),
   { loading: LoadingSection },
@@ -60,8 +81,7 @@ const SettingsPage = dynamic(
   () => import('@/modules/settings/presentation/settings').then((module) => module.SettingsPage),
   { loading: LoadingSection },
 );
-import { day, time } from '@/modules/shared/domain/format';
-import type { Bootstrap, CartLine } from '@/modules/shared/domain/models';
+import type { Bootstrap, CartLine, User } from '@/modules/shared/domain/models';
 import { api } from '@/modules/shared/infrastructure/api';
 import {
   Avatar,
@@ -104,14 +124,17 @@ import {
   Wallet,
   X,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 const adminNavigation = [
   {
     label: 'SEU DIA A DIA',
     items: [
-      { id: 'home', name: 'Visão geral', icon: LayoutDashboard },
-      { id: 'appointments', name: 'Minha agenda', icon: CalendarDays },
+      { id: 'home', name: 'Calendário', icon: CalendarDays },
+      { id: 'appointments', name: 'Histórico de atendimentos', icon: ClipboardList },
       { id: 'customers', name: 'Clientes', icon: Users },
+      { id: 'tools', name: 'Fichas e análises', icon: ChartNoAxesCombined },
+      { id: 'care', name: 'Acompanhamento', icon: Users },
+      { id: 'team', name: 'Equipe', icon: Users },
       { id: 'triage', name: 'Triagem', icon: ClipboardList },
       { id: 'feedback', name: 'Avaliações', icon: MessageCircle },
     ],
@@ -121,7 +144,7 @@ const adminNavigation = [
     items: [
       { id: 'catalog', name: 'Serviços e produtos', icon: Package },
       { id: 'orders', name: 'Pedidos e vendas', icon: ShoppingBag },
-      { id: 'wallet', name: 'Minha carteira', icon: Wallet },
+      { id: 'wallet', name: 'Finanças', icon: Wallet },
       { id: 'promotions', name: 'Cupons e promoções', icon: Gift },
       { id: 'loyalty', name: 'Retornos e fidelidade', icon: Flower2 },
       { id: 'reports', name: 'Relatórios', icon: ChartNoAxesCombined },
@@ -133,7 +156,8 @@ const customerNavigation = [
   {
     label: 'SEU ESPAÇO',
     items: [
-      { id: 'home', name: 'Visão geral', icon: LayoutDashboard },
+      { id: 'discovery', name: 'Descobrir lojas', icon: Search },
+      { id: 'home', name: 'Menu Principal', icon: LayoutDashboard },
       { id: 'catalog', name: 'Serviços e produtos', icon: Package },
       { id: 'appointments', name: 'Meus agendamentos', icon: CalendarDays },
       { id: 'orders', name: 'Meus pedidos', icon: ShoppingBag },
@@ -143,8 +167,11 @@ const customerNavigation = [
     ],
   },
 ];
-export function Workspace() {
+export function Workspace({signupMode}:{signupMode?:"solo"|"store"|"customer"} = {}) {
+  const loadedUser = useRef('');
+  const repeatedBooking = useRef(false);
   const [data, setData] = useState<Bootstrap>();
+  const [personalUser, setPersonalUser] = useState<User>();
   const [loading, setLoading] = useState(true);
   const [fatal, setFatal] = useState('');
   const [page, setPage] = useState('home');
@@ -157,13 +184,37 @@ export function Workspace() {
   const notify = useCallback((message: string, error = false) => setToast({ message, error }), []);
   const load = useCallback(async () => {
     try {
-      const value = await api<Bootstrap>('bootstrap');
+      const value = await api<Bootstrap | {status:'discovery'; user:User}>('bootstrap');
+      if ('status' in value && value.status === 'discovery') {
+        setApiWorkspaceScope(value.user.tenantId);
+        setPersonalUser(value.user);
+        setData(undefined);
+        setFatal('');
+        return;
+      }
+      if ('status' in value) return;
+      setPersonalUser(undefined);
+      if (loadedUser.current !== pageMemoryKey(value.user, 'workspace')) {
+        const initialPage =
+          value.user.role === 'admin' && value.settings.setupComplete === false
+            ? 'settings'
+            : value.user.role === 'customer'
+              ? new URLSearchParams(location.search).has('agendar')
+                ? 'catalog'
+                : 'home'
+              : 'home';
+        const allowed = (value.user.role === 'admin' ? adminNavigation : customerNavigation).flatMap(group => group.items.map(item => item.id));
+        setPage(initialPage === 'settings' || new URLSearchParams(location.search).has('agendar') ? initialPage : recalledPage(pageMemoryKey(value.user, 'workspace'), [...allowed, 'settings', 'cart', ...(value.user.role === 'admin' ? ['care-wait'] : [])], initialPage));
+        loadedUser.current = pageMemoryKey(value.user, 'workspace');
+      }
+      setApiWorkspaceScope(value.user.tenantId);
       setData(value);
       setFatal('');
       return value;
     } catch (error) {
       if (error instanceof Error && /Entre para continuar/.test(error.message)) {
         setData(undefined);
+        setPersonalUser(undefined);
       } else setFatal(error instanceof Error ? error.message : 'Não foi possível carregar.');
     } finally {
       setLoading(false);
@@ -171,6 +222,15 @@ export function Workspace() {
   }, []);
   useEffect(() => {
     void load();
+  }, [load]);
+  useEffect(() => {
+    const refresh = () => { if (document.visibilityState === 'visible') void load(); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
   }, [load]);
   useEffect(() => {
     if (!toast) return;
@@ -190,8 +250,13 @@ export function Workspace() {
       setCartState(JSON.parse(localStorage.getItem(`compasso:cart:${data.user.id}`) || '[]'));
     } catch {
       setCartState([]);
+      setMobile(false);
+      setNotifications(false);
     }
   }, [data?.user.id]);
+  useEffect(() => {
+    if (data && loadedUser.current === pageMemoryKey(data.user, 'workspace')) rememberPage(pageMemoryKey(data.user, 'workspace'), page);
+  }, [data?.user.id, data?.user.tenantId, page]);
   function setCart(value: CartLine[]) {
     setCartState(value);
     if (data) localStorage.setItem(`compasso:cart:${data.user.id}`, JSON.stringify(value));
@@ -213,9 +278,14 @@ export function Workspace() {
   async function logout() {
     try {
       await api('auth/logout', 'POST', {});
+      setApiWorkspaceScope();
       setData(undefined);
+      loadedUser.current = '';
       setCartState([]);
       setPage('home');
+      setMobile(false);
+      setNotifications(false);
+      setDialog(undefined);
     } catch (error) {
       notify(error instanceof Error ? error.message : 'Não foi possível sair.', true);
     }
@@ -246,19 +316,25 @@ export function Workspace() {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   });
+  useEffect(() => {
+    const itemId = new URLSearchParams(location.search).get('repetir');
+    if (!itemId || !data || data.user.role !== 'customer' || repeatedBooking.current) return;
+    repeatedBooking.current = true;
+    history.replaceState(null, '', location.pathname);
+    void openBooking({ data, revision, mutate, notify, openDialog, navigate }, itemId)
+      .catch((error) => notify(error.message, true));
+  }, [data]);
   if (loading)
-    return (
+    return <TimezoneProvider timezone={data?.settings.timezone || "America/Sao_Paulo"}>{(
       <div className="app-loading">
-        <span className="brand-mark">
-          <Leaf size={27} />
-        </span>
-        <strong>compasso.</strong>
+        <Brand />
         <LoaderCircle size={20} className="spin" />
         <p>Organizando seu espaço…</p>
       </div>
-    );
+    )}</TimezoneProvider>;
+  if (personalUser) return <TimezoneProvider timezone={data?.settings.timezone || "America/Sao_Paulo"}>{<CustomerLobby user={personalUser} />}</TimezoneProvider>;
   if (!data)
-    return (
+    return <TimezoneProvider timezone="America/Sao_Paulo">{(
       <>
         {fatal && (
           <div className="connection-error" role="alert">
@@ -267,22 +343,41 @@ export function Workspace() {
           </div>
         )}
         <Login
+          signupMode={signupMode}
           onLogin={async () => {
+            const slug = new URLSearchParams(location.search).get('loja');
+            if (slug) {
+              location.assign(`/loja?slug=${encodeURIComponent(slug)}`);
+              return;
+            }
             await load();
-            setPage('home');
           }}
         />
       </>
-    );
+    )}</TimezoneProvider>;
   const admin = data.user.role === 'admin';
+  const { day, time } = formatsForZone(data.settings.timezone);
   const navigation = admin ? adminNavigation : customerNavigation;
   const currentLabel =
     navigation.flatMap((g) => g.items).find((i) => i.id === page)?.name ||
     (page === 'settings' ? 'Configurações' : page === 'cart' ? 'Sua sacola' : 'Visão geral');
   const unread = data.notifications.filter((n) => !n.read).length;
   const props: SectionProps = { data, revision, mutate, notify, openDialog, navigate };
+  if (data.settings.workspaceMode === 'solo') return <TimezoneProvider timezone={data?.settings.timezone || "America/Sao_Paulo"}>{<><SoloWorkspace {...props} logout={logout} />{dialog && <Dialog key={dialog.key} dialog={dialog} close={()=>setDialog(undefined)}/>} {toast&&<div className={`toast ${toast.error?'error':''}`} role="status">{toast.message}</div>}</>}</TimezoneProvider>;
+  if (data.user.role === 'employee') return <TimezoneProvider timezone={data?.settings.timezone || "America/Sao_Paulo"}>{<><EmployeeWorkspace {...props} logout={logout} />{toast&&<div className={`toast ${toast.error?'error':''}`} role="status">{toast.message}</div>}</>}</TimezoneProvider>;
   let content;
   switch (page) {
+    case 'tools': content = <WorkspaceTools {...props} />; break;
+    case 'team':
+      content = admin ? <TeamPage {...props} /> : <Discovery />;
+      break;
+    case 'discovery':
+      content = <Discovery />;
+      break;
+    case 'care-wait':
+    case 'care':
+      content = <ClientCarePage key={page} initialTab={page === 'care-wait' ? 'wait' : 'returns'} {...props} />;
+      break;
     case 'appointments':
       content = <AppointmentsPage {...props} />;
       break;
@@ -334,10 +429,10 @@ export function Workspace() {
       content = <CartPage {...props} cart={cart} setCart={setCart} />;
       break;
     default:
-      content = <DashboardPage {...props} />;
+      content = admin ? <CalendarPage {...props} /> : <CustomerHome {...props} />;
   }
-  return (
-    <div className="app-shell">
+  return <TimezoneProvider timezone={data?.settings.timezone || "America/Sao_Paulo"}>{(
+    <div className={`app-shell ${admin ? 'admin-shell' : 'customer-shell'}`}>
       {mobile && (
         <button
           className="sidebar-scrim"
@@ -349,22 +444,20 @@ export function Workspace() {
         <a
           className="brand"
           href="/"
+          aria-label="Compasso, início"
           onClick={(event) => {
             event.preventDefault();
             navigate('home');
           }}
         >
-          <span className="brand-mark">
-            <Leaf size={22} />
-          </span>
-          compasso<span className="brand-period">.</span>
+          <Brand />
         </a>
         <div className="business-switch">
           <span className="business-icon">
             <Flower2 size={22} />
           </span>
           <div>
-            <strong>{data.settings.businessName}</strong>
+            <strong>{admin ? data.settings.businessName : 'Compasso'}</strong>
             <small>{admin ? 'Seu espaço de cuidado' : 'Seu cuidado por perto'}</small>
           </div>
           <span className="store-indicator" />
@@ -378,6 +471,8 @@ export function Workspace() {
                   key={item.id}
                   className={`nav-item ${page === item.id ? 'active' : ''}`}
                   aria-current={page === item.id ? 'page' : undefined}
+                  title={item.name}
+                  aria-label={item.name}
                   onClick={() => navigate(item.id)}
                 >
                   <item.icon size={18} strokeWidth={1.7} />
@@ -402,6 +497,8 @@ export function Workspace() {
           {admin && (
             <button
               className={`nav-item ${page === 'settings' ? 'active' : ''}`}
+              aria-label="Configurações"
+              title="Configurações"
               onClick={() => navigate('settings')}
             >
               <Settings size={18} strokeWidth={1.7} />
@@ -410,6 +507,8 @@ export function Workspace() {
           )}
           <button
             className="nav-item"
+            aria-label="Ajuda"
+            title="Ajuda"
             onClick={() =>
               openDialog({
                 title: 'Encontre seu ritmo com o Compasso',
@@ -426,7 +525,7 @@ export function Workspace() {
                           [
                             '2',
                             'Convide seus clientes',
-                            `Eles se cadastram usando o código ${data.settings.slug}.`,
+                            'Eles encontram seu estabelecimento pelo nome no cadastro.',
                           ],
                           [
                             '3',
@@ -471,7 +570,7 @@ export function Workspace() {
                       </div>
                     ))}
                     <p className="form-note">
-                      Pagamentos online e WhatsApp Business ainda não estão habilitados.
+                      O WhatsApp abre uma conversa manual pelo telefone do cliente, sem envio automático.
                     </p>
                   </div>
                 ),
@@ -481,20 +580,33 @@ export function Workspace() {
             <CircleHelp size={18} strokeWidth={1.7} />
             <span>Preciso de uma mão</span>
           </button>
+          {admin && <WorkspaceSwitcher props={props} beforeOpen={()=>setMobile(false)}/>}
           <div className="sidebar-profile">
+
             <Avatar name={data.user.name} />
             <div>
               <strong>{data.user.name}</strong>
               <small>{admin ? 'Administradora' : 'Cliente'}</small>
             </div>
-            <button className="icon-button" aria-label="Sair da conta" onClick={logout}>
+            {!admin && <button className="icon-button" aria-label="Sair da conta" onClick={logout}>
               <LogOut size={17} />
-            </button>
+            </button>}
           </div>
         </div>
       </aside>
       <div className="workspace">
-        <header className="topbar">
+        {!admin && (
+          <CustomerHeader
+            name={data.user.name}
+            page={page}
+            cartCount={cart.length}
+            unread={unread}
+            navigate={navigate}
+            openMenu={() => setMobile(true)}
+            openNotifications={() => setNotifications(!notifications)}
+          />
+        )}
+        <header className={`topbar ${admin ? '' : 'admin-topbar-hidden'}`}>
           <div className="breadcrumb">
             <button
               className="icon-button mobile-menu"
@@ -503,12 +615,22 @@ export function Workspace() {
             >
               <Menu size={21} />
             </button>
+            <a
+              className="admin-mobile-brand brand"
+              href="/"
+              onClick={(event) => {
+                event.preventDefault();
+                navigate('home');
+              }}
+            >
+              <Brand />
+            </a>
             <span>{admin ? 'Meu negócio' : 'Meu espaço'}</span>
             <ChevronRight size={13} />
             <strong>{currentLabel}</strong>
           </div>
           <div className="topbar-actions">
-            <button className="topbar-search" onClick={search}>
+            <button className="topbar-search" aria-label="Pesquisar na plataforma" onClick={search}>
               <Search size={16} />
               <span>Encontre algo…</span>
               <kbd>⌘ K</kbd>
@@ -532,16 +654,45 @@ export function Workspace() {
               {unread > 0 && <span className="notification-dot" />}
             </button>
             <span className="topbar-divider" />
-            <button
+            {admin ? <details className="account-dropdown"
+              onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false; }}
+              onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus(); } }}>
+              <summary className="topbar-user" aria-label={`Conta de ${data.user.name}`}>
+                <Avatar name={data.user.name} size="small" />
+                <span>{data.user.name.split(' ')[0]}</span>
+                <ChevronDown size={14} />
+              </summary>
+              <div className="account-dropdown-options">
+                <button type="button" onClick={event => { event.currentTarget.closest('details')?.removeAttribute('open'); navigate('settings'); }}><Settings size={17} />Configurações</button>
+                <button type="button" onClick={logout}><LogOut size={17} />Sair</button>
+              </div>
+            </details> : <button
               className="topbar-user"
+              aria-label={`Conta de ${data.user.name}`}
               onClick={() => navigate(admin ? 'settings' : 'profile')}
             >
               <Avatar name={data.user.name} size="small" />
               <span>{data.user.name.split(' ')[0]}</span>
               <ChevronDown size={14} />
-            </button>
+            </button>}
           </div>
         </header>
+        <nav className="pulse-section-nav" aria-label="Atalhos principais">
+          {(admin
+            ? adminNavigation[0].items.slice(0, 4)
+            : customerNavigation[0].items.filter((item) =>
+                ['home', 'discovery', 'appointments', 'profile'].includes(item.id),
+              )
+          ).map((item) => (
+            <button
+              key={item.id}
+              aria-current={page === item.id ? 'page' : undefined}
+              onClick={() => navigate(item.id)}
+            >
+              {item.name}
+            </button>
+          ))}
+        </nav>
         {notifications && (
           <section className="notifications-popover">
             <div className="panel-heading">
@@ -587,11 +738,14 @@ export function Workspace() {
           </section>
         )}
         <main className="main-content" key={page}>
+          {admin && <WorkspaceAppearance revision={revision} />}
+          {data.user.role === 'admin' && page !== 'settings' && <StoreTrialBanner revision={revision} manage={() => setPage('settings')} />}
           {fatal && (
             <div className="error-message" role="alert">
               {fatal}
             </div>
           )}
+          <PageTutorial page={page} data={data} />
           {content}
         </main>
       </div>
@@ -609,9 +763,10 @@ export function Workspace() {
         </div>
       )}
     </div>
-  );
+  )}</TimezoneProvider>;
 }
 function SearchDialog({ data, go }: { data: Bootstrap; go: (page: string) => void }) {
+  const { day, time } = useTimeFormats();
   const [query, setQuery] = useState('');
   const needle = query.toLocaleLowerCase();
   return (
@@ -660,3 +815,4 @@ function SearchDialog({ data, go }: { data: Bootstrap; go: (page: string) => voi
     </div>
   );
 }
+
